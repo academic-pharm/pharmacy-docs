@@ -35,12 +35,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .hdot{position:absolute;border-radius:50%;animation:dotPulse 3s ease-in-out infinite}
 @keyframes dotPulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.75;transform:scale(1.5)}}
 .lang-row{position:absolute;top:22px;right:22px;display:flex;border-radius:20px;padding:3px;z-index:2;
-  background:
-    linear-gradient(rgba(10,6,26,.92),rgba(10,6,26,.92)) padding-box,
-    conic-gradient(from var(--border-angle),rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),rgba(168,85,247,.95),rgba(139,92,246,1)) border-box;
-  border:1.5px solid transparent;
-  animation:spinBorderUI 4s linear infinite;
-  box-shadow:0 0 14px 2px rgba(139,92,246,.3),0 0 32px 6px rgba(6,182,212,.15)}
+  background:rgba(10,6,26,.92);border:1.5px solid rgba(139,92,246,.75);
+  animation:uiGlow 5s linear infinite;animation-delay:0s}
 .lang-btn{padding:5px 14px;border:none;background:transparent;color:rgba(255,255,255,.3);border-radius:14px;cursor:pointer;font-size:.78rem;font-weight:700;font-family:inherit;transition:.2s}
 .lang-btn.active{background:rgba(139,92,246,.2);color:#c084fc;border:1px solid rgba(139,92,246,.3)}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(6,182,212,.2);border-radius:20px;padding:6px 20px;font-size:.75rem;color:rgba(6,182,212,.75);margin-bottom:28px;font-family:'Space Mono',monospace;letter-spacing:.07em;backdrop-filter:blur(12px);animation:badgePulse 5s ease-in-out infinite}
@@ -51,16 +47,20 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .hero p{font-size:.82rem;color:rgba(180,160,220,.4);font-family:'Space Mono',monospace;letter-spacing:.07em;min-height:1.2em}
 /* CARDS */
 .cards-wrap{max-width:920px;margin:-70px auto 0;padding:0 20px 90px;display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:26px;position:relative;z-index:2}
-/* ── Cards — spinning border via @property (no wrapper, no flash on refresh) ── */
+/* ── Cards — color-cycling border glow ── */
+@keyframes cardGlow{
+  0%  {border-color:rgba(6,182,212,.75); box-shadow:0 0 16px 4px rgba(6,182,212,.45),0 0 45px 10px rgba(6,182,212,.18),0 30px 100px rgba(0,0,0,.6)}
+  25% {border-color:rgba(139,92,246,.75);box-shadow:0 0 16px 4px rgba(139,92,246,.45),0 0 45px 10px rgba(139,92,246,.18),0 30px 100px rgba(0,0,0,.6)}
+  50% {border-color:rgba(219,39,119,.75);box-shadow:0 0 16px 4px rgba(219,39,119,.45),0 0 45px 10px rgba(219,39,119,.18),0 30px 100px rgba(0,0,0,.6)}
+  75% {border-color:rgba(52,211,153,.75);box-shadow:0 0 16px 4px rgba(52,211,153,.45),0 0 45px 10px rgba(52,211,153,.18),0 30px 100px rgba(0,0,0,.6)}
+  100%{border-color:rgba(6,182,212,.75); box-shadow:0 0 16px 4px rgba(6,182,212,.45),0 0 45px 10px rgba(6,182,212,.18),0 30px 100px rgba(0,0,0,.6)}
+}
 .card{
   border-radius:25px;text-decoration:none;display:flex;flex-direction:column;
   position:relative;cursor:pointer;overflow:hidden;
-  background:
-    linear-gradient(#080516,#080516) padding-box,
-    conic-gradient(from var(--border-angle),rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),rgba(168,85,247,.95),rgba(139,92,246,1)) border-box;
-  border:2px solid transparent;
-  animation:spinBorderUI 4s linear infinite;
-  box-shadow:0 0 20px 4px rgba(139,92,246,.28),0 0 50px 10px rgba(139,92,246,.12),0 40px 120px rgba(0,0,0,.6);
+  background:#080516;
+  border:1.5px solid rgba(6,182,212,.75);
+  animation:cardGlow 6s linear infinite;
 }
 .card::before{display:none}
 /* Running sweep line */
@@ -80,12 +80,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 }
 /* Per-card stagger */
 #cpe-card  {animation-delay:0s}
-#proj-card {animation-delay:-1.5s}
-#admin-card{animation-delay:-3s}
-.c-cpe:hover,.c-proj:hover,.c-admin:hover{
-  background:linear-gradient(#0d0920,#0d0920) padding-box,
-    conic-gradient(from var(--border-angle),rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),rgba(168,85,247,.95),rgba(139,92,246,1)) border-box;
-}
+#proj-card {animation-delay:-2s}
+#admin-card{animation-delay:-4s}
+.c-cpe:hover,.c-proj:hover,.c-admin:hover{background:#0d0920}
 /* Card banner */
 .card-banner{padding:38px 28px 28px;position:relative;overflow:hidden;min-height:185px;display:flex;flex-direction:column;justify-content:flex-end}
 .banner-nebula{display:none}
@@ -153,24 +150,20 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
   75% {filter:brightness(1.1) drop-shadow(0 0 8px rgba(52,211,153,.7)) drop-shadow(0 0 18px rgba(52,211,153,.4))}
   100%{filter:brightness(1.1) drop-shadow(0 0 8px rgba(6,182,212,.7))  drop-shadow(0 0 18px rgba(6,182,212,.4))}
 }
-/* ── Spinning border via CSS @property (no wrapper needed) ── */
-@property --border-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
+/* ── UI element glow (auth badge, lang switcher) ── */
+@keyframes uiGlow{
+  0%  {border-color:rgba(6,182,212,.75); box-shadow:0 0 10px 2px rgba(6,182,212,.4), 0 0 25px 5px rgba(6,182,212,.15)}
+  25% {border-color:rgba(139,92,246,.75);box-shadow:0 0 10px 2px rgba(139,92,246,.4),0 0 25px 5px rgba(139,92,246,.15)}
+  50% {border-color:rgba(219,39,119,.75);box-shadow:0 0 10px 2px rgba(219,39,119,.4),0 0 25px 5px rgba(219,39,119,.15)}
+  75% {border-color:rgba(52,211,153,.75); box-shadow:0 0 10px 2px rgba(52,211,153,.4),0 0 25px 5px rgba(52,211,153,.15)}
+  100%{border-color:rgba(6,182,212,.75); box-shadow:0 0 10px 2px rgba(6,182,212,.4), 0 0 25px 5px rgba(6,182,212,.15)}
 }
-@keyframes spinBorderUI { to { --border-angle: 360deg; } }
 /* ── Auth UI ── */
 .top-row{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:20}
 #auth-bar{}
 .auth-badge{display:flex;align-items:center;gap:8px;border-radius:20px;padding:5px 14px 5px 6px;
-  background:
-    linear-gradient(rgba(10,6,26,.92),rgba(10,6,26,.92)) padding-box,
-    conic-gradient(from var(--border-angle),rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),rgba(168,85,247,.95),rgba(139,92,246,1)) border-box;
-  border:1.5px solid transparent;
-  animation:spinBorderUI 4s linear infinite;
-  animation-delay:-2s;
-  box-shadow:0 0 14px 2px rgba(139,92,246,.3),0 0 32px 6px rgba(219,39,119,.15)}
+  background:rgba(10,6,26,.92);border:1.5px solid rgba(139,92,246,.75);
+  animation:uiGlow 5s linear infinite;animation-delay:-2.5s}
 .auth-avatar{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.12)}
 .auth-avatar-fallback{width:26px;height:26px;border-radius:50%;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.35);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#c084fc}
 .auth-name{font-size:.75rem;font-weight:600;color:rgba(240,234,255,.8);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -178,13 +171,8 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
 .auth-logout{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(180,160,220,.4);font-size:.68rem;padding:3px 8px;cursor:pointer;font-family:inherit;transition:.2s}
 .auth-logout:hover{border-color:rgba(239,68,68,.35);color:rgba(252,165,165,.7)}
 .auth-login-btn{display:flex;align-items:center;gap:6px;border-radius:16px;padding:7px 16px;color:#c084fc;font-size:.75rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.05em;text-decoration:none;cursor:pointer;transition:filter .2s;
-  background:
-    linear-gradient(rgba(139,92,246,.15),rgba(139,92,246,.15)) padding-box,
-    conic-gradient(from var(--border-angle),rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),rgba(168,85,247,.95),rgba(139,92,246,1)) border-box;
-  border:1.5px solid transparent;
-  animation:spinBorderUI 4s linear infinite;
-  animation-delay:-1s;
-  box-shadow:0 0 14px 2px rgba(139,92,246,.3)}
+  background:rgba(139,92,246,.12);border:1.5px solid rgba(139,92,246,.75);
+  animation:uiGlow 5s linear infinite;animation-delay:-1s}
 .auth-login-btn:hover{filter:brightness(1.35)}
 /* Cards: cpe/proj hidden until JS shows them; admin always visible */
 #cpe-card,#proj-card{display:none}
