@@ -371,7 +371,48 @@ function showLoginError(msg){
   el.innerHTML=msg;el.style.display='block';
 }
 
+/* ── In-app browser detection ── */
+function isInAppBrowser(){
+  const ua=navigator.userAgent||'';
+  return /Line\/|FBAN|FBAV|Instagram|Twitter|Snapchat|TikTok|MicroMessenger|WeChat|LinkedInApp|GSA\//.test(ua)
+    || (/Android/.test(ua) && /Version\/\d/.test(ua) && !/Chrome\//.test(ua));
+}
+
+function showInAppWarning(){
+  const wrap=document.getElementById('google-signin-btn');
+  const pageUrl=window.location.href;
+  // Android: use intent to open Chrome; iOS: just show URL
+  const isAndroid=/Android/.test(navigator.userAgent);
+  const chromeIntent=isAndroid
+    ?`intent://${pageUrl.replace(/^https?:\/\//,'')}#Intent;scheme=https;package=com.android.chrome;end`
+    :'';
+  wrap.innerHTML=`
+    <div style="
+      background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.45);
+      border-radius:12px;padding:14px 16px;text-align:center;
+    ">
+      <div style="font-size:1.5rem;margin-bottom:6px">⚠️</div>
+      <p style="color:#fbbf24;font-size:.82rem;font-weight:600;margin-bottom:4px">
+        ไม่สามารถล็อกอินผ่าน Google ใน In-App Browser ได้
+      </p>
+      <p style="color:#a0aec0;font-size:.75rem;line-height:1.5;margin-bottom:10px">
+        กรุณาเปิดลิงก์นี้ใน <strong>Chrome</strong> หรือ <strong>Safari</strong>
+      </p>
+      ${isAndroid?`<a href="${chromeIntent}" style="
+        display:inline-block;background:#4285f4;color:white;
+        font-size:.8rem;font-weight:600;padding:8px 20px;border-radius:20px;
+        text-decoration:none;margin-bottom:8px;
+      ">🌐 เปิดใน Chrome</a><br>`:``}
+      <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${pageUrl}').then(()=>{this.textContent='✓ คัดลอกแล้ว!';setTimeout(()=>{this.textContent='คัดลอกลิงก์'},1500)})" style="
+        background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+        color:#e2d9f3;font-size:.75rem;padding:6px 16px;border-radius:16px;cursor:pointer;
+      ">คัดลอกลิงก์</button>
+    </div>`;
+}
+
 function initGIS(){
+  // Block OAuth in WebView / in-app browsers (Google 403: disallowed_useragent)
+  if(isInAppBrowser()){showInAppWarning();return;}
   google.accounts.id.initialize({
     client_id:AUTH_CONFIG.CLIENT_ID,
     callback:handleCredentialResponse
@@ -399,35 +440,174 @@ function initGIS(){
   })();
 })();
 
-/* ── Particle canvas ── */
+/* ── Canvas: stars · shooting stars · spaceship · particles ── */
 (function(){
   const cvs=document.getElementById('bg-canvas');
   const ctx=cvs.getContext('2d');
   const COLORS=['139,92,246','6,182,212','219,39,119','168,85,247'];
-  let W,H,stars=[],particles=[],mx=-999,my=-999;
+  let W,H,stars=[],particles=[],shooters=[],mx=-999,my=-999;
+  const ship={active:false,x:0,y:0,vx:0,vy:0,dir:1,size:13,trail:[],timer:0};
+
   function resize(){W=cvs.width=innerWidth;H=cvs.height=innerHeight}
-  resize();window.addEventListener('resize',()=>{resize();init()});
+  resize();
+  window.addEventListener('resize',()=>{resize();init()});
   window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+
   function init(){
-    stars=Array.from({length:Math.min(200,Math.floor(W*H/5000))},()=>({
+    stars=Array.from({length:Math.min(220,Math.floor(W*H/4500))},()=>({
       x:Math.random()*W,y:Math.random()*H,
-      r:Math.random()*1.3+.2,a:Math.random()*.6+.1,va:(Math.random()-.5)*.008
+      r:Math.random()*1.4+.2,
+      a:Math.random()*.6+.1,va:(Math.random()-.5)*.007,
+      sparkle:0
     }));
     particles=Array.from({length:Math.min(50,Math.floor(W*H/18000))},()=>({
       x:Math.random()*W,y:Math.random()*H,
       vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,
       r:Math.random()*1.5+.5,c:COLORS[Math.floor(Math.random()*COLORS.length)]
     }));
+    ship.timer=Math.floor(Math.random()*300+200);
   }
   init();
+
+  /* ── Spawn helpers ── */
+  function spawnShip(){
+    ship.dir=Math.random()>.5?1:-1;
+    ship.x=ship.dir>0?-80:W+80;
+    ship.y=Math.random()*H*.65+H*.06;
+    const spd=Math.random()*2.5+2.5;
+    ship.vx=ship.dir*spd; ship.vy=(Math.random()-.5)*.5;
+    ship.size=Math.random()*5+11;
+    ship.active=true; ship.trail=[];
+  }
+
+  /* ── Draw spaceship ── */
+  function drawShip(x,y,s,dir){
+    ctx.save();
+    ctx.translate(x,y);
+    if(dir<0)ctx.scale(-1,1);
+
+    /* engine glow */
+    const eg=ctx.createRadialGradient(-s*.9,0,0,-s*.9,0,s*.75);
+    eg.addColorStop(0,'rgba(139,92,246,.95)');
+    eg.addColorStop(.4,'rgba(219,39,119,.55)');
+    eg.addColorStop(1,'rgba(139,92,246,0)');
+    ctx.beginPath();ctx.ellipse(-s*.9,0,s*.9,s*.22,0,0,Math.PI*2);
+    ctx.fillStyle=eg;ctx.fill();
+
+    /* body */
+    ctx.beginPath();
+    ctx.moveTo(s*1.1,0);
+    ctx.lineTo(s*.4,-s*.38);ctx.lineTo(-s*.55,-s*.38);
+    ctx.lineTo(-s*.85,-s*.14);ctx.lineTo(-s*.85,s*.14);
+    ctx.lineTo(-s*.55,s*.38);ctx.lineTo(s*.4,s*.38);
+    ctx.closePath();
+    ctx.fillStyle='rgba(215,210,248,.93)';
+    ctx.strokeStyle='rgba(139,92,246,.3)';ctx.lineWidth=.6;
+    ctx.fill();ctx.stroke();
+
+    /* top wing */
+    ctx.beginPath();
+    ctx.moveTo(s*.05,-s*.38);ctx.lineTo(-s*.28,-s*1.08);ctx.lineTo(-s*.6,-s*.38);
+    ctx.closePath();
+    ctx.fillStyle='rgba(139,92,246,.8)';ctx.strokeStyle='rgba(168,85,247,.4)';ctx.lineWidth=.5;
+    ctx.fill();ctx.stroke();
+
+    /* bottom wing */
+    ctx.beginPath();
+    ctx.moveTo(s*.05,s*.38);ctx.lineTo(-s*.28,s*1.08);ctx.lineTo(-s*.6,s*.38);
+    ctx.closePath();ctx.fillStyle='rgba(139,92,246,.8)';ctx.fill();ctx.stroke();
+
+    /* cockpit */
+    ctx.beginPath();ctx.ellipse(s*.42,0,s*.28,s*.2,0,0,Math.PI*2);
+    ctx.fillStyle='rgba(6,182,212,.75)';ctx.strokeStyle='rgba(180,240,255,.4)';ctx.lineWidth=.7;
+    ctx.fill();ctx.stroke();
+
+    /* cockpit highlight */
+    ctx.beginPath();ctx.ellipse(s*.34,-s*.07,s*.1,s*.07,-.3,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.35)';ctx.fill();
+
+    ctx.restore();
+  }
+
+  /* ── Draw loop ── */
   function draw(){
     ctx.clearRect(0,0,W,H);
+
+    /* sparkle stars */
     stars.forEach(s=>{
       s.a=Math.max(.05,Math.min(.8,s.a+s.va));
       if(s.a<=.05||s.a>=.8)s.va*=-1;
-      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.fill();
+      if(!s.sparkle&&Math.random()<.0004)s.sparkle=1;
+
+      if(s.sparkle>0){
+        const len=s.r*9*s.sparkle;
+        ctx.globalAlpha=s.sparkle*.6;
+        for(let i=0;i<4;i++){
+          const ang=i*Math.PI/2;
+          ctx.beginPath();
+          ctx.moveTo(s.x,s.y);
+          ctx.lineTo(s.x+Math.cos(ang)*len,s.y+Math.sin(ang)*len);
+          ctx.strokeStyle='rgba(220,200,255,1)';ctx.lineWidth=.6;ctx.stroke();
+        }
+        ctx.globalAlpha=1;
+        s.sparkle=Math.max(0,s.sparkle-.036);
+      }
+
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r*(1+.3*(s.sparkle||0)),0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${Math.min(s.a+(s.sparkle||0)*.55,1)})`;ctx.fill();
     });
+
+    /* shooting stars */
+    if(Math.random()<.0025&&shooters.length<3){
+      const spd=Math.random()*5+4,ang=Math.PI*.22+Math.random()*.15;
+      shooters.push({
+        x:Math.random()*W*.7+W*.05,y:Math.random()*H*.32,
+        vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+        len:Math.random()*90+50,life:Math.random()*25+18,age:0
+      });
+    }
+    for(let i=shooters.length-1;i>=0;i--){
+      const s=shooters[i];
+      s.x+=s.vx;s.y+=s.vy;s.age++;
+      const a=1-s.age/s.life;
+      if(a<=0){shooters.splice(i,1);continue;}
+      const sp=Math.sqrt(s.vx*s.vx+s.vy*s.vy);
+      const tx=s.x-s.vx/sp*s.len,ty=s.y-s.vy/sp*s.len;
+      const g=ctx.createLinearGradient(tx,ty,s.x,s.y);
+      g.addColorStop(0,'rgba(255,255,255,0)');
+      g.addColorStop(.6,`rgba(210,195,255,${a*.5})`);
+      g.addColorStop(1,`rgba(255,255,255,${a})`);
+      ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(s.x,s.y);
+      ctx.strokeStyle=g;ctx.lineWidth=1.6;ctx.stroke();
+      ctx.beginPath();ctx.arc(s.x,s.y,1.8,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill();
+    }
+
+    /* spaceship */
+    if(!ship.active){
+      if(--ship.timer<=0)spawnShip();
+    } else {
+      ship.x+=ship.vx;ship.y+=ship.vy;
+      ship.trail.unshift({x:ship.x,y:ship.y});
+      if(ship.trail.length>30)ship.trail.pop();
+
+      ship.trail.forEach((t,i)=>{
+        const a=(1-i/ship.trail.length)*.42;
+        const r=(1-i/ship.trail.length)*ship.size*.17;
+        if(r<.1)return;
+        ctx.beginPath();ctx.arc(t.x,t.y,r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(139,92,246,${a})`;ctx.fill();
+      });
+
+      drawShip(ship.x,ship.y,ship.size,ship.dir);
+
+      if(ship.x<-160||ship.x>W+160||ship.y<-70||ship.y>H+70){
+        ship.active=false;
+        ship.timer=Math.floor(Math.random()*500+300);
+      }
+    }
+
+    /* color particles (mouse-reactive) */
     particles.forEach(p=>{
       const dx=mx-p.x,dy=my-p.y,dist=Math.sqrt(dx*dx+dy*dy);
       if(dist<120){p.vx-=dx/dist*.04;p.vy-=dy/dist*.04}
@@ -436,6 +616,7 @@ function initGIS(){
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.fillStyle=`rgba(${p.c},.6)`;ctx.fill();
     });
+
     requestAnimationFrame(draw);
   }
   draw();
