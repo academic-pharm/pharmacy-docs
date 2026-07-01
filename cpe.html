@@ -285,18 +285,18 @@ footer{text-align:center;padding:20px;color:rgba(180,160,220,.2);font-size:.7rem
 @media(max-width:400px){.fgrid{grid-template-columns:1fr}}
 /* ── Radiant glow animation ── */
 @keyframes cardGlow{
-  0%  {border-color:rgba(6,182,212,.4);  box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 16px 3px rgba(6,182,212,.2), 0 0 45px 8px rgba(6,182,212,.08), inset 0 1px 0 rgba(255,255,255,.06)}
-  25% {border-color:rgba(139,92,246,.4); box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 16px 3px rgba(139,92,246,.2),0 0 45px 8px rgba(139,92,246,.08),inset 0 1px 0 rgba(255,255,255,.06)}
-  50% {border-color:rgba(219,39,119,.4); box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 16px 3px rgba(219,39,119,.2),0 0 45px 8px rgba(219,39,119,.08),inset 0 1px 0 rgba(255,255,255,.06)}
-  75% {border-color:rgba(52,211,153,.4); box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 16px 3px rgba(52,211,153,.2), 0 0 45px 8px rgba(52,211,153,.08), inset 0 1px 0 rgba(255,255,255,.06)}
-  100%{border-color:rgba(6,182,212,.4);  box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 16px 3px rgba(6,182,212,.2), 0 0 45px 8px rgba(6,182,212,.08), inset 0 1px 0 rgba(255,255,255,.06)}
+  0%  {border-color:rgba(6,182,212,.75);  box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(6,182,212,.5),  0 0 55px 12px rgba(6,182,212,.2),  0 0 90px 25px rgba(6,182,212,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
+  25% {border-color:rgba(139,92,246,.75); box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(139,92,246,.5), 0 0 55px 12px rgba(139,92,246,.2), 0 0 90px 25px rgba(139,92,246,.08), inset 0 1px 0 rgba(255,255,255,.1)}
+  50% {border-color:rgba(219,39,119,.75); box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(219,39,119,.5), 0 0 55px 12px rgba(219,39,119,.2), 0 0 90px 25px rgba(219,39,119,.08), inset 0 1px 0 rgba(255,255,255,.1)}
+  75% {border-color:rgba(52,211,153,.75); box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(52,211,153,.5), 0 0 55px 12px rgba(52,211,153,.2), 0 0 90px 25px rgba(52,211,153,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
+  100%{border-color:rgba(6,182,212,.75);  box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(6,182,212,.5),  0 0 55px 12px rgba(6,182,212,.2),  0 0 90px 25px rgba(6,182,212,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
 }
 @keyframes rowGlow{
-  0%  {border-color:rgba(6,182,212,.3);  box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 10px 2px rgba(6,182,212,.15)}
-  25% {border-color:rgba(139,92,246,.3); box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 10px 2px rgba(139,92,246,.15)}
-  50% {border-color:rgba(219,39,119,.3); box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 10px 2px rgba(219,39,119,.15)}
-  75% {border-color:rgba(52,211,153,.3); box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 10px 2px rgba(52,211,153,.15)}
-  100%{border-color:rgba(6,182,212,.3);  box-shadow:0 2px 12px rgba(0,0,0,.25),0 0 10px 2px rgba(6,182,212,.15)}
+  0%  {border-color:rgba(6,182,212,.65);  box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(6,182,212,.4),  0 0 35px 8px rgba(6,182,212,.15)}
+  25% {border-color:rgba(139,92,246,.65); box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(139,92,246,.4), 0 0 35px 8px rgba(139,92,246,.15)}
+  50% {border-color:rgba(219,39,119,.65); box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(219,39,119,.4), 0 0 35px 8px rgba(219,39,119,.15)}
+  75% {border-color:rgba(52,211,153,.65); box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(52,211,153,.4), 0 0 35px 8px rgba(52,211,153,.15)}
+  100%{border-color:rgba(6,182,212,.65);  box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(6,182,212,.4),  0 0 35px 8px rgba(6,182,212,.15)}
 }
 .fc{transition:background .3s cubic-bezier(.4,0,.2,1);animation:cardGlow 6s linear infinite}
 .fl{animation:rowGlow 6s linear infinite}
