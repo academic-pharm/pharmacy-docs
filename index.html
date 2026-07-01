@@ -83,7 +83,26 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 @keyframes rpl{to{transform:scale(1);opacity:0}}
 footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem;margin-top:auto;font-family:'Space Mono',monospace;letter-spacing:.06em;position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.05)}
 @media(max-width:700px){.cards-wrap{grid-template-columns:1fr;margin-top:-48px}.hero{padding:64px 20px 96px}.hero h1{font-size:1.8rem}}
+/* ── Auth UI ── */
+.top-row{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:20}
+#auth-bar{}
+.auth-badge{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:5px 14px 5px 6px;backdrop-filter:blur(12px)}
+.auth-avatar{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.12)}
+.auth-avatar-fallback{width:26px;height:26px;border-radius:50%;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.35);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#c084fc}
+.auth-name{font-size:.75rem;font-weight:600;color:rgba(240,234,255,.8);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth-role{font-size:.65rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.06em}
+.auth-logout{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(180,160,220,.4);font-size:.68rem;padding:3px 8px;cursor:pointer;font-family:inherit;transition:.2s}
+.auth-logout:hover{border-color:rgba(239,68,68,.35);color:rgba(252,165,165,.7)}
+.auth-login-btn{display:flex;align-items:center;gap:6px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);border-radius:16px;padding:7px 16px;color:#c084fc;font-size:.75rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.05em;text-decoration:none;cursor:pointer;transition:.2s;backdrop-filter:blur(12px)}
+.auth-login-btn:hover{background:rgba(139,92,246,.22);border-color:rgba(139,92,246,.45)}
+/* Admin card */
+.c-admin{display:none}
+.c-admin::after{background:linear-gradient(90deg,transparent,#CCFF00,#a3e635,transparent)}
+.c-admin:hover{border-color:rgba(204,255,0,.35);background:rgba(204,255,0,.04);box-shadow:0 12px 50px rgba(204,255,0,.1),0 0 0 1px rgba(204,255,0,.12),inset 0 1px 0 rgba(255,255,255,.1)}
+.c-admin .stat-pill{background:rgba(204,255,0,.07);color:#CCFF00;border:1px solid rgba(204,255,0,.2)}
+.c-admin .card-arrow{background:rgba(204,255,0,.07);color:#CCFF00;border-color:rgba(204,255,0,.2)}
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 <div class="hero">
@@ -94,9 +113,12 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
   <div class="hdot" style="width:3px;height:3px;background:rgba(219,39,119,.55);top:55px;right:190px;animation-delay:1.6s"></div>
   <div class="hdot" style="width:4px;height:4px;background:rgba(139,92,246,.6);bottom:55px;left:35%;animation-delay:2.8s"></div>
   <div class="hdot" style="width:3px;height:3px;background:rgba(34,211,238,.5);bottom:38px;right:28%;animation-delay:1.2s"></div>
-  <div class="lang-row">
-    <button class="lang-btn active" data-lang="th" onclick="setLangIdx('th')">TH</button>
-    <button class="lang-btn" data-lang="en" onclick="setLangIdx('en')">EN</button>
+  <div class="top-row">
+    <div id="auth-bar"></div>
+    <div class="lang-row" style="position:relative;top:auto;right:auto">
+      <button class="lang-btn active" data-lang="th" onclick="setLangIdx('th')">TH</button>
+      <button class="lang-btn" data-lang="en" onclick="setLangIdx('en')">EN</button>
+    </div>
   </div>
   <div class="hero-badge">🌌 <span data-th="คณะเภสัชศาสตร์" data-en="FACULTY OF PHARMACY">คณะเภสัชศาสตร์</span></div>
   <h1><span class="a1">โครงการบริการวิชาการ</span> &amp; <span class="a2">CPE</span></h1>
@@ -108,7 +130,7 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
       <div class="banner-grid"></div>
       <div class="banner-nebula"></div>
       <div class="card-banner-icon">💊</div>
-      <h2 data-th="CPE 2567" data-en="CPE 2567">CPE 2567</h2>
+      <h2 data-th="CPE" data-en="CPE">CPE</h2>
       <p>CONTINUING PHARMACY EDUCATION</p>
     </div>
     <div class="card-body">
@@ -124,7 +146,7 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
       <div class="banner-grid"></div>
       <div class="banner-nebula"></div>
       <div class="card-banner-icon">🚀</div>
-      <h2 data-th="โครงการ 67-68" data-en="PROJECTS 67-68">โครงการ 67-68</h2>
+      <h2 data-th="โครงการ" data-en="PROJECTS">โครงการ</h2>
       <p>ACADEMIC SERVICE PROJECTS</p>
     </div>
     <div class="card-body">
@@ -133,6 +155,22 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
         <span class="stat-pill">◈ <span data-count="344">344</span> <span data-th="โฟลเดอร์" data-en="FOLDERS">โฟลเดอร์</span></span>
       </div>
       <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
+    </div>
+  </a>
+  <!-- Admin only card -->
+  <a class="card c-admin" id="admin-card" href="academic-form-system.html" style="--bn-rgb:204,255,0;--fd:4s;--fdelay:.3s">
+    <div class="card-banner">
+      <div class="banner-grid"></div>
+      <div class="banner-nebula"></div>
+      <div class="card-banner-icon">📋</div>
+      <h2>แบบฟอร์มวิชาการ</h2>
+      <p>ACADEMIC FORM SYSTEM</p>
+    </div>
+    <div class="card-body">
+      <div class="stat-list">
+        <span class="stat-pill">⚡ ADMIN ONLY</span>
+      </div>
+      <span class="card-arrow">จัดการแบบฟอร์ม →</span>
     </div>
   </a>
 </div>
@@ -178,6 +216,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.card').forEach((c,i)=>{c.style.opacity='0';setTimeout(()=>{c.style.transition='opacity .45s ease, transform .45s ease';c.style.opacity='1';c.style.transform='';setTimeout(()=>c.style.transition='',500);},i*100+400);});
 });
 
+/* ── Auth init ── */
+(function(){
+  const u = getUser();
+  const bar = document.getElementById('auth-bar');
+  if (u) {
+    renderUserBadge('auth-bar', u);
+    if (isAdmin(u)) {
+      const ac = document.getElementById('admin-card');
+      if (ac) ac.style.display = 'flex';
+    }
+  } else {
+    bar.innerHTML = '<a class="auth-login-btn" href="login.html">🔑 เข้าสู่ระบบ</a>';
+  }
+})();
 </script>
 </body>
 </html>

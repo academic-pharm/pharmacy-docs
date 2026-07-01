@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เข้าสู่ระบบ — คณะเภสัชศาสตร์ BUU</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Noto Sans Thai',sans-serif;background:#06040f;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#e2d9f3;position:relative;overflow:hidden}
+
+/* Nebula BG */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 55% at 8% 50%,rgba(6,182,212,.18) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 55% at 92% 40%,rgba(139,92,246,.22) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 50% 60%,rgba(219,39,119,.11) 0%,transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,#0a061a 0%,#06040f 100%);
+  animation:nebulaBreath 18s ease-in-out infinite alternate}
+@keyframes nebulaBreath{0%{opacity:1}50%{opacity:.88}100%{opacity:1}}
+
+/* Static star dots */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%,rgba(255,255,255,.32) 0%,transparent 100%),
+    radial-gradient(1px 1px at 35% 9%,rgba(255,255,255,.22) 0%,transparent 100%),
+    radial-gradient(2px 2px at 68% 15%,rgba(255,255,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 6%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 94% 42%,rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 3% 68%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(2px 2px at 76% 75%,rgba(200,180,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 88%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 58%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 60% 45%,rgba(200,180,255,.22) 0%,transparent 100%)}
+
+/* Canvas (particle stars) */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* Scan line */
+.scan-line{position:fixed;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(139,92,246,.65),rgba(219,39,119,.55),rgba(6,182,212,.55),transparent);
+  animation:scanAnim 8s linear infinite;pointer-events:none;filter:blur(.4px);z-index:1}
+@keyframes scanAnim{0%{top:-2px;opacity:1}85%{opacity:.5}100%{top:101%;opacity:0}}
+
+/* Login card */
+.login-wrap{position:relative;z-index:2;width:100%;max-width:440px;padding:24px}
+.login-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:28px;
+  padding:48px 40px 44px;
+  backdrop-filter:blur(24px) saturate(1.6);
+  box-shadow:0 24px 80px rgba(0,0,0,.55),
+             inset 0 1px 0 rgba(255,255,255,.09),
+             0 0 80px rgba(139,92,246,.07);
+  position:relative;overflow:hidden;
+  animation:cardIn .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+
+/* Card shimmer line */
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(139,92,246,.55),rgba(219,39,119,.5),rgba(6,182,212,.5),transparent)}
+.login-card::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(139,92,246,.06) 0%,transparent 70%);
+  pointer-events:none}
+
+/* Icon */
+.login-icon{font-size:3rem;text-align:center;margin-bottom:20px;
+  animation:iconFloat 4s ease-in-out infinite;
+  filter:drop-shadow(0 0 22px rgba(139,92,246,.55))}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* Headings */
+.login-title{text-align:center;font-size:1.55rem;font-weight:800;color:#f0eaff;margin-bottom:6px}
+.login-sub{text-align:center;font-size:.78rem;color:rgba(180,160,220,.4);
+  font-family:'Space Mono',monospace;letter-spacing:.07em;margin-bottom:32px}
+
+/* Divider */
+.login-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);margin-bottom:28px}
+
+/* Error */
+.login-error{
+  background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.25);
+  border-radius:12px;padding:12px 16px;margin-bottom:20px;
+  color:rgba(252,165,165,.9);font-size:.82rem;line-height:1.5;
+  display:none;animation:errIn .25s ease}
+@keyframes errIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* Google button wrapper */
+.google-btn-wrap{display:flex;justify-content:center;margin-bottom:24px}
+
+/* Note */
+.login-note{text-align:center;font-size:.73rem;color:rgba(180,160,220,.3);
+  font-family:'Space Mono',monospace;letter-spacing:.05em;line-height:1.6}
+.login-note span{color:rgba(6,182,212,.65);font-weight:700}
+
+/* Loading overlay */
+.login-loading{display:none;position:absolute;inset:0;background:rgba(6,4,15,.7);
+  border-radius:28px;align-items:center;justify-content:center;z-index:10;
+  backdrop-filter:blur(8px)}
+.login-loading.show{display:flex}
+.spin{width:36px;height:36px;border:2.5px solid rgba(139,92,246,.2);
+  border-top-color:#a855f7;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Back link */
+.login-back{display:block;text-align:center;margin-top:20px;
+  font-size:.72rem;color:rgba(180,160,220,.2);text-decoration:none;
+  font-family:'Space Mono',monospace;letter-spacing:.06em;transition:.2s}
+.login-back:hover{color:rgba(180,160,220,.5)}
+
+/* Corner decorations */
+.corner{position:absolute;width:55px;height:55px;pointer-events:none}
+.corner.tl{top:18px;left:20px;border-top:1px solid rgba(6,182,212,.2);border-left:1px solid rgba(6,182,212,.2)}
+.corner.tr{top:18px;right:20px;border-top:1px solid rgba(139,92,246,.2);border-right:1px solid rgba(139,92,246,.2)}
+.corner.bl{bottom:18px;left:20px;border-bottom:1px solid rgba(6,182,212,.12);border-left:1px solid rgba(6,182,212,.12)}
+.corner.br{bottom:18px;right:20px;border-bottom:1px solid rgba(139,92,246,.12);border-right:1px solid rgba(139,92,246,.12)}
+</style>
+<script src="auth.js"></script>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="scan-line"></div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="login-loading" id="login-loading"><div class="spin"></div></div>
+
+    <div class="login-icon">🔬</div>
+    <h1 class="login-title">เข้าสู่ระบบ</h1>
+    <p class="login-sub">// BUU · FACULTY OF PHARMACY //</p>
+    <div class="login-divider"></div>
+
+    <div class="login-error" id="login-error"></div>
+
+    <div class="google-btn-wrap" id="google-signin-btn"></div>
+
+    <p class="login-note">
+      กรุณาใช้อีเมล <span>@go.buu.ac.th</span> เท่านั้น<br>
+      เพื่อเข้าถึงระบบจัดการเอกสาร
+    </p>
+  </div>
+  <a class="login-back" href="index.html">← กลับหน้าหลัก</a>
+</div>
+
+<script>
+// Redirect if already logged in
+(function () {
+  const u = getUser();
+  if (u) location.replace(AUTH_CONFIG.HOME_PAGE);
+})();
+
+/* ── Google credential callback ── */
+function handleCredentialResponse(response) {
+  document.getElementById('login-loading').classList.add('show');
+
+  const payload = decodeJWT(response.credential);
+  if (!payload) {
+    showLoginError('เกิดข้อผิดพลาด ไม่สามารถอ่านข้อมูลบัญชีได้ กรุณาลองใหม่');
+    document.getElementById('login-loading').classList.remove('show');
+    return;
+  }
+
+  const email = (payload.email || '').toLowerCase();
+
+  // Domain check
+  if (!email.endsWith('@' + AUTH_CONFIG.ALLOWED_DOMAIN)) {
+    showLoginError(
+      '❌ อีเมลไม่ถูกต้อง<br>' +
+      'กรุณาใช้อีเมล <strong>@go.buu.ac.th</strong> เท่านั้น<br>' +
+      '<span style="opacity:.6;font-size:.85em">อีเมลที่ใช้: ' + payload.email + '</span>'
+    );
+    document.getElementById('login-loading').classList.remove('show');
+    return;
+  }
+
+  // Save session
+  const user = {
+    email:    email,
+    name:     payload.name  || email.split('@')[0],
+    picture:  payload.picture || '',
+    role:     isAdmin({ email }) ? 'admin' : 'user',
+    loginAt:  Date.now(),
+  };
+  setUser(user);
+
+  // Redirect
+  setTimeout(() => location.replace(AUTH_CONFIG.HOME_PAGE), 300);
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.innerHTML = msg;
+  el.style.display = 'block';
+}
+
+/* ── Init Google Sign-In ── */
+function initGIS() {
+  google.accounts.id.initialize({
+    client_id: AUTH_CONFIG.CLIENT_ID,
+    callback: handleCredentialResponse,
+    hd: AUTH_CONFIG.ALLOWED_DOMAIN,
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('google-signin-btn'),
+    { theme: 'filled_black', size: 'large', shape: 'pill', width: 280, locale: 'th' }
+  );
+}
+
+/* ── Canvas particle stars ── */
+(function () {
+  const cvs = document.getElementById('bg-canvas');
+  const ctx = cvs.getContext('2d');
+  const COLORS = ['139,92,246', '6,182,212', '219,39,119', '168,85,247'];
+  let W, H, stars = [], particles = [], mx = -999, my = -999;
+
+  function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', () => { resize(); init(); });
+  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+  function init() {
+    const N = Math.min(200, Math.floor(W * H / 5000));
+    stars = Array.from({ length: N }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.3 + .2,
+      a: Math.random() * .6 + .1,
+      va: (Math.random() - .5) * .008,
+    }));
+    const P = Math.min(50, Math.floor(W * H / 18000));
+    particles = Array.from({ length: P }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - .5) * .4, vy: (Math.random() - .5) * .4,
+      r: Math.random() * 1.5 + .5,
+      c: COLORS[Math.floor(Math.random() * COLORS.length)],
+    }));
+  }
+  init();
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    stars.forEach(s => {
+      s.a = Math.max(.05, Math.min(.8, s.a + s.va));
+      if (s.a <= .05 || s.a >= .8) s.va *= -1;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${s.a})`; ctx.fill();
+    });
+    particles.forEach(p => {
+      const dx = mx - p.x, dy = my - p.y, dist = Math.sqrt(dx*dx+dy*dy);
+      if (dist < 120) { p.vx -= dx / dist * .04; p.vy -= dy / dist * .04; }
+      p.vx *= .98; p.vy *= .98;
+      p.x = (p.x + p.vx + W) % W; p.y = (p.y + p.vy + H) % H;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.c},.6)`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+<!-- Load Google Identity Services LAST -->
+<script src="https://accounts.google.com/gsi/client" onload="initGIS()" async defer></script>
+</body>
+</html>
