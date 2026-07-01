@@ -167,11 +167,12 @@ function handleCredentialResponse(response) {
 
   const email = (payload.email || '').toLowerCase();
 
-  // Domain check
-  if (!email.endsWith('@' + AUTH_CONFIG.ALLOWED_DOMAIN)) {
+  // Whitelist check
+  const allowed = AUTH_CONFIG.ALLOWED_EMAILS.map(e => e.trim().toLowerCase());
+  if (!allowed.includes(email)) {
     showLoginError(
-      '❌ อีเมลไม่ถูกต้อง<br>' +
-      'กรุณาใช้อีเมล <strong>@go.buu.ac.th</strong> เท่านั้น<br>' +
+      '❌ อีเมลไม่ได้รับอนุญาต<br>' +
+      'กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์การเข้าถึง<br>' +
       '<span style="opacity:.6;font-size:.85em">อีเมลที่ใช้: ' + payload.email + '</span>'
     );
     document.getElementById('login-loading').classList.remove('show');
@@ -203,7 +204,6 @@ function initGIS() {
   google.accounts.id.initialize({
     client_id: AUTH_CONFIG.CLIENT_ID,
     callback: handleCredentialResponse,
-    hd: AUTH_CONFIG.ALLOWED_DOMAIN,
   });
   google.accounts.id.renderButton(
     document.getElementById('google-signin-btn'),
