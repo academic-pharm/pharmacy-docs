@@ -67,12 +67,24 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
   text-decoration:none;display:flex;flex-direction:column;position:relative;z-index:1;
   transition:background .3s;
   backdrop-filter:blur(20px) saturate(1.5);cursor:pointer;overflow:hidden;}
-.card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at calc(var(--mx,.5)*100%) calc(var(--my,.5)*100%),rgba(255,255,255,.06) 0%,transparent 55%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1}
-.card:hover::before{opacity:1}
-.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;transform:scaleX(0);transition:transform .45s ease;pointer-events:none;z-index:2}
-.c-cpe::after{background:linear-gradient(90deg,transparent,#c084fc,#ec4899,transparent)}
-.c-proj::after{background:linear-gradient(90deg,transparent,#22d3ee,#34d399,transparent)}
-.card:hover::after{transform:scaleX(1)}
+/* No inner glow on hover — keeps text readable */
+.card::before{display:none}
+/* Running sweep line on top of card — always animated */
+.card::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:2px;
+  pointer-events:none;z-index:2;
+  animation:cardSweep 3s ease-in-out infinite;
+  filter:blur(.4px);
+}
+.c-cpe::after  {background:linear-gradient(90deg,transparent,#c084fc,#ec4899,transparent);animation-delay:0s}
+.c-proj::after {background:linear-gradient(90deg,transparent,#22d3ee,#34d399,transparent);animation-delay:-1s}
+.c-admin::after{background:linear-gradient(90deg,transparent,#CCFF00,#a3e635,transparent);animation-delay:-2s}
+@keyframes cardSweep{
+  0%  {left:-60%;opacity:0}
+  10% {opacity:1}
+  60% {opacity:.8}
+  100%{left:110%;opacity:0}
+}
 /* Card glow wrap stagger — different phase per card */
 #cpe-card  {animation-delay:0s}
 #proj-card {animation-delay:-1.5s}
