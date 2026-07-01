@@ -82,7 +82,23 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .card-arrow:hover{filter:brightness(1.2);transform:translateX(4px)}
 @keyframes rpl{to{transform:scale(1);opacity:0}}
 footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem;margin-top:auto;font-family:'Space Mono',monospace;letter-spacing:.06em;position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.05)}
-@media(max-width:700px){.cards-wrap{grid-template-columns:1fr;margin-top:-48px}.hero{padding:64px 20px 96px}.hero h1{font-size:1.8rem}}
+/* ── Hero logo badge ── */
+.hero-badge-logo{padding:5px 14px}
+.hero-logo-img{height:34px;width:auto;filter:brightness(1.1) drop-shadow(0 0 10px rgba(6,182,212,.4))}
+@media(max-width:700px){
+  .cards-wrap{grid-template-columns:1fr;margin-top:-48px}
+  .hero{padding:0 16px 96px;display:flex;flex-direction:column;align-items:center}
+  .hero h1{font-size:1.8rem}
+  .top-row{
+    position:relative;top:auto;right:auto;
+    width:100%;align-self:stretch;
+    justify-content:space-between;
+    padding:14px 0 16px;
+    flex-wrap:nowrap;
+  }
+  .auth-name{max-width:80px}
+  .auth-logout{padding:3px 7px;font-size:.62rem}
+}
 /* ── Auth UI ── */
 .top-row{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:20}
 #auth-bar{}
@@ -122,7 +138,11 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
       <button class="lang-btn" data-lang="en" onclick="setLangIdx('en')">EN</button>
     </div>
   </div>
-  <div class="hero-badge">🌌 <span data-th="คณะเภสัชศาสตร์" data-en="FACULTY OF PHARMACY">คณะเภสัชศาสตร์</span></div>
+  <div class="hero-badge hero-badge-logo">
+    <img src="logo.png" alt="RxBUU" class="hero-logo-img"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+    <span style="display:none;align-items:center;gap:8px" data-th="🌌 คณะเภสัชศาสตร์" data-en="🌌 FACULTY OF PHARMACY">🌌 คณะเภสัชศาสตร์</span>
+  </div>
   <h1><span class="a1">โครงการบริการวิชาการ</span> &amp; <span class="a2">CPE</span></h1>
   <p>// DOCUMENT MANAGEMENT SYSTEM //</p>
 </div>
