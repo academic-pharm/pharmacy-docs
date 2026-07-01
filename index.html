@@ -45,31 +45,39 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .hero p{font-size:.82rem;color:rgba(180,160,220,.4);font-family:'Space Mono',monospace;letter-spacing:.07em;min-height:1.2em}
 /* CARDS */
 .cards-wrap{max-width:920px;margin:-70px auto 0;padding:0 20px 90px;display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:26px;position:relative;z-index:2}
-.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:24px;
-  text-decoration:none;display:flex;flex-direction:column;position:relative;
-  transition:background .3s;
-  backdrop-filter:blur(20px) saturate(1.5);cursor:pointer;overflow:hidden;
-  animation:cardGlow 6s linear infinite}
-@keyframes cardGlow{
-  0%  {border-color:rgba(6,182,212,.75);  box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 20px 4px rgba(6,182,212,.5),  0 0 60px 14px rgba(6,182,212,.2),  0 0 100px 30px rgba(6,182,212,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
-  25% {border-color:rgba(139,92,246,.75); box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 20px 4px rgba(139,92,246,.5), 0 0 60px 14px rgba(139,92,246,.2), 0 0 100px 30px rgba(139,92,246,.08), inset 0 1px 0 rgba(255,255,255,.1)}
-  50% {border-color:rgba(219,39,119,.75); box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 20px 4px rgba(219,39,119,.5), 0 0 60px 14px rgba(219,39,119,.2), 0 0 100px 30px rgba(219,39,119,.08), inset 0 1px 0 rgba(255,255,255,.1)}
-  75% {border-color:rgba(52,211,153,.75); box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 20px 4px rgba(52,211,153,.5), 0 0 60px 14px rgba(52,211,153,.2), 0 0 100px 30px rgba(52,211,153,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
-  100%{border-color:rgba(6,182,212,.75);  box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 20px 4px rgba(6,182,212,.5),  0 0 60px 14px rgba(6,182,212,.2),  0 0 100px 30px rgba(6,182,212,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
+/* ── Card glow wrapper (login-style spinning border) ── */
+.card-glow-wrap{
+  position:relative;border-radius:27px;overflow:hidden;padding:2px;
+  animation:glowPulse 5s ease-in-out infinite, cardIn .55s cubic-bezier(.34,1.56,.64,1) both;
 }
+.card-glow-wrap::before{
+  content:'';position:absolute;width:160%;height:160%;top:-30%;left:-30%;
+  background:conic-gradient(from 0deg,
+    rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),
+    rgba(168,85,247,.95),rgba(139,92,246,1));
+  animation:rotateBorder 4s linear infinite;z-index:0;
+}
+@keyframes rotateBorder{to{transform:rotate(360deg)}}
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 22px 5px rgba(139,92,246,.35),0 0 55px 12px rgba(139,92,246,.18),-16px 0 44px 6px rgba(6,182,212,.16),16px 0 44px 6px rgba(219,39,119,.14),0 0 110px 28px rgba(139,92,246,.12),0 50px 140px rgba(0,0,0,.7)}
+  50%{box-shadow:0 0 34px 8px rgba(139,92,246,.52),0 0 75px 18px rgba(139,92,246,.26),-20px 0 58px 9px rgba(6,182,212,.22),20px 0 58px 9px rgba(219,39,119,.2),0 0 140px 36px rgba(139,92,246,.18),0 50px 140px rgba(0,0,0,.7)}
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+.card{background:rgba(10,6,26,.92);border:none;border-radius:25px;
+  text-decoration:none;display:flex;flex-direction:column;position:relative;z-index:1;
+  transition:background .3s;
+  backdrop-filter:blur(20px) saturate(1.5);cursor:pointer;overflow:hidden;}
 .card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at calc(var(--mx,.5)*100%) calc(var(--my,.5)*100%),rgba(255,255,255,.06) 0%,transparent 55%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1}
 .card:hover::before{opacity:1}
 .card::after{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;transform:scaleX(0);transition:transform .45s ease;pointer-events:none;z-index:2}
 .c-cpe::after{background:linear-gradient(90deg,transparent,#c084fc,#ec4899,transparent)}
 .c-proj::after{background:linear-gradient(90deg,transparent,#22d3ee,#34d399,transparent)}
 .card:hover::after{transform:scaleX(1)}
-/* Card glow stagger — each card starts at different phase */
-.c-cpe {animation-delay:0s}
-.c-proj{animation-delay:-2s}
-.c-admin{animation-delay:-4s}
-.c-cpe:hover{border-color:rgba(192,132,252,.5);background:rgba(168,85,247,.06);box-shadow:0 12px 50px rgba(168,85,247,.25),0 0 0 1px rgba(168,85,247,.2),inset 0 1px 0 rgba(255,255,255,.1);animation-play-state:paused}
-.c-proj:hover{border-color:rgba(34,211,238,.5);background:rgba(6,182,212,.06);box-shadow:0 12px 50px rgba(6,182,212,.25),0 0 0 1px rgba(6,182,212,.2),inset 0 1px 0 rgba(255,255,255,.1);animation-play-state:paused}
-.c-admin:hover{animation-play-state:paused}
+/* Card glow wrap stagger — different phase per card */
+#cpe-card  {animation-delay:0s}
+#proj-card {animation-delay:-1.5s}
+#admin-card{animation-delay:-3s}
+.c-cpe:hover,.c-proj:hover,.c-admin:hover{background:rgba(255,255,255,.07)}
 /* Card banner */
 .card-banner{padding:38px 28px 28px;position:relative;overflow:hidden;min-height:185px;display:flex;flex-direction:column;justify-content:flex-end}
 .banner-nebula{position:absolute;inset:0}
@@ -151,9 +159,10 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
 .auth-logout:hover{border-color:rgba(239,68,68,.35);color:rgba(252,165,165,.7)}
 .auth-login-btn{display:flex;align-items:center;gap:6px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);border-radius:16px;padding:7px 16px;color:#c084fc;font-size:.75rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.05em;text-decoration:none;cursor:pointer;transition:.2s;backdrop-filter:blur(12px)}
 .auth-login-btn:hover{background:rgba(139,92,246,.22);border-color:rgba(139,92,246,.45)}
-/* Admin card */
-.c-admin{display:flex}
+/* Card glow wrappers: cpe/proj hidden until JS shows them; admin always shown */
 #cpe-card,#proj-card{display:none}
+#admin-card{display:block}
+.c-admin{display:flex}
 .c-admin::after{background:linear-gradient(90deg,transparent,#CCFF00,#a3e635,transparent)}
 .c-admin:hover{border-color:rgba(204,255,0,.35);background:rgba(204,255,0,.04);box-shadow:0 12px 50px rgba(204,255,0,.1),0 0 0 1px rgba(204,255,0,.12),inset 0 1px 0 rgba(255,255,255,.1)}
 .c-admin .stat-pill{background:rgba(204,255,0,.07);color:#CCFF00;border:1px solid rgba(204,255,0,.2)}
@@ -202,54 +211,60 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
   <p>// DOCUMENT MANAGEMENT SYSTEM //</p>
 </div>
 <div class="cards-wrap">
-  <a class="card c-cpe" id="cpe-card" href="cpe.html" style="--bn-rgb:168,85,247">
-    <div class="card-banner">
-      <div class="banner-grid"></div>
-      <div class="banner-nebula"></div>
-      <div class="card-banner-icon">💊</div>
-      <h2 data-th="CPE" data-en="CPE">CPE</h2>
-      <p>CONTINUING PHARMACY EDUCATION</p>
-    </div>
-    <div class="card-body">
-      <div class="stat-list">
-        <span class="stat-pill">✦ <span data-count="464">464</span> <span data-th="ไฟล์" data-en="FILES">ไฟล์</span></span>
-        <span class="stat-pill">◈ <span data-count="281">281</span> <span data-th="โฟลเดอร์" data-en="FOLDERS">โฟลเดอร์</span></span>
+  <div class="card-glow-wrap" id="cpe-card">
+    <a class="card c-cpe" href="cpe.html" style="--bn-rgb:168,85,247">
+      <div class="card-banner">
+        <div class="banner-grid"></div>
+        <div class="banner-nebula"></div>
+        <div class="card-banner-icon">💊</div>
+        <h2 data-th="CPE" data-en="CPE">CPE</h2>
+        <p>CONTINUING PHARMACY EDUCATION</p>
       </div>
-      <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
-    </div>
-  </a>
-  <a class="card c-proj" id="proj-card" href="projects.html" style="--bn-rgb:6,182,212">
-    <div class="card-banner">
-      <div class="banner-grid"></div>
-      <div class="banner-nebula"></div>
-      <div class="card-banner-icon">🚀</div>
-      <h2 data-th="โครงการ" data-en="PROJECTS">โครงการ</h2>
-      <p>ACADEMIC SERVICE PROJECTS</p>
-    </div>
-    <div class="card-body">
-      <div class="stat-list">
-        <span class="stat-pill">✦ <span data-count="2124">2,124</span> <span data-th="ไฟล์" data-en="FILES">ไฟล์</span></span>
-        <span class="stat-pill">◈ <span data-count="344">344</span> <span data-th="โฟลเดอร์" data-en="FOLDERS">โฟลเดอร์</span></span>
+      <div class="card-body">
+        <div class="stat-list">
+          <span class="stat-pill">✦ <span data-count="464">464</span> <span data-th="ไฟล์" data-en="FILES">ไฟล์</span></span>
+          <span class="stat-pill">◈ <span data-count="281">281</span> <span data-th="โฟลเดอร์" data-en="FOLDERS">โฟลเดอร์</span></span>
+        </div>
+        <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
       </div>
-      <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
-    </div>
-  </a>
+    </a>
+  </div>
+  <div class="card-glow-wrap" id="proj-card">
+    <a class="card c-proj" href="projects.html" style="--bn-rgb:6,182,212">
+      <div class="card-banner">
+        <div class="banner-grid"></div>
+        <div class="banner-nebula"></div>
+        <div class="card-banner-icon">🚀</div>
+        <h2 data-th="โครงการ" data-en="PROJECTS">โครงการ</h2>
+        <p>ACADEMIC SERVICE PROJECTS</p>
+      </div>
+      <div class="card-body">
+        <div class="stat-list">
+          <span class="stat-pill">✦ <span data-count="2124">2,124</span> <span data-th="ไฟล์" data-en="FILES">ไฟล์</span></span>
+          <span class="stat-pill">◈ <span data-count="344">344</span> <span data-th="โฟลเดอร์" data-en="FOLDERS">โฟลเดอร์</span></span>
+        </div>
+        <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
+      </div>
+    </a>
+  </div>
   <!-- Admin only card -->
-  <a class="card c-admin" id="admin-card" href="academic-form-system.html" style="--bn-rgb:204,255,0;--fd:4s;--fdelay:.3s">
-    <div class="card-banner">
-      <div class="banner-grid"></div>
-      <div class="banner-nebula"></div>
-      <div class="card-banner-icon">📋</div>
-      <h2>แบบฟอร์มวิชาการ</h2>
-      <p>ACADEMIC FORM SYSTEM</p>
-    </div>
-    <div class="card-body">
-      <div class="stat-list">
-        <span class="stat-pill">📋 กรอกแบบฟอร์ม</span>
+  <div class="card-glow-wrap" id="admin-card">
+    <a class="card c-admin" href="academic-form-system.html" style="--bn-rgb:204,255,0;--fd:4s;--fdelay:.3s">
+      <div class="card-banner">
+        <div class="banner-grid"></div>
+        <div class="banner-nebula"></div>
+        <div class="card-banner-icon">📋</div>
+        <h2>แบบฟอร์มวิชาการ</h2>
+        <p>ACADEMIC FORM SYSTEM</p>
       </div>
-      <span class="card-arrow">จัดการแบบฟอร์ม →</span>
-    </div>
-  </a>
+      <div class="card-body">
+        <div class="stat-list">
+          <span class="stat-pill">📋 กรอกแบบฟอร์ม</span>
+        </div>
+        <span class="card-arrow">จัดการแบบฟอร์ม →</span>
+      </div>
+    </a>
+  </div>
 </div>
 <footer data-th="DOCUMENT SYSTEM · คณะเภสัชศาสตร์" data-en="DOCUMENT SYSTEM · FACULTY OF PHARMACY">DOCUMENT SYSTEM · คณะเภสัชศาสตร์</footer>
 <script>
@@ -300,11 +315,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   if (u) {
     renderUserBadge('auth-bar', u);
     if (isAdmin(u)) {
-      // Admin sees all cards
+      // Admin sees all cards (IDs are now on wrapper divs)
       const cpe = document.getElementById('cpe-card');
       const proj = document.getElementById('proj-card');
-      if (cpe) cpe.style.display = 'flex';
-      if (proj) proj.style.display = 'flex';
+      if (cpe) cpe.style.display = 'block';
+      if (proj) proj.style.display = 'block';
     }
     // All users: academic form card is already visible via CSS
   } else {
