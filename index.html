@@ -277,11 +277,6 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
 function setLangIdx(l){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));document.querySelectorAll('[data-th]').forEach(el=>{const v=el.getAttribute('data-'+l);if(v)el.innerHTML=v;});}
 
 (function(){
-  const b=document.createElement('div');
-  b.style.cssText='position:fixed;top:0;left:0;height:2px;width:0;z-index:9999;transition:width .6s ease;background:linear-gradient(90deg,transparent,#a855f7,#ec4899,#06b6d4,transparent);box-shadow:0 0 12px #a855f7,0 0 25px rgba(236,72,153,.4)';
-  document.body.prepend(b);setTimeout(()=>{b.style.width='100%';},10);setTimeout(()=>{b.style.opacity='0';setTimeout(()=>b.remove(),500);},900);
-})();
-(function(){
   const cvs=document.createElement('canvas');
   cvs.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0';
   document.body.insertBefore(cvs,document.body.firstChild);
