@@ -1265,7 +1265,8 @@ ${(p.phase3Items||[]).map((item,i)=>`<div class="indent2">๑๖.๓.${toThai(i+
   <div style="white-space:nowrap">${p.deanPos||'คณบดีคณะเภสัชศาสตร์'}</div>
 </div>
 </div></body></html>`;
-  return _html.replace(/(?<=>)[^<]+(?=<)/g, t => t.replace(/[0-9]/g, d => '๐๑๒๓๔๕๖๗๘๙'[+d]));
+  const [_head, _body] = _html.split('<body>');
+  return _head + '<body>' + _body.replace(/(?<=>)[^<]+(?=<)/g, t => t.replace(/[0-9]/g, d => '๐๑๒๓๔๕๖๗๘๙'[+d]));
 }
 
 // ═══════════════════════════════════════════
