@@ -76,10 +76,9 @@ body {
   color:var(--txt);
   font-size:18px;
   line-height:1.7;
+  position:relative;
+  overflow-x:hidden;
 }
-
-/* ── Canvas BG ── */
-#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
 /* ── NAVBAR ── */
 .navbar{
@@ -403,13 +402,46 @@ input.st:focus,input.sa:focus,input.sd:focus{
   .tab-panel{display:block!important}
   .tab-panel + .tab-panel{page-break-before:always}
 }
+/* Cosmic space BG */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 55% at 8% 50%,rgba(6,182,212,.16) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 55% at 92% 40%,rgba(139,92,246,.18) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 50% 60%,rgba(219,39,119,.1) 0%,transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,#0a061a 0%,#06040f 100%);
+  animation:nebulaBreath 18s ease-in-out infinite alternate}
+@keyframes nebulaBreath{0%{opacity:1}50%{opacity:.88}100%{opacity:1}}
+/* Star dust */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 15% 22%,rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 38% 8%,rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 62% 18%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 80% 5%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(2px 2px at 91% 35%,rgba(255,255,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 5% 70%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 72% 75%,rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 48% 90%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(2px 2px at 25% 88%,rgba(200,180,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 85% 92%,rgba(255,255,255,.2) 0%,transparent 100%)}
+@keyframes dotPulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.75;transform:scale(1.5)}}
+@keyframes iconGlow{0%,100%{box-shadow:0 0 20px rgba(var(--ac-rgb),.1)}50%{box-shadow:0 0 40px rgba(var(--ac-rgb),.3),0 0 70px rgba(var(--ac-rgb),.1)}}
+@keyframes iconFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.04)}}
+@keyframes glowRing{0%,100%{opacity:.5;width:40px}50%{opacity:.9;width:55px}}
 /* ── Radiant glow animation ── */
 @keyframes cardGlow{
-  0%  {border-color:rgba(6,182,212,.75);  box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 16px 4px rgba(6,182,212,.5),  0 0 50px 12px rgba(6,182,212,.2)}
-  25% {border-color:rgba(139,92,246,.75); box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 16px 4px rgba(139,92,246,.5), 0 0 50px 12px rgba(139,92,246,.2)}
-  50% {border-color:rgba(219,39,119,.75); box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 16px 4px rgba(219,39,119,.5), 0 0 50px 12px rgba(219,39,119,.2)}
-  75% {border-color:rgba(204,255,0,.75);  box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 16px 4px rgba(204,255,0,.5),  0 0 50px 12px rgba(204,255,0,.2)}
-  100%{border-color:rgba(6,182,212,.75);  box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 16px 4px rgba(6,182,212,.5),  0 0 50px 12px rgba(6,182,212,.2)}
+  0%  {border-color:rgba(6,182,212,.75);  box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(6,182,212,.5),  0 0 55px 12px rgba(6,182,212,.2),  0 0 90px 25px rgba(6,182,212,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
+  25% {border-color:rgba(139,92,246,.75); box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(139,92,246,.5), 0 0 55px 12px rgba(139,92,246,.2), 0 0 90px 25px rgba(139,92,246,.08), inset 0 1px 0 rgba(255,255,255,.1)}
+  50% {border-color:rgba(219,39,119,.75); box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(219,39,119,.5), 0 0 55px 12px rgba(219,39,119,.2), 0 0 90px 25px rgba(219,39,119,.08), inset 0 1px 0 rgba(255,255,255,.1)}
+  75% {border-color:rgba(52,211,153,.75); box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(52,211,153,.5), 0 0 55px 12px rgba(52,211,153,.2), 0 0 90px 25px rgba(52,211,153,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
+  100%{border-color:rgba(6,182,212,.75);  box-shadow:0 4px 24px rgba(0,0,0,.4), 0 0 18px 4px rgba(6,182,212,.5),  0 0 55px 12px rgba(6,182,212,.2),  0 0 90px 25px rgba(6,182,212,.08),  inset 0 1px 0 rgba(255,255,255,.1)}
+}
+@keyframes rowGlow{
+  0%  {border-color:rgba(6,182,212,.65);  box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(6,182,212,.4),  0 0 35px 8px rgba(6,182,212,.15)}
+  25% {border-color:rgba(139,92,246,.65); box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(139,92,246,.4), 0 0 35px 8px rgba(139,92,246,.15)}
+  50% {border-color:rgba(219,39,119,.65); box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(219,39,119,.4), 0 0 35px 8px rgba(219,39,119,.15)}
+  75% {border-color:rgba(52,211,153,.65); box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(52,211,153,.4), 0 0 35px 8px rgba(52,211,153,.15)}
+  100%{border-color:rgba(6,182,212,.65);  box-shadow:0 2px 12px rgba(0,0,0,.3), 0 0 12px 3px rgba(6,182,212,.4),  0 0 35px 8px rgba(6,182,212,.15)}
 }
 .qcard{animation:cardGlow 6s linear infinite}
 .qcard:hover{animation-play-state:paused}
@@ -424,50 +456,7 @@ input.st:focus,input.sa:focus,input.sd:focus{
 <body>
 <div id="mouse-nebula" aria-hidden="true"></div>
 
-<canvas id="bg-canvas"></canvas>
-<script>
-(function(){
-  const C=document.getElementById('bg-canvas');
-  if(!C)return;
-  const ctx=C.getContext('2d');
-  let W,H,stars=[],pts=[],mx=innerWidth/2,my=innerHeight/2;
-  function resize(){W=C.width=innerWidth;H=C.height=innerHeight;}
-  resize();window.addEventListener('resize',resize);
-  window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
-  for(let i=0;i<200;i++)stars.push({x:Math.random(),y:Math.random(),r:Math.random()*.9+.1,a:Math.random()*.6+.2,tw:Math.random()*Math.PI*2,tws:Math.random()*.008+.003});
-  function mkP(){return{x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5,r:Math.random()*1.5+.3,lime:Math.random()<.4,a:Math.random()*.4+.2};}
-  for(let i=0;i<55;i++)pts.push(mkP());
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    let g=ctx.createRadialGradient(W*.18,H*.15,0,W*.18,H*.15,W*.4);
-    g.addColorStop(0,'rgba(204,255,0,.022)');g.addColorStop(1,'transparent');
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    g=ctx.createRadialGradient(W*.82,H*.8,0,W*.82,H*.8,W*.35);
-    g.addColorStop(0,'rgba(80,100,255,.025)');g.addColorStop(1,'transparent');
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    stars.forEach(s=>{
-      s.tw+=s.tws;const a=s.a*(.7+.3*Math.sin(s.tw));
-      ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(210,210,255,${a})`;ctx.fill();
-    });
-    pts.forEach(p=>{
-      const dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy);
-      if(d<90){const f=.35*(1-d/90);p.vx+=dx/d*f;p.vy+=dy/d*f;}
-      p.vx*=.97;p.vy*=.97;p.x+=p.vx;p.y+=p.vy;
-      if(p.x<-5||p.x>W+5||p.y<-5||p.y>H+5){Object.assign(p,mkP());}
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=p.lime?`rgba(204,255,0,${p.a})`:`rgba(100,140,255,${p.a*.7})`;ctx.fill();
-    });
-    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
-      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.hypot(dx,dy);
-      if(d<85){ctx.strokeStyle=`rgba(204,255,0,${.12*(1-d/85)})`;ctx.lineWidth=.5;
-        ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-</script>
+
 
 
 <!-- NAVBAR -->
@@ -2018,14 +2007,4 @@ function updateLogoPreview() {
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    INIT
-════════════════════════════════════════════════════════════════════════════════════════════════════════ */
-
-document.addEventListener('DOMContentLoaded', async () => {
-  await openDB();
-  loadList();
-  updateLogoPreview();
-});
-(function(){const nebula=document.getElementById('mouse-nebula');let nx=50,ny=50,tx=50,ty=50;document.addEventListener('mousemove',e=>{tx=e.clientX/window.innerWidth*100;ty=e.clientY/window.innerHeight*100;});(function anim(){nx+=(tx-nx)*.055;ny+=(ty-ny)*.055;nebula.style.background='radial-gradient(ellipse 42% 36% at '+nx.toFixed(2)+'% '+ny.toFixed(2)+'%,rgba(139,92,246,.28) 0%,rgba(219,39,119,.1) 45%,transparent 70%)';requestAnimationFrame(anim);})();})();
-</script>
-</body>
-</html>
+═══════════════════════════════════════════════════════════════════════════════════�
