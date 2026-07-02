@@ -150,11 +150,13 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
   .auth-name{max-width:80px}
   .auth-logout{padding:3px 7px;font-size:.62rem}
 }
+#mouse-nebula{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 40% 35% at 50% 50%,rgba(139,92,246,.2) 0%,transparent 70%)}
 </style>
 <script src="auth.js"></script>
 <script>if(!getUser()){location.replace('login.html');}</script>
 </head>
 <body>
+<div id="mouse-nebula" aria-hidden="true"></div>
 <div class="hero">
   <div class="hero-scan"></div>
   <div class="hcorner tl"></div><div class="hcorner tr"></div>
@@ -289,6 +291,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     bar.innerHTML = '<a class="auth-login-btn" href="login.html">🔑 เข้าสู่ระบบ</a>';
   }
 })();
+(function(){const nebula=document.getElementById('mouse-nebula');let nx=50,ny=50,tx=50,ty=50;document.addEventListener('mousemove',e=>{tx=e.clientX/window.innerWidth*100;ty=e.clientY/window.innerHeight*100;});(function anim(){nx+=(tx-nx)*.055;ny+=(ty-ny)*.055;nebula.style.background='radial-gradient(ellipse 42% 36% at '+nx.toFixed(2)+'% '+ny.toFixed(2)+'%,rgba(139,92,246,.28) 0%,rgba(219,39,119,.1) 45%,transparent 70%)';requestAnimationFrame(anim);})();})();
 </script>
 </body>
 </html>

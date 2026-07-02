@@ -306,9 +306,11 @@ footer{text-align:center;padding:20px;color:rgba(180,160,220,.2);font-size:.7rem
 .fc:nth-child(7),.fl:nth-child(7){animation-delay:-1.5s}
 .fc:nth-child(8),.fl:nth-child(8){animation-delay:-2.5s}
 .fc:nth-child(9),.fl:nth-child(9){animation-delay:-3.5s}
+#mouse-nebula{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 40% 35% at 50% 50%,rgba(139,92,246,.2) 0%,transparent 70%)}
 </style>
 </head>
 <body>
+<div id="mouse-nebula" aria-hidden="true"></div>
 <header>
   <div class="scan"></div>
   <div class="hcorner tl"></div><div class="hcorner br"></div>
@@ -621,6 +623,7 @@ function initCardEffects(grid){
 }
 const __origRC=renderCurrent;
 renderCurrent=function(){__origRC.apply(this,arguments);const g=document.querySelector('.fgrid,.flist');if(g)initCardEffects(g);};
+(function(){const nebula=document.getElementById('mouse-nebula');let nx=50,ny=50,tx=50,ty=50;document.addEventListener('mousemove',e=>{tx=e.clientX/window.innerWidth*100;ty=e.clientY/window.innerHeight*100;});(function anim(){nx+=(tx-nx)*.055;ny+=(ty-ny)*.055;nebula.style.background='radial-gradient(ellipse 42% 36% at '+nx.toFixed(2)+'% '+ny.toFixed(2)+'%,rgba(139,92,246,.28) 0%,rgba(219,39,119,.1) 45%,transparent 70%)';requestAnimationFrame(anim);})();})();
 </script>
 </body>
 </html>
