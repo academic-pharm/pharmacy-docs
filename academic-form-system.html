@@ -1237,6 +1237,13 @@ function fmtDate(d){ if(!d) return ''; const dt=new Date(d); return `${dt.getDat
 function buildPrintHTML(p){
   const total = (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
   const schedRows = (p.schedule||[]).map(r=>`<tr><td>${r.time||''}</td><td>${(r.activity||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
+  const kpiGrid = items => {
+    const rows = items||[];
+    const inner = rows.length
+      ? rows.map((item,i)=>`<span>${i===0?':':''}</span><span>${item}</span>`).join('')
+      : '<span>:</span><span></span>';
+    return `<div style="display:grid;grid-template-columns:max-content 1fr;gap:0 4pt">${inner}</div>`;
+  };
   const budgRows = (p.budget||[]).map(r=>`<tr><td>${(r.item||'').replace(/\n/g,'<br>')}</td><td style="text-align:right">${parseFloat(r.amount||0).toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr>`).join('');
   const _html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
 <title>โครงการ${p.projectName||''}</title>
@@ -1339,11 +1346,11 @@ ${(p.phase3Items||[]).map((item,i)=>`<div class="indent2">๑๖.๓.${toThai(i+
 <div class="sec"><span class="sec-title">๑๗. กำหนดการโครงการ</span>
 <table><tr><th style="width:35%">เวลา</th><th>กิจกรรม</th></tr>${schedRows||'<tr><td>&nbsp;</td><td>&nbsp;</td></tr>'}</table></div>
 <div class="sec"><span class="sec-title">๑๘. เป้าหมายผลผลิต</span>
-<div class="indent1" style="display:grid;grid-template-columns:max-content auto;gap:2pt 6pt;align-items:baseline">
-  <strong>ตัวชี้วัดปริมาณ</strong><span>: ${(p.kpiQty||[]).join(' ')}</span>
-  <strong>ตัวชี้วัดคุณภาพ</strong><span>: ${(p.kpiQual||[]).join(' ')}</span>
-  <strong>ตัวชี้วัดเวลา</strong><span>: โครงการแล้วเสร็จตามระยะเวลาที่กำหนด</span>
-  <strong>ตัวชี้วัดเชิงต้นทุน</strong><span>: ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนดไว้</span>
+<div class="indent1" style="display:grid;grid-template-columns:max-content auto;gap:2pt 6pt;align-items:start">
+  <strong>ตัวชี้วัดปริมาณ</strong>${kpiGrid(p.kpiQty)}
+  <strong>ตัวชี้วัดคุณภาพ</strong>${kpiGrid(p.kpiQual)}
+  <strong>ตัวชี้วัดเวลา</strong><div style="display:grid;grid-template-columns:max-content 1fr;gap:0 4pt"><span>:</span><span>โครงการแล้วเสร็จตามระยะเวลาที่กำหนด</span></div>
+  <strong>ตัวชี้วัดเชิงต้นทุน</strong><div style="display:grid;grid-template-columns:max-content 1fr;gap:0 4pt"><span>:</span><span>ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนดไว้</span></div>
 </div>
 </div>
 <div class="sec"><span class="sec-title">๑๙. รายละเอียดงบประมาณของโครงการ</span>
