@@ -928,6 +928,39 @@ function getBudgetData(){
     return {item:ta.value, amount:inp.value};
   });
 }
+function numToThaiBaht(amount){
+  if(!amount||isNaN(+amount)||+amount===0) return '';
+  amount = Math.round(+amount*100)/100;
+  const ones=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  function seg(n){
+    let s='';
+    if(n>=100000){s+=ones[Math.floor(n/100000)]+'แสน';n%=100000;}
+    if(n>=10000){s+=ones[Math.floor(n/10000)]+'หมื่น';n%=10000;}
+    if(n>=1000){s+=ones[Math.floor(n/1000)]+'พัน';n%=1000;}
+    if(n>=100){s+=ones[Math.floor(n/100)]+'ร้อย';n%=100;}
+    if(n>=10){
+      const t=Math.floor(n/10),u=n%10;
+      s+=(t===1?'สิบ':t===2?'ยี่สิบ':ones[t]+'สิบ');
+      s+=(u===1?'เอ็ด':u>1?ones[u]:'');
+    }else if(n>0){s+=ones[n];}
+    return s;
+  }
+  const baht=Math.floor(amount);
+  const satang=Math.round((amount-baht)*100);
+  let text='';
+  if(baht>=1000000){
+    const m=Math.floor(baht/1000000),rem=baht%1000000;
+    text+=seg(m)+'ล้าน';
+    if(rem>0)text+=seg(rem);
+  }else if(baht>0){
+    text=seg(baht);
+  }else{
+    text='ศูนย์';
+  }
+  text+='บาท';
+  text+=(satang>0?seg(satang)+'สตางค์':'ถ้วน');
+  return text;
+}
 function updateBudgetTotal(){
   let total = 0;
   document.querySelectorAll('#budget-body input[type=number]').forEach(inp=>{
@@ -935,6 +968,8 @@ function updateBudgetTotal(){
   });
   const el = document.getElementById('budget-total');
   if(el) el.textContent = total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const textEl = document.getElementById('f-budget-total-text');
+  if(textEl) textEl.value = numToThaiBaht(total);
 }
 
 // ═══════════════════════════════════════════
