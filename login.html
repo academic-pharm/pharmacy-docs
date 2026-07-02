@@ -247,10 +247,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
   font-family:'Space Mono',monospace;letter-spacing:.06em;transition:.2s}
 .back:hover{color:rgba(180,160,220,.5)}
 
+.cloud-h-svg{position:absolute;top:0;left:0;width:100%;height:70px;z-index:2;pointer-events:none;display:none}
 @media(max-width:640px){
   .card{flex-direction:column;min-height:auto}
   .left{width:100%;min-width:0;padding:40px 28px}
-  .right{display:none}
+  .right{display:flex;flex:none}
+  .cloud-svg{display:none}
+  .cloud-h-svg{display:block}
+  .right-inner{padding:78px 28px 32px}
 }
 </style>
 <script src="auth.js"></script>
@@ -292,6 +296,18 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
     <!-- ══ RIGHT: dark space panel ══ -->
     <div class="right">
       <div class="right-shimmer" aria-hidden="true"></div>
+
+      <!-- Mobile: horizontal wavy cloud (hidden on desktop) -->
+      <svg class="cloud-h-svg" viewBox="0 0 390 70" preserveAspectRatio="none"
+           xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="0" y="0" width="390" height="18" fill="white"/>
+        <circle cx="0"   cy="18" r="42" fill="white"/>
+        <circle cx="78"  cy="18" r="46" fill="white"/>
+        <circle cx="156" cy="18" r="48" fill="white"/>
+        <circle cx="234" cy="18" r="46" fill="white"/>
+        <circle cx="312" cy="18" r="48" fill="white"/>
+        <circle cx="390" cy="18" r="42" fill="white"/>
+      </svg>
 
       <svg class="cloud-svg" viewBox="0 0 84 460" preserveAspectRatio="none"
            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

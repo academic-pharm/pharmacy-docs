@@ -47,20 +47,30 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .hero p{font-size:.82rem;color:rgba(180,160,220,.4);font-family:'Space Mono',monospace;letter-spacing:.07em;min-height:1.2em}
 /* CARDS */
 .cards-wrap{max-width:920px;margin:-70px auto 0;padding:0 20px 90px;display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:26px;position:relative;z-index:2}
-/* ── Cards — color-cycling border glow ── */
-@keyframes cardGlow{
-  0%  {border-color:rgba(6,182,212,.75); box-shadow:0 0 16px 4px rgba(6,182,212,.45),0 0 45px 10px rgba(6,182,212,.18),0 30px 100px rgba(0,0,0,.6)}
-  25% {border-color:rgba(139,92,246,.75);box-shadow:0 0 16px 4px rgba(139,92,246,.45),0 0 45px 10px rgba(139,92,246,.18),0 30px 100px rgba(0,0,0,.6)}
-  50% {border-color:rgba(219,39,119,.75);box-shadow:0 0 16px 4px rgba(219,39,119,.45),0 0 45px 10px rgba(219,39,119,.18),0 30px 100px rgba(0,0,0,.6)}
-  75% {border-color:rgba(52,211,153,.75);box-shadow:0 0 16px 4px rgba(52,211,153,.45),0 0 45px 10px rgba(52,211,153,.18),0 30px 100px rgba(0,0,0,.6)}
-  100%{border-color:rgba(6,182,212,.75); box-shadow:0 0 16px 4px rgba(6,182,212,.45),0 0 45px 10px rgba(6,182,212,.18),0 30px 100px rgba(0,0,0,.6)}
+/* ── Cards — spinning conic-gradient border (same as login) ── */
+@keyframes rotateBorder{to{transform:rotate(360deg)}}
+@keyframes cardGlowPulse{
+  0%,100%{box-shadow:0 0 22px 4px rgba(139,92,246,.28),0 0 55px 10px rgba(139,92,246,.14),0 30px 100px rgba(0,0,0,.6)}
+  50%{box-shadow:0 0 34px 7px rgba(139,92,246,.42),0 0 75px 16px rgba(139,92,246,.2),0 30px 100px rgba(0,0,0,.6)}
+}
+.card-glow-wrap{
+  position:relative;border-radius:27px;overflow:hidden;padding:1.5px;
+  display:flex;
+  box-shadow:0 0 22px 4px rgba(139,92,246,.28),0 0 55px 10px rgba(139,92,246,.14),0 30px 100px rgba(0,0,0,.6);
+  animation:cardGlowPulse 5s ease-in-out infinite;
+}
+.card-glow-wrap::before{
+  content:'';position:absolute;
+  width:160%;height:160%;top:-30%;left:-30%;
+  background:conic-gradient(from 0deg,rgba(139,92,246,1),rgba(6,182,212,.9),rgba(219,39,119,.9),rgba(168,85,247,.95),rgba(139,92,246,1));
+  animation:rotateBorder 4s linear infinite;
+  z-index:0;
 }
 .card{
   border-radius:25px;text-decoration:none;display:flex;flex-direction:column;
   position:relative;cursor:pointer;overflow:hidden;
   background:#080516;
-  border:1.5px solid rgba(6,182,212,.75);
-  animation:cardGlow 6s linear infinite;
+  z-index:1;flex:1;
 }
 .card::before{display:none}
 /* Running sweep line */
@@ -78,10 +88,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
   60% {opacity:.8}
   100%{left:110%;opacity:0}
 }
-/* Per-card stagger */
-#cpe-card  {animation-delay:0s}
-#proj-card {animation-delay:-2s}
-#admin-card{animation-delay:-4s}
+/* Wrapper: spin + glow stagger */
+#proj-card::before{animation-delay:-1.33s}
+#admin-card::before{animation-delay:-2.67s}
+#proj-card{animation-delay:-1.67s}
+#admin-card{animation-delay:-3.33s}
 .c-cpe:hover,.c-proj:hover,.c-admin:hover{background:#0d0920}
 /* Card banner */
 .card-banner{padding:38px 28px 28px;position:relative;overflow:hidden;min-height:185px;display:flex;flex-direction:column;justify-content:flex-end}
@@ -223,7 +234,8 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
   <p>// DOCUMENT MANAGEMENT SYSTEM //</p>
 </div>
 <div class="cards-wrap">
-  <a class="card c-cpe" id="cpe-card" href="cpe.html" style="--bn-rgb:168,85,247">
+  <div class="card-glow-wrap" id="cpe-card">
+  <a class="card c-cpe" href="cpe.html" style="--bn-rgb:168,85,247">
     <div class="card-banner">
       <div class="banner-grid"></div>
       <div class="banner-nebula"></div>
@@ -239,7 +251,9 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
       <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
     </div>
   </a>
-  <a class="card c-proj" id="proj-card" href="projects.html" style="--bn-rgb:6,182,212">
+  </div>
+  <div class="card-glow-wrap" id="proj-card">
+  <a class="card c-proj" href="projects.html" style="--bn-rgb:6,182,212">
     <div class="card-banner">
       <div class="banner-grid"></div>
       <div class="banner-nebula"></div>
@@ -255,8 +269,10 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
       <span class="card-arrow"><span data-th="เปิดดูเอกสาร" data-en="BROWSE DOCS">เปิดดูเอกสาร</span> →</span>
     </div>
   </a>
+  </div>
   <!-- Admin only card -->
-  <a class="card c-admin" id="admin-card" href="academic-form-system.html" style="--bn-rgb:204,255,0;--fd:4s;--fdelay:.3s">
+  <div class="card-glow-wrap" id="admin-card">
+  <a class="card c-admin" href="academic-form-system.html" style="--bn-rgb:204,255,0;--fd:4s;--fdelay:.3s">
     <div class="card-banner">
       <div class="banner-grid"></div>
       <div class="banner-nebula"></div>
@@ -271,6 +287,7 @@ footer{text-align:center;padding:24px;color:rgba(180,160,220,.2);font-size:.7rem
       <span class="card-arrow">จัดการแบบฟอร์ม →</span>
     </div>
   </a>
+  </div>
 </div>
 <footer data-th="DOCUMENT SYSTEM · คณะเภสัชศาสตร์" data-en="DOCUMENT SYSTEM · FACULTY OF PHARMACY">DOCUMENT SYSTEM · คณะเภสัชศาสตร์</footer>
 <script>
@@ -302,11 +319,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.card').forEach(card=>{
     card.style.setProperty('--fd',(4+Math.random()*2.5)+'s');
     card.style.setProperty('--fdelay',(Math.random()*1.5)+'s');
-    card.addEventListener('mouseenter',()=>{card.style.transition='transform .2s ease';card.style.transform='scale(1.01)';});
-    card.addEventListener('mouseleave',()=>{card.style.transition='transform .35s ease';card.style.transform='';});
+    const wrap=card.closest('.card-glow-wrap')||card;
+    wrap.addEventListener('mouseenter',()=>{wrap.style.transition='transform .2s ease';wrap.style.transform='scale(1.01)';});
+    wrap.addEventListener('mouseleave',()=>{wrap.style.transition='transform .35s ease';wrap.style.transform='';});
     card.addEventListener('click',e=>{const r=card.getBoundingClientRect(),rpl=document.createElement('span'),sz=Math.max(r.width,r.height)*2.4,rgb=card.classList.contains('c-cpe')?'168,85,247':'6,182,212';rpl.style.cssText=`position:absolute;pointer-events:none;border-radius:50%;width:${sz}px;height:${sz}px;left:${e.clientX-r.left-sz/2}px;top:${e.clientY-r.top-sz/2}px;background:rgba(${rgb},.13);transform:scale(0);animation:rpl .6s ease-out forwards;z-index:10`;card.appendChild(rpl);setTimeout(()=>rpl.remove(),650);});
   });
-  document.querySelectorAll('.card').forEach((c,i)=>{c.style.opacity='0';setTimeout(()=>{c.style.transition='opacity .45s ease, transform .45s ease';c.style.opacity='1';c.style.transform='';setTimeout(()=>c.style.transition='',500);},i*100+400);});
+  document.querySelectorAll('.card-glow-wrap').forEach((c,i)=>{c.style.opacity='0';setTimeout(()=>{c.style.transition='opacity .45s ease, transform .45s ease';c.style.opacity='1';c.style.transform='';setTimeout(()=>c.style.transition='',500);},i*100+400);});
 });
 
 /* ── Auth init ── */
