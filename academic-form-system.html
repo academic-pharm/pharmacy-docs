@@ -153,6 +153,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .btn-table-del:hover{background:rgba(239,68,68,.15)}
 /* Dynamic list rows */
 .dyn-list{display:flex;flex-direction:column;gap:6px}
+#kpi-qty-list .row-num,#kpi-qual-list .row-num{display:none}
 .dyn-row{display:flex;align-items:center;gap:8px}
 .dyn-row input[type=text]{flex:1;padding:8px 12px;background:rgba(255,255,255,.05);
   border:1px solid var(--brdw);border-radius:8px;color:#e2e8f0;font-family:var(--font);font-size:.9rem}
@@ -1235,7 +1236,7 @@ ${(p.kpiQty||[]).map((k)=>`<div class="indent2">${k}</div>`).join('')}
 <div class="indent1" style="white-space:nowrap"><strong>ตัวชี้วัดคุณภาพ</strong> :</div>
 ${(p.kpiQual||[]).map((k)=>`<div class="indent2">${k}</div>`).join('')}
 <div class="indent1" style="white-space:nowrap"><strong>ตัวชี้วัดเวลา</strong> : โครงการแล้วเสร็จตามระยะเวลาที่กำหนด</div>
-<div class="indent1"><strong style="white-space:nowrap">ตัวชี้วัดเชิงต้นทุน</strong> : ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนด ${p.budgetTotalText?`(${p.budgetTotalText})`:''}</div>
+<div class="indent1" style="white-space:nowrap"><strong>ตัวชี้วัดเชิงต้นทุน</strong> : ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนด ${p.budgetTotalText?`(${p.budgetTotalText})`:''}</div>
 </div>
 <div class="sec"><span class="sec-title">๑๙. รายละเอียดงบประมาณของโครงการ</span>
 <div>ใช้งบประมาณดำเนินการจากเงิน ${p.budgetSource||'...............'} แผนงาน ${p.budgetPlan||'...............'} งาน ${p.budgetWork||'...............'} หมวดเงิน ${p.budgetType||'...............'} เป็นจำนวนเงิน ${total.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท (${p.budgetTotalText||'..............................................'})</div>
