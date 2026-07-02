@@ -529,20 +529,39 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="fsec">
     <div class="fsec-title">๒๐. การรายงานผลการจัดกิจกรรม (ไม่เกิน 15 วัน นับถัดจากวันที่สิ้นสุดการดำเนินงาน)</div>
     <div class="form-row">
-      <div class="form-group full"><label>วันที่รายงานผลการจัดกิจกรรม (๒๐.๑ และ ๒๐.๒)</label>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-          <span style="color:var(--sub);font-size:.88rem">วันที่</span>
-          <input type="number" id="f-report-day" min="1" max="31" placeholder="วัน" style="width:68px;padding:7px 10px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.92rem;outline:none">
-          <span style="color:var(--sub);font-size:.88rem">เดือน</span>
-          <select id="f-report-month" style="padding:7px 10px;background:#1e1b2e;border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.92rem;outline:none">
+      <div class="form-group full">
+        <div style="display:grid;grid-template-columns:max-content 62px max-content max-content max-content 62px;align-items:center;gap:8px 10px;margin-top:4px">
+          <span style="color:var(--sub);font-size:.88rem;white-space:nowrap">๒๐.๑ รายงานผลการจัดกิจกรรม</span>
+          <span></span><span></span><span></span><span></span><span></span>
+
+          <span style="color:var(--sub);font-size:.82rem;padding-left:16px">วันที่</span>
+          <input type="number" id="f-r1-day" min="1" max="31" placeholder="วัน" style="width:62px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
+          <span style="color:var(--sub);font-size:.82rem">เดือน</span>
+          <select id="f-r1-month" style="padding:6px 8px;background:#1e1b2e;border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
             <option value="">-- เดือน --</option>
             <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
             <option>เมษายน</option><option>พฤษภาคม</option><option>มิถุนายน</option>
             <option>กรกฎาคม</option><option>สิงหาคม</option><option>กันยายน</option>
             <option>ตุลาคม</option><option>พฤศจิกายน</option><option>ธันวาคม</option>
           </select>
-          <span style="color:var(--sub);font-size:.88rem">พ.ศ. ๒๕</span>
-          <input type="number" id="f-report-year" min="60" max="99" placeholder="68" style="width:68px;padding:7px 10px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.92rem;outline:none">
+          <span style="color:var(--sub);font-size:.82rem;white-space:nowrap">ปี พ.ศ. 25</span>
+          <input type="number" id="f-r1-year" min="60" max="99" placeholder="68" style="width:62px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
+
+          <span style="color:var(--sub);font-size:.82rem;padding-left:16px;white-space:nowrap">๒๐.๒ ส่งแบบฟอร์มรายงานผลฯ</span>
+          <span></span><span></span><span></span><span></span><span></span>
+
+          <span style="color:var(--sub);font-size:.82rem;padding-left:16px">วันที่</span>
+          <input type="number" id="f-r2-day" min="1" max="31" placeholder="วัน" style="width:62px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
+          <span style="color:var(--sub);font-size:.82rem">เดือน</span>
+          <select id="f-r2-month" style="padding:6px 8px;background:#1e1b2e;border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
+            <option value="">-- เดือน --</option>
+            <option>มกราคม</option><option>กุมภาพันธ์</option><option>มีนาคม</option>
+            <option>เมษายน</option><option>พฤษภาคม</option><option>มิถุนายน</option>
+            <option>กรกฎาคม</option><option>สิงหาคม</option><option>กันยายน</option>
+            <option>ตุลาคม</option><option>พฤศจิกายน</option><option>ธันวาคม</option>
+          </select>
+          <span style="color:var(--sub);font-size:.82rem;white-space:nowrap">ปี พ.ศ. 25</span>
+          <input type="number" id="f-r2-year" min="60" max="99" placeholder="68" style="width:62px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
         </div>
       </div>
     </div>
@@ -566,6 +585,13 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       <input type="text" id="f-sig1-name" placeholder="ชื่อผู้รับผิดชอบโครงการ" style="margin-bottom:8px">
       <label>ตำแหน่ง</label>
       <input type="text" id="f-sig1-pos" placeholder="ตำแหน่ง">
+    </div>
+    <div style="margin-top:16px">
+      <div class="sig-title" style="margin-bottom:10px">ผู้อนุมัติ (คณบดี)</div>
+      <label>ชื่อ-นามสกุล (พร้อมคำนำหน้าตำแหน่ง)</label>
+      <input type="text" id="f-dean-name" placeholder="เช่น ผู้ช่วยศาสตราจารย์ดร. เภสัชกรหญิง ณัฎฐิณี ธีรกุลกิตติพงศ์" style="width:100%;padding:7px 10px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.92rem;outline:none;margin-bottom:8px;box-sizing:border-box">
+      <label>ตำแหน่ง</label>
+      <input type="text" id="f-dean-pos" placeholder="เช่น คณบดีคณะเภสัชศาสตร์" style="width:100%;padding:7px 10px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.92rem;outline:none;box-sizing:border-box">
     </div>
   </div>
 
@@ -616,8 +642,9 @@ function newProjectTemplate(){
     kpiQty:[], kpiQual:[],
     schedule:[], budget:[],
     budgetSource:'', budgetPlan:'', budgetWork:'', budgetType:'', budgetTotalText:'',
-    reportDay:'', reportMonth:'', reportYear:'',
-    sig1Name:'', sig1Pos:'', sig1Image:''
+    r1Day:'', r1Month:'', r1Year:'', r2Day:'', r2Month:'', r2Year:'',
+    sig1Name:'', sig1Pos:'', sig1Image:'',
+    deanName:'ผู้ช่วยศาสตราจารย์ดร. เภสัชกรหญิง ณัฎฐิณี ธีรกุลกิตติพงศ์', deanPos:'คณบดีคณะเภสัชศาสตร์'
   };
 }
 
@@ -690,16 +717,18 @@ function loadFormData(p){
     'f-budget-source':'budgetSource','f-budget-plan':'budgetPlan',
     'f-budget-work':'budgetWork','f-budget-type':'budgetType',
     'f-budget-total-text':'budgetTotalText',
-    'f-report-day':'reportDay','f-report-year':'reportYear',
-    'f-sig1-name':'sig1Name','f-sig1-pos':'sig1Pos','f-rationale':'rationale'
+    'f-r1-day':'r1Day','f-r1-year':'r1Year','f-r2-day':'r2Day','f-r2-year':'r2Year',
+    'f-sig1-name':'sig1Name','f-sig1-pos':'sig1Pos','f-dean-name':'deanName','f-dean-pos':'deanPos','f-rationale':'rationale'
   };
   for(const [id,key] of Object.entries(tf)){
     const el = document.getElementById(id);
     if(el) el.value = p[key]||'';
   }
-  // Report month select
-  const mSel = document.getElementById('f-report-month');
-  if(mSel) mSel.value = p.reportMonth||'';
+  // Report month selects
+  const mSel1 = document.getElementById('f-r1-month');
+  if(mSel1) mSel1.value = p.r1Month||'';
+  const mSel2 = document.getElementById('f-r2-month');
+  if(mSel2) mSel2.value = p.r2Month||'';
   // Radio
   if(p.type21) document.querySelector(`input[name=type21][value="${p.type21}"]`).checked=true;
   else document.querySelectorAll('input[name=type21]').forEach(r=>r.checked=false);
@@ -801,17 +830,17 @@ function getFormData(){
     'f-budget-source':'budgetSource','f-budget-plan':'budgetPlan',
     'f-budget-work':'budgetWork','f-budget-type':'budgetType',
     'f-budget-total-text':'budgetTotalText',
-    'f-report-day':'reportDay','f-report-year':'reportYear',
-    'f-sig1-name':'sig1Name','f-sig1-pos':'sig1Pos','f-rationale':'rationale'
+    'f-r1-day':'r1Day','f-r1-year':'r1Year','f-r2-day':'r2Day','f-r2-year':'r2Year',
+    'f-sig1-name':'sig1Name','f-sig1-pos':'sig1Pos','f-dean-name':'deanName','f-dean-pos':'deanPos','f-rationale':'rationale'
   };
   for(const [id,key] of Object.entries(tf)){
     const el = document.getElementById(id);
     if(el) p[key] = el.value;
   }
   // Radio
-  // Report month
-  const mSelG = document.getElementById('f-report-month');
-  if(mSelG) p.reportMonth = mSelG.value;
+  // Report months
+  const mG1 = document.getElementById('f-r1-month'); if(mG1) p.r1Month = mG1.value;
+  const mG2 = document.getElementById('f-r2-month'); if(mG2) p.r2Month = mG2.value;
   const r21 = document.querySelector('input[name=type21]:checked');
   p.type21 = r21 ? r21.value : '';
   const r22 = document.querySelector('input[name=type22]:checked');
@@ -1103,9 +1132,8 @@ h2{text-align:center;font-size:18pt;margin:0;font-weight:700}
 table{border-collapse:collapse;width:100%;font-size:15pt;margin:6pt 0}
 table th,table td{border:1px solid #000;padding:5pt 7pt;vertical-align:top}
 table th{font-weight:700;text-align:center;background:#f0f0f0}
-.sig-wrap{margin-top:20pt}
-.sig-right{margin-left:44%;text-align:center}
-.sig-line{border-top:1px solid #000;margin:30pt 10pt 4pt}
+.sig-wrap{margin-top:20pt;text-align:center}
+.sig-line{border-top:1px solid #000;width:70%;margin:30pt auto 4pt}
 @media print{body{margin:0}@page{size:A4;margin:0}}
 </style></head><body><div class="page">
 <h2>โครงการ${p.projectName||'...........................................................................................................................'}  </h2>
@@ -1200,22 +1228,22 @@ ${(p.kpiQual||[]).map((k,i)=>`<div class="indent2">${toThai(i+1)}. ${k}</div>`).
 <table><tr><th>รายการ</th><th style="width:150pt;text-align:right">จำนวนเงิน (บาท)</th></tr>${budgRows}<tr><td style="font-weight:700">รวมทั้งสิ้น</td><td style="font-weight:700;text-align:right">${total.toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr><tr><td colspan="2">(${p.budgetTotalText||'..............................................................บาทถ้วน'})</td></tr></table>
 </div>
 <div class="sec"><span class="sec-title">๒๐. การรายงานผลการจัดกิจกรรม (ไม่เกิน 15 วัน นับถัดจากวันที่สิ้นสุดการดำเนินงาน)</span>
-<div class="indent1">๒๐.๑ รายงานผลการจัดกิจกรรม &emsp; วันที่ ${p.reportDay||'.......'} เดือน ${p.reportMonth||'...........'} ๒๕${p.reportYear||'.....'}</div>
-<div class="indent1">๒๐.๒ ส่งแบบฟอร์มรายงานผลการจัดกิจกรรมและการใช้เงิน &emsp; วันที่ ${p.reportDay||'.......'} เดือน ${p.reportMonth||'...........'} ๒๕${p.reportYear||'.....'}</div>
+<div style="display:grid;grid-template-columns:max-content 1fr;gap:2pt 16pt;padding-left:2em">
+  <span>๒๐.๑ รายงานผลการจัดกิจกรรม</span><span>วันที่ ${p.r1Day||'.......'} เดือน ${p.r1Month||'...........'} ปี พ.ศ. 25${p.r1Year||'.....'}</span>
+  <span>๒๐.๒ ส่งแบบฟอร์มรายงานผลการจัดกิจกรรมและการใช้เงิน</span><span>วันที่ ${p.r2Day||'.......'} เดือน ${p.r2Month||'...........'} ปี พ.ศ. 25${p.r2Year||'.....'}</span>
+</div>
 </div>
 <div class="sig-wrap">
-  <div class="sig-right">
-    ${p.sig1Image?`<div style="display:flex;align-items:flex-end;justify-content:center;margin-bottom:4pt;min-height:65pt"><img src="${p.sig1Image}" style="max-height:65pt;max-width:160pt;object-fit:contain"></div>`:'<div style="min-height:65pt"></div>'}
-    <div class="sig-line"></div>
-    (${p.sig1Name||'................................................................'})<br>
-    ตำแหน่ง${p.sig1Pos||'................................................................'}<br>
-    ผู้รับผิดชอบโครงการ
-  </div>
+  ${p.sig1Image?`<div style="display:flex;align-items:flex-end;justify-content:center;margin-bottom:4pt;min-height:65pt"><img src="${p.sig1Image}" style="max-height:65pt;max-width:160pt;object-fit:contain"></div>`:'<div style="min-height:65pt"></div>'}
+  <div class="sig-line"></div>
+  (${p.sig1Name||'................................................................'})<br>
+  ตำแหน่ง${p.sig1Pos||'................................................................'}<br>
+  ผู้รับผิดชอบโครงการ
 </div>
 <div style="text-align:center;margin-top:40pt">
   <div><strong>อนุมัติ</strong></div>
-  <div style="margin-top:50pt">(ผู้ช่วยศาสตราจารย์ดร. เภสัชกรหญิง ณัฎฐิณี ธีรกุลกิตติพงศ์)</div>
-  <div>คณบดีคณะเภสัชศาสตร์</div>
+  <div style="margin-top:50pt">(${p.deanName||'....................................................................'})</div>
+  <div>${p.deanPos||'คณบดีคณะเภสัชศาสตร์'}</div>
 </div>
 </div></body></html>`;
 }
@@ -1413,8 +1441,8 @@ async function buildWordDoc(p){
     blank(),
     // 20
     heading('๒๐. การรายงานผลการจัดกิจกรรม (ไม่เกิน 15 วัน นับถัดจากวันที่สิ้นสุดการดำเนินงาน)'),
-    para(`\t๒๐.๑ รายงานผลการจัดกิจกรรม\tวันที่ ${p.reportDay||'.......'} เดือน ${p.reportMonth||'...........'} ๒๕${p.reportYear||'.....'}`),
-    para(`\t๒๐.๒ ส่งแบบฟอร์มรายงานผลการจัดกิจกรรมและการใช้เงิน\tวันที่ ${p.reportDay||'.......'} เดือน ${p.reportMonth||'...........'} ๒๕${p.reportYear||'.....'}`),
+    para(`\t๒๐.๑ รายงานผลการจัดกิจกรรม\t\t\tวันที่ ${p.r1Day||'.......'} เดือน ${p.r1Month||'...........'} ปี พ.ศ. 25${p.r1Year||'.....'}`),
+    para(`\t๒๐.๒ ส่งแบบฟอร์มรายงานผลการจัดกิจกรรมและการใช้เงิน\tวันที่ ${p.r2Day||'.......'} เดือน ${p.r2Month||'...........'} ปี พ.ศ. 25${p.r2Year||'.....'}`),
     blank(),blank(),
     // Signatures — right-aligned block using 2-col table (left empty, right sig)
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:{style:'none'},bottom:{style:'none'},left:{style:'none'},right:{style:'none'},insideH:{style:'none'},insideV:{style:'none'}},rows:[
@@ -1432,8 +1460,8 @@ async function buildWordDoc(p){
     blank(),blank(),
     new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run('อนุมัติ',{bold:true})]}),
     blank(),blank(),blank(),blank(),
-    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run('(ผู้ช่วยศาสตราจารย์ดร. เภสัชกรหญิง ณัฎฐิณี ธีรกุลกิตติพงศ์)')]}),
-    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run('คณบดีคณะเภสัชศาสตร์')]}),
+    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(`(${p.deanName||'.....................................................................'})`)]}),
+    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(p.deanPos||'คณบดีคณะเภสัชศาสตร์')]}),
   ];
 
   // Fix para() calls with run as first arg
