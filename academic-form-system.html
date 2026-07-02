@@ -1381,9 +1381,9 @@ ${(p.phase3Items||[]).map((item,i)=>`<div class="indent2">๑๖.๓.${toThai(i+
 </div>
 <div style="margin-left:40%;text-align:center;margin-top:40pt">
   <div><strong>อนุมัติ</strong></div>
-  <div style="margin-top:90pt;white-space:nowrap">(${p.deanName||'....................................................................'})</div>
-  <div style="white-space:nowrap">${p.deanPos||'คณบดีคณะเภสัชศาสตร์'}</div>
-  ${p.deanActing ? '<div style="white-space:nowrap">คณบดีคณะเภสัชศาสตร์</div>' : ''}
+  <div style="margin-top:90pt">(${p.deanName||'....................................................................'})</div>
+  <div>${p.deanPos||'คณบดีคณะเภสัชศาสตร์'}</div>
+  ${p.deanActing ? '<div>คณบดีคณะเภสัชศาสตร์</div>' : ''}
 </div>
 </div></body></html>`;
   const [_head, _body] = _html.split('<body>');
@@ -1428,7 +1428,7 @@ async function buildWordDoc(p){
     else children = [runs]; // TextRun or similar object
     return new Paragraph({
       alignment: opts.center ? AlignmentType.CENTER : opts.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      indent: opts.indent ? {left: opts.indent*360} : undefined,
+      indent: opts.indent ? (typeof opts.indent==='object' ? opts.indent : {left: opts.indent*360}) : undefined,
       spacing: {after:40, line:340, lineRule:'auto'},
       keepNext: opts.keepNext || false,
       children
