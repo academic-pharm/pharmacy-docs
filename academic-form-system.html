@@ -1407,7 +1407,7 @@ async function exportWordById(id){
 
 async function buildWordDoc(p){
   const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,
-    AlignmentType,WidthType,BorderStyle,HeightRule,VerticalAlign} = docx;
+    AlignmentType,WidthType,BorderStyle,HeightRule,VerticalAlign,ImageRun} = docx;
 
   const FONT = 'TH SarabunIT9';
   const SZ = 32;    // 16pt
@@ -1454,6 +1454,16 @@ async function buildWordDoc(p){
   const tblBorders = {top:tblBorder,bottom:tblBorder,left:tblBorder,right:tblBorder,insideH:tblBorder,insideV:tblBorder};
 
   const children = [
+    // Logo
+    ...(LOGO_B64 ? [new Paragraph({
+      alignment:AlignmentType.CENTER,
+      spacing:{after:80},
+      children:[new ImageRun({
+        data:Uint8Array.from(atob(LOGO_B64.split(',')[1]),c=>c.charCodeAt(0)),
+        transformation:{width:170,height:170},
+        type:'png'
+      })]
+    })] : []),
     // Header
     para([run(`โครงการ${p.projectName||'…………………………………………………………………………'}`,{bold:true,size:SZH})],{center:true}),
     para([run('คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา',{bold:true,size:SZH})],{center:true}),
