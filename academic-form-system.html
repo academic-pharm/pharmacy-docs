@@ -133,6 +133,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   width:17px;height:17px;accent-color:#a78bfa;flex-shrink:0;margin-top:3px;cursor:pointer}
 .check-item span{font-size:.92rem;color:var(--txt);line-height:1.5}
 .check-item.checked{background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.3)}
+.check-item input:disabled+span{opacity:.3;pointer-events:none}
+.check-item:has(input:disabled){opacity:.45;cursor:not-allowed}
 /* Sub-level indent */
 .sub-check{margin-left:24px}
 /* Dynamic Table */
@@ -215,6 +217,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <p>คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>
   </div>
   <button class="btn-home" onclick="showDashboard()">🏠 หน้าหลัก</button>
+  <button class="btn-home" onclick="location.href='index.html'" style="margin-left:6px">← กลับหน้าแรก</button>
 </nav>
 
 <!-- ══════ DASHBOARD ══════ -->
@@ -288,22 +291,22 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="fsec">
     <div class="fsec-title">๔. ความสอดคล้องกับพันธกิจและยุทธศาสตร์คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. ๒๕๖๘ – ๒๕๗๑</div>
     <div class="check-grid">
-      <label class="check-item"><input type="checkbox" id="f-m1"> <span><strong>พันธกิจ 1</strong> ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ</span></label>
-      <div class="sub-check check-grid">
-        <label class="check-item"><input type="checkbox" id="f-m1s1"> <span><strong>ยุทธศาสตร์ 1</strong> การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำ เพื่อตอบสนองต่อความต้องการของประเทศ</span></label>
-      </div>
-      <label class="check-item"><input type="checkbox" id="f-m2"> <span><strong>พันธกิจ ๒</strong> สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล</span></label>
-      <div class="sub-check check-grid">
-        <label class="check-item"><input type="checkbox" id="f-m2s2"> <span><strong>ยุทธศาสตร์ 2</strong> การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากล และการนำไปใช้ประโยชน์</span></label>
-      </div>
-      <label class="check-item"><input type="checkbox" id="f-m3"> <span><strong>พันธกิจ ๓</strong> บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม</span></label>
-      <div class="sub-check check-grid">
-        <label class="check-item"><input type="checkbox" id="f-m3s3"> <span><strong>ยุทธศาสตร์ 3</strong> การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคม เพื่อส่งเสริมคุณภาพชีวิต</span></label>
-      </div>
-      <label class="check-item"><input type="checkbox" id="f-m4"> <span><strong>พันธกิจ 4</strong> ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ</span></label>
-      <div class="sub-check check-grid">
-        <label class="check-item"><input type="checkbox" id="f-m4s4"> <span><strong>ยุทธศาสตร์ 4</strong> การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม</span></label>
-      </div>
+      <label class="check-item"><input type="checkbox" id="f-m1">
+        <span><strong>พันธกิจ 1</strong> ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ<br>
+        <span style="color:var(--sub);font-size:.88em">ยุทธศาสตร์ 1 การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำ เพื่อตอบสนองต่อความต้องการของประเทศ</span></span>
+      </label>
+      <label class="check-item"><input type="checkbox" id="f-m2">
+        <span><strong>พันธกิจ ๒</strong> สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล<br>
+        <span style="color:var(--sub);font-size:.88em">ยุทธศาสตร์ 2 การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากล และการนำไปใช้ประโยชน์</span></span>
+      </label>
+      <label class="check-item"><input type="checkbox" id="f-m3">
+        <span><strong>พันธกิจ ๓</strong> บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม<br>
+        <span style="color:var(--sub);font-size:.88em">ยุทธศาสตร์ 3 การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคม เพื่อส่งเสริมคุณภาพชีวิต</span></span>
+      </label>
+      <label class="check-item"><input type="checkbox" id="f-m4">
+        <span><strong>พันธกิจ 4</strong> ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ<br>
+        <span style="color:var(--sub);font-size:.88em">ยุทธศาสตร์ 4 การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม</span></span>
+      </label>
     </div>
   </div>
 
@@ -325,24 +328,24 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="fsec">
     <div class="fsec-title">๖. ความสอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)</div>
     <div class="check-grid cols2">
-      <label class="check-item"><input type="checkbox" id="f-sdg0"> <span>ไม่สอดคล้องกับ SDGs</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg1"> <span><strong>๑.</strong> ขจัดความยากจน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg2"> <span><strong>๒.</strong> ยุติความหิวโหย</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg3"> <span><strong>๓.</strong> สุขภาพและความเป็นอยู่ที่ดี</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg4"> <span><strong>4.</strong> การศึกษาที่มีคุณภาพ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg5"> <span><strong>๕.</strong> ความเท่าเทียมทางเพศ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg6"> <span><strong>๖.</strong> น้ำสะอาดและการสุขาภิบาล</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg7"> <span><strong>๗.</strong> พลังงานสะอาด</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg8"> <span><strong>๘.</strong> งานที่ดีและการเติบโตทางเศรษฐกิจ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg9"> <span><strong>๙.</strong> อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg10"> <span><strong>๑๐.</strong> ลดความไม่เสมอภาค</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg11"> <span><strong>๑๑.</strong> เมืองและชุมชนที่ยั่งยืน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg12"> <span><strong>๑๒.</strong> การผลิตและการบริโภคที่ยั่งยืน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg13"> <span><strong>๑๓.</strong> การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg14"> <span><strong>๑๔.</strong> ทรัพยากรทางทะเล</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg15"> <span><strong>๑๕.</strong> ระบบนิเวศทางบก</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg16"> <span><strong>๑๖.</strong> สันติภาพและสถาบันที่เข้มแข็ง</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg17"> <span><strong>๑๗.</strong> ความร่วมมือเพื่อการพัฒนาที่ยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg0" onchange="toggleSDGNone(this)"> <span>ไม่สอดคล้องกับ SDGs</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg1" onchange="toggleSDGItem()"> <span><strong>๑.</strong> ขจัดความยากจน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg2" onchange="toggleSDGItem()"> <span><strong>๒.</strong> ยุติความหิวโหย</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg3" onchange="toggleSDGItem()"> <span><strong>๓.</strong> สุขภาพและความเป็นอยู่ที่ดี</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg4" onchange="toggleSDGItem()"> <span><strong>4.</strong> การศึกษาที่มีคุณภาพ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg5" onchange="toggleSDGItem()"> <span><strong>๕.</strong> ความเท่าเทียมทางเพศ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg6" onchange="toggleSDGItem()"> <span><strong>๖.</strong> น้ำสะอาดและการสุขาภิบาล</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg7" onchange="toggleSDGItem()"> <span><strong>๗.</strong> พลังงานสะอาด</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg8" onchange="toggleSDGItem()"> <span><strong>๘.</strong> งานที่ดีและการเติบโตทางเศรษฐกิจ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg9" onchange="toggleSDGItem()"> <span><strong>๙.</strong> อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg10" onchange="toggleSDGItem()"> <span><strong>๑๐.</strong> ลดความไม่เสมอภาค</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg11" onchange="toggleSDGItem()"> <span><strong>๑๑.</strong> เมืองและชุมชนที่ยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg12" onchange="toggleSDGItem()"> <span><strong>๑๒.</strong> การผลิตและการบริโภคที่ยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg13" onchange="toggleSDGItem()"> <span><strong>๑๓.</strong> การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg14" onchange="toggleSDGItem()"> <span><strong>๑๔.</strong> ทรัพยากรทางทะเล</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg15" onchange="toggleSDGItem()"> <span><strong>๑๕.</strong> ระบบนิเวศทางบก</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg16" onchange="toggleSDGItem()"> <span><strong>๑๖.</strong> สันติภาพและสถาบันที่เข้มแข็ง</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg17" onchange="toggleSDGItem()"> <span><strong>๑๗.</strong> ความร่วมมือเพื่อการพัฒนาที่ยั่งยืน</span></label>
     </div>
   </div>
 
@@ -546,8 +549,7 @@ function newProjectTemplate(){
     updatedAt: new Date().toISOString(),
     projectName:'', type21:'', type22:'',
     buu1:false, buu2:false, buu3:false, buu4:false,
-    m1:false, m1s1:false, m2:false, m2s2:false,
-    m3:false, m3s3:false, m4:false, m4s4:false,
+    m1:false, m2:false, m3:false, m4:false,
     edpex1:false,edpex2:false,edpex3:false,edpex4:false,
     edpex5:false,edpex6:false,edpex7:false,
     sdg0:false,sdg1:false,sdg2:false,sdg3:false,sdg4:false,
@@ -654,7 +656,7 @@ function loadFormData(p){
   else document.querySelectorAll('input[name=type22]').forEach(r=>r.checked=false);
   // Checkboxes
   ['buu1','buu2','buu3','buu4',
-   'm1','m1s1','m2','m2s2','m3','m3s3','m4','m4s4',
+   'm1','m2','m3','m4',
    'edpex1','edpex2','edpex3','edpex4','edpex5','edpex6','edpex7',
    'sdg0','sdg1','sdg2','sdg3','sdg4','sdg5','sdg6','sdg7','sdg8','sdg9',
    'sdg10','sdg11','sdg12','sdg13','sdg14','sdg15','sdg16','sdg17'
@@ -694,7 +696,7 @@ function getFormData(){
   p.type22 = r22 ? r22.value : '';
   // Checkboxes
   ['buu1','buu2','buu3','buu4',
-   'm1','m1s1','m2','m2s2','m3','m3s3','m4','m4s4',
+   'm1','m2','m3','m4',
    'edpex1','edpex2','edpex3','edpex4','edpex5','edpex6','edpex7',
    'sdg0','sdg1','sdg2','sdg3','sdg4','sdg5','sdg6','sdg7','sdg8','sdg9',
    'sdg10','sdg11','sdg12','sdg13','sdg14','sdg15','sdg16','sdg17'
@@ -1024,13 +1026,13 @@ async function buildWordDoc(p){
     // 4
     heading('4. ความสอดคล้องกับพันธกิจและยุทธศาสตร์คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. ๒๕๖๘ – ๒๕๗๑'),
     new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:360},children:[chkR(p.m1),run('พันธกิจ 1 ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ')]}),
-    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m1s1),run('ยุทธศาสตร์ 1 การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำฯ')]}),
+    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m1),run('ยุทธศาสตร์ 1 การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำฯ')]}),
     new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:360},children:[chkR(p.m2),run('พันธกิจ ๒ สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล')]}),
-    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m2s2),run('ยุทธศาสตร์ 2 การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากลฯ')]}),
+    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m2),run('ยุทธศาสตร์ 2 การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากลฯ')]}),
     new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:360},children:[chkR(p.m3),run('พันธกิจ ๓ บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม')]}),
-    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m3s3),run('ยุทธศาสตร์ 3 การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคมฯ')]}),
+    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m3),run('ยุทธศาสตร์ 3 การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคมฯ')]}),
     new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:360},children:[chkR(p.m4),run('พันธกิจ 4 ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ')]}),
-    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m4s4),run('ยุทธศาสตร์ 4 การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม')]}),
+    new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:720},children:[chkR(p.m4),run('ยุทธศาสตร์ 4 การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม')]}),
     // 5 EdPEx
     heading('๕. ความสอดคล้องกับเกณฑ์คุณภาพการศึกษา EdPEx ฉบับปี ๒๕๖๗ - ๒๕๗๐'),
     new Paragraph({spacing:{after:40,line:340,lineRule:'auto'},indent:{left:360},children:[chkR(p.edpex1),run('หมวด ๑ การนำองค์กร\t\t'),chkR(p.edpex2),run('หมวด ๒ กลยุทธ์\t\t'),chkR(p.edpex3),run('หมวด ๓ ลูกค้า')]}),
@@ -1166,6 +1168,25 @@ async function buildWordDoc(p){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),2000);
   showToast('✓ Export Word สำเร็จ','ok');
+}
+
+// ═══════════════════════════════════════════
+// SDG MUTUAL EXCLUSION
+// ═══════════════════════════════════════════
+function toggleSDGNone(cb){
+  const isNone = cb.checked;
+  for(let i=1;i<=17;i++){
+    const el=document.getElementById('f-sdg'+i);
+    if(el){ el.disabled=isNone; if(isNone) el.checked=false; }
+  }
+}
+function toggleSDGItem(){
+  const anyChecked=[...Array(17)].some((_,i)=>{
+    const el=document.getElementById('f-sdg'+(i+1));
+    return el&&el.checked;
+  });
+  const none=document.getElementById('f-sdg0');
+  if(anyChecked&&none){ none.checked=false; }
 }
 
 // ═══════════════════════════════════════════
