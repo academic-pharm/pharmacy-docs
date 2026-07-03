@@ -1733,7 +1733,7 @@ async function buildWordDoc(p){
         blank(),blank(),
         sigPara('อนุมัติ',true),
         blank(),blank(),blank(),blank(),blank(),blank(),
-        sigPara(`(${p.deanName||'.....................................................................')}`),
+        sigPara(`(${p.deanName||'.....................................................................'})`),
         sigPara(p.deanPos||'คณบดีคณะเภสัชศาสตร์'),
         ...(p.deanActing ? [sigPara('คณบดีคณะเภสัชศาสตร์')] : []),
       ];
