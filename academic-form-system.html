@@ -1600,49 +1600,49 @@ async function buildWordDoc(p){
     para([run('ของบประมาณรายจ่ายจากเงินรายได้ ประจำปีงบประมาณ พ.ศ. ๒๕๖๘',{bold:true,size:SZH})],{center:true}),
     blank(),
     // 1
-    new Paragraph({spacing:{before:240,after:40,line:432,lineRule:'auto'},children:[run('๑. ชื่อโครงการ',{bold:true}),run(` โครงการ${p.projectName||''}`)]}),
+    new Paragraph({spacing:{before:240,after:40,line:240,lineRule:'auto'},children:[run('๑. ชื่อโครงการ',{bold:true}),run(` โครงการ${p.projectName||''}`)]}),
     // 2
     heading('๒. ประเภทโครงการ'),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.type21==='continuous'),run('โครงการต่อเนื่อง\t\t'),chkR(p.type21==='new'),run('โครงการใหม่')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.type22==='inPlan'),run(`โครงการตามแผนปฏิบัติการคณะเภสัชศาสตร์ ปีงบประมาณ พ.ศ. ๒๕${p.planYear||'๖๘'}`)]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.type22==='outPlan'),run(`โครงการนอกแผนปฏิบัติการคณะเภสัชศาสตร์ ปีงบประมาณ พ.ศ. ๒๕${p.planYear||'๖๘'}`)]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.type21==='continuous'),run('โครงการต่อเนื่อง\t\t'),chkR(p.type21==='new'),run('โครงการใหม่')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.type22==='inPlan'),run(`โครงการตามแผนปฏิบัติการคณะเภสัชศาสตร์ ปีงบประมาณ พ.ศ. ๒๕${p.planYear||'๖๘'}`)]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.type22==='outPlan'),run(`โครงการนอกแผนปฏิบัติการคณะเภสัชศาสตร์ ปีงบประมาณ พ.ศ. ๒๕${p.planYear||'๖๘'}`)]}),
     // 3
     heading('3. ความสอดคล้องกับยุทธศาสตร์มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. ๒๕๖๘ – ๒๕๗๑'),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu1),run('ยุทธศาสตร์ 1 การพัฒนาคนคุณภาพ')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu2),run('ยุทธศาสตร์ ๒ การพัฒนาความรู้ผ่านการวิจัยและการสร้างนวัตกรรมฯ')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu3),run('ยุทธศาสตร์ ๓ การพัฒนาสังคมอย่างยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu4),run('ยุทธศาสตร์ 4 การเพิ่มขีดความสามารถองค์กรผ่านการใช้ทรัพยากรเชิงกลยุทธ์')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu1),run('ยุทธศาสตร์ 1 การพัฒนาคนคุณภาพ')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu2),run('ยุทธศาสตร์ ๒ การพัฒนาความรู้ผ่านการวิจัยและการสร้างนวัตกรรมฯ')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu3),run('ยุทธศาสตร์ ๓ การพัฒนาสังคมอย่างยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.buu4),run('ยุทธศาสตร์ 4 การเพิ่มขีดความสามารถองค์กรผ่านการใช้ทรัพยากรเชิงกลยุทธ์')]}),
     // 4
     heading('4. ความสอดคล้องกับพันธกิจและยุทธศาสตร์คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. ๒๕๖๘ – ๒๕๗๑'),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.m1),run('พันธกิจ ๑ ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๑ การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำ เพื่อตอบสนองต่อความต้องการของประเทศ')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.m2),run('พันธกิจ ๒ สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๒ การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากล และการนำไปใช้ประโยชน์')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.m3),run('พันธกิจ ๓ บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๓ การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคม เพื่อส่งเสริมคุณภาพชีวิต')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.m4),run('พันธกิจ ๔ ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๔ การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.m1),run('พันธกิจ ๑ ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๑ การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำ เพื่อตอบสนองต่อความต้องการของประเทศ')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.m2),run('พันธกิจ ๒ สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๒ การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากล และการนำไปใช้ประโยชน์')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.m3),run('พันธกิจ ๓ บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๓ การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคม เพื่อส่งเสริมคุณภาพชีวิต')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.m4),run('พันธกิจ ๔ ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ'),new TextRun({text:'',break:1,font:FONT,language:{value:'th-TH'}}),run('         ยุทธศาสตร์ ๔ การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม')]}),
     // 5 EdPEx
     heading('๕. ความสอดคล้องกับเกณฑ์คุณภาพการศึกษา EdPEx ฉบับปี ๒๕๖๗ - ๒๕๗๐'),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.edpex1),run('หมวด ๑ การนำองค์กร\t\t'),chkR(p.edpex2),run('หมวด ๒ กลยุทธ์\t\t'),chkR(p.edpex3),run('หมวด ๓ ลูกค้า')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.edpex4),run('หมวด ๔ การวัด การวิเคราะห์ และการจัดการความรู้\t\t'),chkR(p.edpex5),run('หมวด ๕ บุคลากร')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[chkR(p.edpex6),run('หมวด ๖ การปฏิบัติการ\t\t'),chkR(p.edpex7),run('หมวด ๗ ผลลัพธ์')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.edpex1),run('หมวด ๑ การนำองค์กร\t\t'),chkR(p.edpex2),run('หมวด ๒ กลยุทธ์\t\t'),chkR(p.edpex3),run('หมวด ๓ ลูกค้า')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.edpex4),run('หมวด ๔ การวัด การวิเคราะห์ และการจัดการความรู้\t\t'),chkR(p.edpex5),run('หมวด ๕ บุคลากร')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[chkR(p.edpex6),run('หมวด ๖ การปฏิบัติการ\t\t'),chkR(p.edpex7),run('หมวด ๗ ผลลัพธ์')]}),
     // 6 SDGs
     heading('๖. ความสอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)'),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg0),run('ไม่สอดคล้องกับ SDGs')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg1),run('๑. ขจัดความยากจนทุกรูปแบบในทุกพื้นที่')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg2),run('๒. ยุติความหิวโหย บรรลุความมั่นคงทางอาหาร ยกระดับโภชนาการ และส่งเสริมเกษตรกรรมที่ยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg3),run('๓. สร้างหลักประกันว่าคนมีชีวิตที่มีสุขภาพดีและส่งเสริมความเป็นอยู่ที่ดีสำหรับทุกคนในทุกวัย')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg4),run('๔. สร้างหลักประกันว่าทุกคนมีการศึกษาที่มีคุณภาพอย่างครอบคลุมและเท่าเทียม และสนับสนุนโอกาสในการเรียนรู้ตลอดชีวิต')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg5),run('๕. บรรลุความเท่าเทียมทางเพศ พัฒนาบทบาทสตรีและเด็กผู้หญิง')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg6),run('๖. สร้างหลักประกันเรื่องน้ำและการสุขาภิบาล ให้มีการจัดการอย่างยั่งยืนและมีสภาพพร้อมใช้สำหรับทุกคน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg7),run('๗. สร้างหลักประกันว่าทุกคนเข้าถึงพลังงานสมัยใหม่ในราคาที่สามารถซื้อหาได้ เชื่อถือได้ และยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg8),run('๘. ส่งเสริมการเติบโตทางเศรษฐกิจที่ต่อเนื่อง ครอบคลุม และยั่งยืน การจ้างงานเต็มที่และมีผลิตภาพ และการมีงานที่เหมาะสมสำหรับทุกคน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg9),run('๙. สร้างโครงสร้างพื้นฐานที่มีความทนทาน ส่งเสริมการพัฒนาอุตสาหกรรม และส่งเสริมนวัตกรรม')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg10),run('๑๐. ลดความไม่เสมอภาคภายในประเทศและระหว่างประเทศ')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg11),run('๑๑. ทำให้เมืองและการตั้งถิ่นฐานของมนุษย์มีความครอบคลุม ปลอดภัย มีภูมิต้านทาน และยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg12),run('๑๒. สร้างหลักประกันให้มีรูปแบบการผลิตและการบริโภคที่ยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg13),run('๑๓. ปฏิบัติการอย่างเร่งด่วนเพื่อต่อสู้การเปลี่ยนแปลงสภาพภูมิอากาศและผลกระทบที่เกิดขึ้น')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg14),run('๑๔. อนุรักษ์และใช้ประโยชน์จากมหาสมุทร ทะเล และทรัพยากรทางทะเลอย่างยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg15),run('๑๕. ปกป้อง ฟื้นฟู และส่งเสริมการใช้ประโยชน์จากระบบนิเวศทางบกอย่างยั่งยืน')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg16),run('๑๖. ส่งเสริมสังคมที่สงบสุข ให้ทุกคนเข้าถึงความยุติธรรม')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg17),run('๑๗. เสริมความเข้มแข็งให้แก่กลไกการดำเนินงานและฟื้นฟูหุ้นส่วนความร่วมมือระดับโลกที่ยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg0),run('ไม่สอดคล้องกับ SDGs')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg1),run('๑. ขจัดความยากจนทุกรูปแบบในทุกพื้นที่')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg2),run('๒. ยุติความหิวโหย บรรลุความมั่นคงทางอาหาร ยกระดับโภชนาการ และส่งเสริมเกษตรกรรมที่ยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg3),run('๓. สร้างหลักประกันว่าคนมีชีวิตที่มีสุขภาพดีและส่งเสริมความเป็นอยู่ที่ดีสำหรับทุกคนในทุกวัย')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg4),run('๔. สร้างหลักประกันว่าทุกคนมีการศึกษาที่มีคุณภาพอย่างครอบคลุมและเท่าเทียม และสนับสนุนโอกาสในการเรียนรู้ตลอดชีวิต')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg5),run('๕. บรรลุความเท่าเทียมทางเพศ พัฒนาบทบาทสตรีและเด็กผู้หญิง')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg6),run('๖. สร้างหลักประกันเรื่องน้ำและการสุขาภิบาล ให้มีการจัดการอย่างยั่งยืนและมีสภาพพร้อมใช้สำหรับทุกคน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg7),run('๗. สร้างหลักประกันว่าทุกคนเข้าถึงพลังงานสมัยใหม่ในราคาที่สามารถซื้อหาได้ เชื่อถือได้ และยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg8),run('๘. ส่งเสริมการเติบโตทางเศรษฐกิจที่ต่อเนื่อง ครอบคลุม และยั่งยืน การจ้างงานเต็มที่และมีผลิตภาพ และการมีงานที่เหมาะสมสำหรับทุกคน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg9),run('๙. สร้างโครงสร้างพื้นฐานที่มีความทนทาน ส่งเสริมการพัฒนาอุตสาหกรรม และส่งเสริมนวัตกรรม')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg10),run('๑๐. ลดความไม่เสมอภาคภายในประเทศและระหว่างประเทศ')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg11),run('๑๑. ทำให้เมืองและการตั้งถิ่นฐานของมนุษย์มีความครอบคลุม ปลอดภัย มีภูมิต้านทาน และยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg12),run('๑๒. สร้างหลักประกันให้มีรูปแบบการผลิตและการบริโภคที่ยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg13),run('๑๓. ปฏิบัติการอย่างเร่งด่วนเพื่อต่อสู้การเปลี่ยนแปลงสภาพภูมิอากาศและผลกระทบที่เกิดขึ้น')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg14),run('๑๔. อนุรักษ์และใช้ประโยชน์จากมหาสมุทร ทะเล และทรัพยากรทางทะเลอย่างยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg15),run('๑๕. ปกป้อง ฟื้นฟู และส่งเสริมการใช้ประโยชน์จากระบบนิเวศทางบกอย่างยั่งยืน')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg16),run('๑๖. ส่งเสริมสังคมที่สงบสุข ให้ทุกคนเข้าถึงความยุติธรรม')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg17),run('๑๗. เสริมความเข้มแข็งให้แก่กลไกการดำเนินงานและฟื้นฟูหุ้นส่วนความร่วมมือระดับโลกที่ยั่งยืน')]}),
     // 7
     heading('๗. หลักการและเหตุผล'),
     ...((p.rationale||'').split('\n').map(line=>para(line,{indent:{left:640}}))),
@@ -1650,14 +1650,14 @@ async function buildWordDoc(p){
     heading('๘. วัตถุประสงค์'),
     ...(p.objectives||[]).map((o,i)=>para(`${toThai(i+1)}. ${o}`,{indent:{left:640}})),
     // 9
-    new Paragraph({spacing:{before:240,after:40,line:432,lineRule:'auto'},children:[run('๙. หน่วยงานที่รับผิดชอบ',{bold:true}),run(` ${p.dept||''}`)]}),
+    new Paragraph({spacing:{before:240,after:40,line:240,lineRule:'auto'},children:[run('๙. หน่วยงานที่รับผิดชอบ',{bold:true}),run(` ${p.dept||''}`)]}),
     // 10
     heading('๑๐. ผู้รับผิดชอบโครงการ'),
     ...(p.coordinators||[]).map(c=>para(c,{indent:{left:640}})),
     // 11
-    new Paragraph({spacing:{before:240,after:40,line:432,lineRule:'auto'},children:[run('๑๑. ระยะเวลาดำเนินการ',{bold:true}),run(` ${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}`)]}),
+    new Paragraph({spacing:{before:240,after:40,line:240,lineRule:'auto'},children:[run('๑๑. ระยะเวลาดำเนินการ',{bold:true}),run(` ${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}`)]}),
     // 12
-    new Paragraph({spacing:{before:240,after:40,line:432,lineRule:'auto'},children:[run('๑๒. สถานที่ดำเนินงาน',{bold:true}),run(` ${p.location||''}`)]}),
+    new Paragraph({spacing:{before:240,after:40,line:240,lineRule:'auto'},children:[run('๑๒. สถานที่ดำเนินงาน',{bold:true}),run(` ${p.location||''}`)]}),
     // 13
     heading('๑๓. กลุ่มเป้าหมายและจำนวน'),
     ...(p.targets||[]).map((t,i)=>para(`๑๓.${toThai(i+1)} ${t.name} จำนวน ${t.count||'...'} คน`,{indent:{left:640}})),
@@ -1690,10 +1690,10 @@ async function buildWordDoc(p){
     blank(),
     // 18
     heading('๑๘. เป้าหมายผลผลิต'),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดปริมาณ',{bold:true}),run(` : ${(p.kpiQty||[]).join(' ')}`)]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดคุณภาพ',{bold:true}),run(` : ${(p.kpiQual||[]).join(' ')}`)]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดเวลา',{bold:true}),run(' : โครงการแล้วเสร็จตามระยะเวลาที่กำหนด')]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดเชิงต้นทุน',{bold:true}),run(' : ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนดไว้')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดปริมาณ',{bold:true}),run(` : ${(p.kpiQty||[]).join(' ')}`)]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดคุณภาพ',{bold:true}),run(` : ${(p.kpiQual||[]).join(' ')}`)]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดเวลา',{bold:true}),run(' : โครงการแล้วเสร็จตามระยะเวลาที่กำหนด')]}),
+    new Paragraph({spacing:{after:40,line:240,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดเชิงต้นทุน',{bold:true}),run(' : ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนดไว้')]}),
     // 19
     heading('๑๙. รายละเอียดงบประมาณของโครงการ'),
     para(`ใช้งบประมาณดำเนินการจากเงิน ${p.budgetSource||'...............'} แผนงาน ${p.budgetPlan||'...............'} งาน ${p.budgetWork||'...............'} หมวดเงิน ${p.budgetType||'...............'} เป็นจำนวนเงิน ${total.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท (${p.budgetTotalText||'...................................'})`,{indent:{left:640}}),
@@ -1717,24 +1717,35 @@ async function buildWordDoc(p){
     para(`๒๐.๑ รายงานผลการจัดกิจกรรม วันที่ ${p.r1Day||'.......'} ${p.r1Month||'...........'} พ.ศ. 25${p.r1Year||'.....'}`,{indent:{left:640}}),
     para(`๒๐.๒ ส่งแบบฟอร์มรายงานผลการจัดกิจกรรมและการใช้เงิน วันที่ ${p.r2Day||'.......'} ${p.r2Month||'...........'} พ.ศ. 25${p.r2Year||'.....'}`,{indent:{left:640}}),
     blank(true),blank(true),
-    // Signatures — right-aligned block using 2-col table (left empty, right sig)
-    new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:{style:'none'},bottom:{style:'none'},left:{style:'none'},right:{style:'none'},insideH:{style:'none'},insideV:{style:'none'}},rows:[
-      new TableRow({children:[
-        new TableCell({width:{size:4500,type:WidthType.DXA},borders:{top:{style:'none'},bottom:{style:'none'},left:{style:'none'},right:{style:'none'}},children:[blank()]}),
-        new TableCell({width:{size:4500,type:WidthType.DXA},borders:{top:{style:'none'},bottom:{style:'none'},left:{style:'none'},right:{style:'none'}},children:[
-          ...(p.sig1Image ? [new Paragraph({spacing:{after:0},alignment:AlignmentType.CENTER,children:[new ImageRun({data:Uint8Array.from(atob(p.sig1Image.split(',')[1]),c=>c.charCodeAt(0)),transformation:{width:360,height:180},type:p.sig1Image.includes('png')?'png':'jpg'})]})] : [blank(),blank()]),
-          new Paragraph({spacing:{after:0,line:300,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(`(${p.sig1Name||'......................................................'})`)]}),
-          new Paragraph({spacing:{after:0,line:300,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(`ตำแหน่ง${p.sig1Pos||'......................................................'}`)]}),
-          new Paragraph({spacing:{after:0,line:300,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run('ผู้รับผิดชอบโครงการ')]}),
-        ]}),
-      ]}),
-    ]}),
-    blank(),blank(),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run('อนุมัติ',{bold:true})]}),
-    blank(),blank(),blank(),blank(),blank(),blank(),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(`(${p.deanName||'.....................................................................'})`)]}),
-    new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(p.deanPos||'คณบดีคณะเภสัชศาสตร์')]}),
-    ...(p.deanActing ? [new Paragraph({spacing:{after:40,line:432,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run('คณบดีคณะเภสัชศาสตร์')]})] : []),
+    // Signatures — ALL content in right column of invisible 2-col table
+    (()=>{
+      const NB = {style:'nil',size:0,color:'FFFFFF'};
+      const cellBorder = {top:NB,bottom:NB,left:NB,right:NB};
+      const tblBorderNil = {...cellBorder,insideH:NB,insideV:NB};
+      const sigPara = (text,bold=false)=>new Paragraph({spacing:{after:0,line:240,lineRule:'auto'},alignment:AlignmentType.CENTER,children:[run(text,{bold})]});
+      const rightChildren = [
+        ...(p.sig1Image
+          ? [new Paragraph({spacing:{after:0},alignment:AlignmentType.CENTER,children:[new ImageRun({data:Uint8Array.from(atob(p.sig1Image.split(',')[1]),c=>c.charCodeAt(0)),transformation:{width:360,height:180},type:p.sig1Image.includes('png')?'png':'jpg'})]})]
+          : [blank(),blank()]),
+        sigPara(`(${p.sig1Name||'......................................................'})`),
+        sigPara(`ตำแหน่ง${p.sig1Pos||'......................................................'}`),
+        sigPara('ผู้รับผิดชอบโครงการ'),
+        blank(),blank(),
+        sigPara('อนุมัติ',true),
+        blank(),blank(),blank(),blank(),blank(),blank(),
+        sigPara(`(${p.deanName||'.....................................................................')}`),
+        sigPara(p.deanPos||'คณบดีคณะเภสัชศาสตร์'),
+        ...(p.deanActing ? [sigPara('คณบดีคณะเภสัชศาสตร์')] : []),
+      ];
+      return new Table({
+        width:{size:100,type:WidthType.PERCENTAGE},
+        borders:tblBorderNil,
+        rows:[new TableRow({children:[
+          new TableCell({width:{size:4500,type:WidthType.DXA},borders:cellBorder,children:[blank()]}),
+          new TableCell({width:{size:4500,type:WidthType.DXA},borders:cellBorder,children:rightChildren}),
+        ]})]
+      });
+    })(),
   ];
 
   const doc = new Document({
