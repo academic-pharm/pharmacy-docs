@@ -1547,14 +1547,20 @@ async function buildWordDoc(p){
     else children = [runs]; // TextRun or similar object
     return new Paragraph({
       alignment: opts.center ? AlignmentType.CENTER : opts.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      indent: opts.indent ? (typeof opts.indent==='object' ? opts.indent : {left: opts.indent*360}) : undefined,
-      spacing: {after:40, line:432, lineRule:'auto'},
+      indent: opts.indent ? (typeof opts.indent==='object' ? opts.indent : {left: opts.indent*640}) : undefined,
+      spacing: {before: opts.secBefore||0, after:40, line:432, lineRule:'auto'},
       keepNext: opts.keepNext || false,
       children
     });
   }
   function blank(keepNext=false){ return para('',{size:SZS,keepNext}); }
-  function heading(text){ return para(text,{bold:true}); }
+  function heading(text){
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing: {before:240, after:40, line:432, lineRule:'auto'},
+      children: [run(text, {bold:true})]
+    });
+  }
   function chkR(val){ return run(val?'☑ ':'☐ '); }
 
   // Page margins in twips: 1cm=567
