@@ -732,16 +732,26 @@ async function _fbSync(uid, email){
     const snap=await ref.once('value');
     const cloud=snap.val();
     const local=JSON.parse(localStorage.getItem(getUserDbKey(email))||'[]');
-    if(cloud && Array.isArray(cloud) && cloud.length>0){
-      const cloudIds=new Set(cloud.map(p=>p.id));
-      const localOnly=local.filter(p=>!cloudIds.has(p.id));
-      const merged=[...cloud,...localOnly];
-      localStorage.setItem(getUserDbKey(email), JSON.stringify(merged));
-      if(localOnly.length>0) ref.set(merged).catch(()=>{});
-    } else if(local.length>0){
-      await ref.set(local);
+    const cloudArr=(cloud && Array.isArray(cloud))?cloud:[];
+    const cloudMap=new Map(cloudArr.map(p=>[p.id,p]));
+    const localMap=new Map(local.map(p=>[p.id,p]));
+    const allIds=new Set([...cloudMap.keys(),...localMap.keys()]);
+    const merged=[];
+    let needPush=cloudArr.length===0&&local.length>0;
+    for(const id of allIds){
+      const c=cloudMap.get(id), l=localMap.get(id);
+      if(c&&l){
+        const ct=new Date(c.updatedAt||0).getTime();
+        const lt=new Date(l.updatedAt||0).getTime();
+        if(lt>ct){ merged.push(l); needPush=true; }
+        else merged.push(c);
+      } else if(c){ merged.push(c); }
+      else { merged.push(l); needPush=true; }
     }
-    console.log('[FB] sync complete, cloud items:'+(cloud&&cloud.length||0));
+    merged.sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
+    localStorage.setItem(getUserDbKey(email), JSON.stringify(merged));
+    if(needPush) ref.set(merged).catch(()=>{});
+    console.log('[FB] sync complete, merged:'+merged.length);
   }catch(e){ console.warn('[FB] sync error:',e); }
 }
 
