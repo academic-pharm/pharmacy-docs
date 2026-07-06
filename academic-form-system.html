@@ -716,6 +716,9 @@ function saveProjects(arr, email){
 }
 
 /* ── Firebase Realtime DB sync ── */
+const _FB_CFG={apiKey:'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',databaseURL:'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'pharmacy-buu',appId:'1:15077505324:web:e5fcb9d23cd888ec9bd489'};
+function initFirebase(){try{if(typeof firebase!=='undefined'&&firebase.apps.length===0)firebase.initializeApp(_FB_CFG);}catch(e){}}
+function emailToFbKey(e){return(e||'').toLowerCase().replace(/\./g,'_').replace(/@/g,'__').replace(/[#$\[\]\/]/g,'_');}
 function _fbRef(email){
   try{
     initFirebase();
