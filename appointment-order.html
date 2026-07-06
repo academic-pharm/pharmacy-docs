@@ -460,13 +460,13 @@ function buildPrintHTML(d){
 
   const committeesHTML = (d.committees||[]).map((c,ci)=>{
     const membersHTML = (c.members||[]).map((m,mi)=>
-      `<div class="ind1"><span class="num">${mi+1}.</span> ${m.name||''} <span class="role">${m.role||''}</span></div>`
+      `<div class="member-row"><span class="member-name">${mi+1}. ${m.name||''}</span><span class="member-role">${m.role||''}</span></div>`
     ).join('');
     return `
-      <div class="committee">
+      <div class="committee${ci>0?' mt12':''}">
         <div class="comm-title">${ci+1}. ${c.name||''}</div>
         ${membersHTML}
-        ${c.duties ? `<div class="duties-label">หน้าที่และความรับผิดชอบ</div><div class="duties-text">${(c.duties||'').replace(/\n/g,'<br>')}</div>` : ''}
+        ${c.duties ? `<div class="comm-title" style="margin-top:4pt">หน้าที่และความรับผิดชอบ</div><div class="duties-text">${(c.duties||'').replace(/\n/g,'<br>')}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -476,45 +476,44 @@ function buildPrintHTML(d){
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
 body{font-family:'TH SarabunIT๙','TH SarabunIT9','TH Sarabun New','Sarabun',sans-serif;font-size:16pt;line-height:1.8;color:#000;margin:0;padding:0}
 .page{padding:0;background:#fff}
-.center{text-align:center}
-.bold{font-weight:700}
-.header-title{font-size:16pt;font-weight:700;text-align:center;line-height:2}
-.divider{text-align:center;margin:6pt 0;letter-spacing:1pt;font-size:12pt}
-.preamble{text-indent:3em;margin:8pt 0 12pt;text-align:justify}
-.committee{margin:10pt 0;break-inside:avoid}
-.comm-title{font-weight:700;margin-bottom:4pt}
-.ind1{padding-left:3em;margin-bottom:2pt}
-.num{display:inline-block;min-width:1.5em}
-.role{margin-left:1em}
-.duties-label{font-weight:700;margin:4pt 0 2pt 3em}
-.duties-text{padding-left:3em;text-align:justify;margin-bottom:6pt}
-.closing{margin-top:14pt;text-align:justify;break-inside:avoid}
-.sig-section{margin-top:24pt;text-align:right;line-height:2}
-.sig-name{font-weight:700}
-.copy-section{margin-top:30pt;border-top:1px solid #000;padding-top:8pt;font-size:14pt}
-@media print{body{margin:0}@page{size:A4;margin:2.54cm 2cm 2cm 2.54cm}}
+.header-title{font-size:16pt;font-weight:700;text-align:center;line-height:1.9}
+.divider{text-align:center;margin:4pt 0}
+.preamble{text-indent:2.5em;margin:8pt 0 8pt;text-align:justify}
+.committee{break-inside:avoid}
+.mt12{margin-top:12pt}
+.comm-title{font-weight:700;padding-left:2.5em;text-indent:-1.25em;margin-bottom:1pt}
+.member-row{display:flex;justify-content:space-between;padding-left:4em;margin-bottom:1pt}
+.member-name{flex:1}
+.member-role{flex-shrink:0;margin-left:2em}
+.duties-text{padding-left:4em;text-align:justify;margin-bottom:4pt;text-indent:0}
+.closing{margin-top:10pt;padding-left:2.5em}
+.sig-section{margin-top:14pt;line-height:1.9;padding-left:50%}
+.copy-section{margin-top:24pt;border-top:1px solid #000;padding-top:6pt}
+.copy-right{text-align:right;margin-top:4pt}
+@media print{body{margin:0}@page{size:A4;margin:2cm 2.54cm 0.75cm 2.54cm}}
 </style></head><body><div class="page">
-${LOGO_B64?`<div style="text-align:center;margin-bottom:8pt"><img src="${LOGO_B64}" style="width:4cm;height:4cm;object-fit:contain"></div>`:''}
+${LOGO_B64?`<div style="text-align:center;margin-bottom:6pt"><img src="${LOGO_B64}" style="width:3.5cm;height:3.5cm;object-fit:contain"></div>`:''}
 <div class="header-title">คำสั่งคณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>
 <div class="header-title">ที่ ${d.orderNumber||'........./.........'}</div>
-<div class="header-title">เรื่อง แต่งตั้ง${commTitle}${projName}</div>
+<div class="header-title">เรื่อง  แต่งตั้ง${commTitle}${projName}</div>
+<div class="header-title">ประจำปีการศึกษา ${d.academicYear||'.........'}</div>
 <div class="divider">--------------------------------------------------------------------------------</div>
 <div class="preamble">${preamble}</div>
 ${committeesHTML}
-<div class="closing">ทั้งนี้ ตั้งแต่บัดนี้เป็นต้นไปจนกว่าจะมีคำสั่งเปลี่ยนแปลงเป็นอย่างอื่น</div>
+<div class="closing">ทั้งนี้  ตั้งแต่บัดนี้เป็นต้นไปจนกว่าจะมีคำสั่งเปลี่ยนแปลงเป็นอย่างอื่น</div>
 <div class="sig-section">
-  <div>สั่ง ณ วันที่ ${fmtDateTH(d.orderDate)||'........................................'}</div>
-  <div style="margin-top:16pt">(ลงชื่อ) ${d.signerName||'........................................'}</div>
+  <div>สั่ง  ณ วันที่ ${fmtDateTH(d.orderDate)||'........................................'}</div>
+  <div style="margin-top:20pt">(ลงชื่อ) ${d.signerName||'........................................'}</div>
   <div>(${d.signerTitle||'...........................................................................'})</div>
   ${d.signerPos1?`<div>${d.signerPos1}</div>`:''}
   ${d.signerPos2?`<div>${d.signerPos2}</div>`:''}
   ${d.signerPos3?`<div>${d.signerPos3}</div>`:''}
 </div>
 <div class="copy-section">
-  <div class="bold">- สำเนา -</div>
-  <div style="margin-top:8pt;text-align:right">สำเนาถูกต้อง</div>
-  <div style="text-align:right">(${d.copyName||'....................................'})</div>
-  <div style="text-align:right">${d.copyPos||''}</div>
+  <div style="font-weight:700">- สำเนา -</div>
+  <div class="copy-right">สำเนาถูกต้อง</div>
+  <div class="copy-right">(${d.copyName||'....................................'})</div>
+  <div class="copy-right">${d.copyPos||''}</div>
 </div>
 </div></body></html>`;
 }
@@ -531,82 +530,142 @@ async function exportWord(){
 }
 
 async function buildWordDoc(d){
-  const {Document,Packer,Paragraph,TextRun,AlignmentType,WidthType,BorderStyle,ImageRun} = docx;
+  const {Document,Packer,Paragraph,TextRun,AlignmentType,WidthType,BorderStyle,ImageRun,TabStopType} = docx;
   const FONT = 'TH SarabunIT๙';
   const SZ = 32; // 16pt
+  // Page: A4, margins from original doc
+  // Left/Right: 2.54cm = 1440 twips | Top: 2cm = 1134t | Bottom: 0.75cm = 426t
+  // Committee heading indent: left=1133t, hanging=567t (from doc: 720090/914400*1440 & 360045/914400*1440)
+  // Member row indent: left=1440t (1 inch), role tab at 7200t from left margin
+  // Duties/closing indent: left=1440t, firstLine=720t (double-tab effect)
 
   function run(text, opts={}){
     return new TextRun({text:String(text||''),font:FONT,size:opts.size||SZ,
       bold:!!opts.bold,language:{value:'th-TH'}});
   }
+  function tab(){ return new TextRun({text:'\t',font:FONT,size:SZ}); }
   function para(txt, opts={}){
     const children = Array.isArray(txt) ? txt : [run(txt,opts)];
     return new Paragraph({
-      alignment: opts.center ? AlignmentType.CENTER : opts.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      indent: opts.indent ? {left:opts.indent*640} : undefined,
+      alignment: opts.center ? AlignmentType.CENTER : opts.right ? AlignmentType.RIGHT :
+                 opts.justify ? AlignmentType.THAI_DISTRIBUTE : AlignmentType.LEFT,
+      indent: opts.indent || undefined,
       spacing: {before: opts.before||0, after:0, line:276, lineRule:'auto'},
+      tabStops: opts.tabStops || undefined,
       children
     });
   }
   function blank(){ return para(''); }
-  function heading(txt){ return para(txt,{bold:true}); }
+  // Committee heading style: bold, hanging indent matching original doc
+  function commHeading(txt, isFirst){
+    return new Paragraph({
+      spacing:{before: isFirst?0:240, after:0, line:276, lineRule:'auto'},
+      indent:{left:1133, hanging:567},
+      children:[run(txt,{bold:true})]
+    });
+  }
+  // Member row: name (left) + tab + role (right-aligned tab at 7200)
+  function memberRow(num, name, role){
+    return new Paragraph({
+      spacing:{before:0,after:0,line:276,lineRule:'auto'},
+      indent:{left:1440},
+      tabStops:[{type:TabStopType.RIGHT, position:7200}],
+      children:[run(`${num}. ${name}`), tab(), run(role)]
+    });
+  }
+  // Duties / closing text: indented with first-line tab
+  function dutyPara(txt){
+    return new Paragraph({
+      alignment: AlignmentType.THAI_DISTRIBUTE,
+      spacing:{before:0,after:0,line:276,lineRule:'auto'},
+      indent:{left:1440, firstLine:720},
+      children:[run(txt)]
+    });
+  }
 
-  const projName   = d.projectName||'';
-  const commTitle  = d.committeeTitle||'คณะกรรมการ';
-  const preamble   = d.preamble ||
+  const projName  = d.projectName||'';
+  const commTitle = d.committeeTitle||'คณะกรรมการ';
+  const preamble  = d.preamble ||
     `เพื่อให้การดำเนินงานเกี่ยวกับ${projName} เป็นไปด้วยความเรียบร้อยและมีประสิทธิภาพ อาศัยอำนาจตามความในมาตรา ๓๕ แห่งพระราชบัญญัติมหาวิทยาลัยบูรพา พ.ศ.๒๕๕๐ จึงแต่งตั้งให้บุคคลต่อไปนี้ เป็น${commTitle}${projName}`;
 
   const children = [
     ...(LOGO_B64 ? [new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:0},
       children:[new ImageRun({data:Uint8Array.from(atob(LOGO_B64.split(',')[1]),c=>c.charCodeAt(0)),
-        transformation:{width:113,height:113},type:'png'})]})] : []),
+        transformation:{width:99,height:99},type:'png'})]})] : []),
     para([run('คำสั่งคณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา',{bold:true})],{center:true}),
     para([run(`ที่ ${d.orderNumber||'........./.........'}`,{bold:true})],{center:true}),
-    para([run(`เรื่อง แต่งตั้ง${commTitle}${projName}`,{bold:true})],{center:true}),
+    para([run(`เรื่อง  แต่งตั้ง${commTitle}${projName}`,{bold:true})],{center:true}),
+    para([run(`ประจำปีการศึกษา ${d.academicYear||'.........'}`,{bold:true})],{center:true}),
     para('--------------------------------------------------------------------------------',{center:true}),
-    blank(),
-    para([run('          '+preamble)]),
+    // Preamble: first-line indent (tab), Thai justify
+    new Paragraph({
+      alignment:AlignmentType.THAI_DISTRIBUTE,
+      spacing:{before:0,after:0,line:276,lineRule:'auto'},
+      indent:{firstLine:720},
+      children:[run(preamble)]
+    }),
     blank(),
   ];
 
   // Committees
   (d.committees||[]).forEach((c,ci)=>{
-    children.push(heading(`${ci+1}. ${c.name||''}`));
+    children.push(commHeading(`${ci+1}. ${c.name||''}`, ci===0));
     (c.members||[]).forEach((m,mi)=>{
-      children.push(new Paragraph({
-        spacing:{before:0,after:0,line:276,lineRule:'auto'},
-        indent:{left:640},
-        children:[run(`${mi+1}. ${m.name||''}`), run(`\t${m.role||''}`,{})],
-      }));
+      children.push(memberRow(mi+1, m.name||'', m.role||''));
     });
     if(c.duties){
-      children.push(para('หน้าที่และความรับผิดชอบ',{bold:true,indent:1}));
-      c.duties.split('\n').forEach(line=>children.push(para(line,{indent:2})));
+      // "หน้าที่และความรับผิดชอบ" same hanging indent as committee heading
+      children.push(new Paragraph({
+        spacing:{before:0,after:0,line:276,lineRule:'auto'},
+        indent:{left:1133, hanging:567},
+        children:[run('หน้าที่และความรับผิดชอบ',{bold:true})]
+      }));
+      c.duties.split('\n').forEach(line=>{ if(line.trim()) children.push(dutyPara(line)); });
     }
     children.push(blank());
   });
 
   children.push(
-    para('ทั้งนี้ ตั้งแต่บัดนี้เป็นต้นไปจนกว่าจะมีคำสั่งเปลี่ยนแปลงเป็นอย่างอื่น'),
+    // "ทั้งนี้..." with tab indent
+    new Paragraph({
+      spacing:{before:0,after:0,line:276,lineRule:'auto'},
+      indent:{left:1440, firstLine:720},
+      children:[run('ทั้งนี้  ตั้งแต่บัดนี้เป็นต้นไปจนกว่าจะมีคำสั่งเปลี่ยนแปลงเป็นอย่างอื่น')]
+    }),
     blank(),
-    para(`สั่ง ณ วันที่ ${fmtDateTH(d.orderDate)||'........................................'}`,{right:true}),
+    // "สั่ง ณ วันที่" — space before, right-side position (indent from left)
+    new Paragraph({
+      spacing:{before:240,after:0,line:276,lineRule:'auto'},
+      indent:{left:5040},
+      children:[run(`สั่ง  ณ วันที่ ${fmtDateTH(d.orderDate)||'........................................'}`)]
+    }),
     blank(),blank(),
-    para(`(ลงชื่อ)  ${d.signerName||'........................................'}`,{right:true}),
-    para(`(${d.signerTitle||'...........................................................................'})`,{right:true}),
-    ...(d.signerPos1 ? [para(d.signerPos1,{right:true})] : []),
-    ...(d.signerPos2 ? [para(d.signerPos2,{right:true})] : []),
-    ...(d.signerPos3 ? [para(d.signerPos3,{right:true})] : []),
+    new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},
+      children:[run(`(ลงชื่อ)  ${d.signerName||'........................................'}`)]
+    }),
+    new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},
+      children:[run(`(${d.signerTitle||'...........................................................................'})`)]
+    }),
+    ...(d.signerPos1?[new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},children:[run(d.signerPos1)]})]:[]),
+    ...(d.signerPos2?[new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},children:[run(d.signerPos2)]})]:[]),
+    ...(d.signerPos3?[new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},children:[run(d.signerPos3)]})]:[]),
     blank(),blank(),
     para('- สำเนา -',{bold:true}),
     blank(),
-    para(`สำเนาถูกต้อง`,{right:true}),
-    para(`(${d.copyName||'.....................................'})`,{right:true}),
-    para(d.copyPos||'',{right:true}),
+    new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:5040},
+      children:[run('สำเนาถูกต้อง')]
+    }),
+    new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},
+      children:[run(`(${d.copyName||'.....................................'})`)]
+    }),
+    new Paragraph({spacing:{before:0,after:0,line:276,lineRule:'auto'},indent:{left:4680},
+      children:[run(d.copyPos||'')]
+    }),
   );
 
   const doc = new Document({
     sections:[{
-      properties:{page:{margin:{top:1440,right:1134,bottom:1134,left:1814}}},
+      properties:{page:{margin:{top:1134,right:1440,bottom:426,left:1440}}},
       children
     }]
   });
