@@ -1492,8 +1492,8 @@ h2{text-align:center;font-size:16pt;margin:0;font-weight:700}
 .indent1{padding-left:2em;margin-bottom:2pt}
 .indent2{padding-left:4em;margin-bottom:2pt}
 .tgt-tbl{width:100%;border-collapse:collapse;margin-bottom:0;table-layout:auto}
-.tgt-tbl td{padding:1pt 0;font-size:16pt;vertical-align:middle;white-space:nowrap}
-.tgt-td-name{padding-left:2em;width:auto}
+.tgt-tbl td{padding:1pt 0;font-size:16pt;vertical-align:top;white-space:nowrap}
+.tgt-td-name{padding-left:4.5em;text-indent:-2.5em;white-space:normal;vertical-align:top}
 .tgt-td-label{padding-left:1em}
 .tgt-td-cnt{text-align:right;padding:0 6pt;min-width:40pt}
 .tgt-td-unit{padding-left:2em}
@@ -1783,13 +1783,14 @@ async function buildWordDoc(p){
         margins:opts.lm?{top:0,bottom:0,left:opts.lm,right:0}:undefined,
         children:[new Paragraph({alignment:opts.right?AlignmentType.RIGHT:AlignmentType.LEFT,
           spacing:{after:0,line:240,lineRule:'auto'},
+          indent:opts.hang?{left:opts.hang,hanging:opts.hang}:undefined,
           children:[run(txt,{})]})]});
       return new Table({width:{size:100,type:WidthType.PERCENTAGE},
         indent:{type:WidthType.DXA,size:640},
         borders:{top:nb,bottom:nb,left:nb,right:nb,insideH:nb,insideV:nb},
         rows:[
           ...(p.targets||[]).map((t,i)=>new TableRow({children:[
-            mkCell(`๑๓.${toThai(i+1)} ${t.name}`,{w:5000}),
+            mkCell(`๑๓.${toThai(i+1)} ${t.name}`,{w:5000,hang:800}),
             mkCell('จำนวน',{w:1100}),
             mkCell(t.count||'...',{w:1000,right:true}),
             mkCell('คน',{w:700,lm:640}),
