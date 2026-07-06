@@ -406,32 +406,53 @@ function isInAppBrowser(){
 function showInAppWarning(){
   const wrap=document.getElementById('google-signin-btn');
   const pageUrl=window.location.href;
-  // Android: use intent to open Chrome; iOS: just show URL
-  const isAndroid=/Android/.test(navigator.userAgent);
+  const ua=navigator.userAgent||'';
+  const isAndroid=/Android/.test(ua);
+  const isIOS=/iPhone|iPad|iPod/.test(ua);
+  const isLINE=/Line\//.test(ua);
   const chromeIntent=isAndroid
     ?`intent://${pageUrl.replace(/^https?:\/\//,'')}#Intent;scheme=https;package=com.android.chrome;end`
     :'';
   wrap.innerHTML=`
     <div style="
       background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.45);
-      border-radius:12px;padding:14px 16px;text-align:center;
+      border-radius:14px;padding:18px 16px;text-align:center;
     ">
-      <div style="font-size:1.5rem;margin-bottom:6px">⚠️</div>
-      <p style="color:#fbbf24;font-size:.82rem;font-weight:600;margin-bottom:4px">
-        ไม่สามารถล็อกอินผ่าน Google ใน In-App Browser ได้
+      <div style="font-size:1.8rem;margin-bottom:8px">⚠️</div>
+      <p style="color:#fbbf24;font-size:.85rem;font-weight:700;margin-bottom:6px">
+        กรุณาเปิดในเบราว์เซอร์
       </p>
-      <p style="color:#a0aec0;font-size:.75rem;line-height:1.5;margin-bottom:10px">
-        กรุณาเปิดลิงก์นี้ใน <strong>Chrome</strong> หรือ <strong>Safari</strong>
+      <p style="color:#a0aec0;font-size:.78rem;line-height:1.5;margin-bottom:14px">
+        ไม่สามารถ Login ผ่าน Google<br>ใน browser ของแอปได้
       </p>
-      ${isAndroid?`<a href="${chromeIntent}" style="
-        display:inline-block;background:#4285f4;color:white;
-        font-size:.8rem;font-weight:600;padding:8px 20px;border-radius:20px;
-        text-decoration:none;margin-bottom:8px;
-      ">🌐 เปิดใน Chrome</a><br>`:``}
-      <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${pageUrl}').then(()=>{this.textContent='✓ คัดลอกแล้ว!';setTimeout(()=>{this.textContent='คัดลอกลิงก์'},1500)})" style="
-        background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
-        color:#e2d9f3;font-size:.75rem;padding:6px 16px;border-radius:16px;cursor:pointer;
-      ">คัดลอกลิงก์</button>
+      ${isAndroid?`
+        <a href="${chromeIntent}" style="
+          display:block;background:#4285f4;color:white;
+          font-size:.88rem;font-weight:700;padding:11px 20px;border-radius:24px;
+          text-decoration:none;margin-bottom:10px;
+        ">🌐 เปิดใน Chrome</a>
+      `:''}
+      ${isIOS?`
+        <div style="
+          background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.25);
+          border-radius:10px;padding:10px 12px;margin-bottom:10px;
+          color:#93c5fd;font-size:.8rem;line-height:1.7;text-align:left;
+        ">
+          ${isLINE
+            ?'📱 กดปุ่ม <strong style="color:#fff">···</strong> มุมขวาบน<br>แล้วเลือก <strong style="color:#fff">"เปิดในเบราว์เซอร์"</strong>'
+            :'📱 กดปุ่ม <strong style="color:#fff">แชร์ (Share)</strong><br>แล้วเลือก <strong style="color:#fff">"Open in Safari"</strong>'
+          }
+        </div>
+      `:''}
+      <button onclick="
+        navigator.clipboard&&navigator.clipboard.writeText('${pageUrl}')
+          .then(()=>{this.textContent='✓ คัดลอกแล้ว!';setTimeout(()=>{this.textContent='📋 คัดลอกลิงก์ → เปิดใน Chrome/Safari'},1500)})
+      " style="
+        display:block;width:100%;
+        background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+        color:#e2d9f3;font-size:.82rem;font-weight:500;
+        padding:10px 16px;border-radius:20px;cursor:pointer;
+      ">📋 คัดลอกลิงก์ → เปิดใน Chrome/Safari</button>
     </div>`;
 }
 
