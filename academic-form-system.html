@@ -536,7 +536,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="fsec">
     <div class="fsec-title">๑๗. กำหนดการโครงการ</div>
     <table class="dtable" id="schedule-table">
-      <thead><tr><th style="width:30%">เวลา / วันที่</th><th>กิจกรรม</th><th style="width:60px"></th></tr></thead>
+      <thead><tr><th style="width:22%">วันที่</th><th style="width:22%">เวลา</th><th>กิจกรรม</th><th style="width:60px"></th></tr></thead>
       <tbody id="schedule-body"></tbody>
     </table>
     <button class="btn-table" style="margin-top:10px" onclick="addScheduleRow()">＋ เพิ่มแถว</button>
@@ -1325,7 +1325,8 @@ function renderScheduleTable(rows){
 function addScheduleRow(data){
   const tbody = document.getElementById('schedule-body');
   const tr = document.createElement('tr');
-  tr.innerHTML=`<td><input type="text" value="${(data&&data.time)||''}" placeholder="เช่น 09.00–12.00 น."></td>
+  tr.innerHTML=`<td><input type="text" value="${(data&&data.date)||''}" placeholder="เช่น 01/07/2568"></td>
+    <td><input type="text" value="${(data&&data.time)||''}" placeholder="เช่น 09.00–12.00 น."></td>
     <td><textarea rows="2" placeholder="รายละเอียดกิจกรรม...">${(data&&data.activity)||''}</textarea></td>
     <td><button class="btn-table btn-table-del" onclick="this.closest('tr').remove();updateBudgetTotal()">✕</button></td>`;
   tbody.appendChild(tr);
@@ -1333,8 +1334,8 @@ function addScheduleRow(data){
 function getScheduleData(){
   return [...document.querySelectorAll('#schedule-body tr')].map(tr=>{
     const inputs = tr.querySelectorAll('input,textarea');
-    return {time:inputs[0].value, activity:inputs[1].value};
-  }).filter(r=>r.time||r.activity);
+    return {date:inputs[0].value, time:inputs[1].value, activity:inputs[2].value};
+  }).filter(r=>r.date||r.time||r.activity);
 }
 
 // ═══════════════════════════════════════════
@@ -1439,7 +1440,10 @@ function printDocument(p){
   setTimeout(()=>{ win.print(); },800);
 }
 
-function chk(v){ return v ? '☑' : '☐'; }
+function chk(v){
+  const s='display:inline-block;width:12px;height:12px;border:1.5px solid #000;vertical-align:middle;text-align:center;line-height:10px;font-size:11px;font-family:Arial,sans-serif;margin-right:1px;flex-shrink:0';
+  return `<span style="${s}">${v?'✓':''}</span>`;
+}
 function toThai(n){
   const t=['','๑','๒','๓','๔','๕','๖','๗','๘','๙','๑๐','๑๑','๑๒','๑๓','๑๔','๑๕','๑๖','๑๗','๑๘','๑๙','๒๐'];
   return t[n]||String(n);
@@ -1449,7 +1453,7 @@ function fmtDate(d){ if(!d) return ''; const dt=new Date(d); return `${dt.getDat
 
 function buildPrintHTML(p){
   const total = (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
-  const schedRows = (p.schedule||[]).map(r=>`<tr><td>${r.time||''}</td><td>${(r.activity||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
+  const schedRows = (p.schedule||[]).map(r=>`<tr><td>${r.date||''}</td><td>${r.time||''}</td><td>${(r.activity||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
   const kpiGrid = items => {
     const rows = items||[];
     const inner = rows.length
@@ -1465,15 +1469,15 @@ function buildPrintHTML(p){
 body{font-family:'TH SarabunIT๙','TH SarabunIT9','TH Sarabun New','Sarabun',sans-serif;font-size:16pt;line-height:1.8;
   margin:0;padding:0;color:#000}
 .page{width:100%;min-height:0;margin:0;padding:0;background:#fff}
-h2{text-align:center;font-size:18pt;margin:0;font-weight:700}
-.sec{margin-bottom:16pt;break-inside:avoid;page-break-inside:avoid}
+h2{text-align:center;font-size:16pt;margin:0;font-weight:700}
+.sec{margin-bottom:20pt;break-inside:avoid;page-break-inside:avoid}
 .sec-title{font-weight:700;display:inline-block;margin-bottom:2pt}
 .indent1{padding-left:2em;margin-bottom:2pt}
 .indent2{padding-left:4em;margin-bottom:2pt}
 .chk-row{display:flex;gap:0.25em;padding-left:2em}
 .chk-prefix{flex-shrink:0;white-space:nowrap}
 .chk-text{flex:1}
-table{border-collapse:collapse;width:100%;font-size:15pt;margin:6pt 0}
+table{border-collapse:collapse;width:100%;font-size:16pt;margin:6pt 0}
 table th,table td{border:1px solid #000;padding:5pt 7pt;vertical-align:top}
 table th{font-weight:700;text-align:center;background:#f0f0f0}
 .sig-wrap{margin-top:20pt;margin-left:40%;text-align:center}
@@ -1527,11 +1531,11 @@ ${LOGO_B64?`<div style="text-align:center;margin-top:0;margin-bottom:8pt"><img s
 <div class="sec"><span class="sec-title">๘. วัตถุประสงค์</span>
 ${(p.objectives||[]).map((o,i)=>`<div class="indent1">${toThai(i+1)}. ${o}</div>`).join('')}
 </div>
-<div class="sec"><span class="sec-title">๙. หน่วยงานที่รับผิดชอบ</span>&emsp;${p.dept||''}</div>
+<div class="sec"><span class="sec-title">๙. หน่วยงานที่รับผิดชอบ</span><br><div class="indent1">${p.dept||''}</div></div>
 <div class="sec"><span class="sec-title">๑๐. ผู้รับผิดชอบโครงการ</span>
 ${(p.coordinators||[]).map(c=>`<div class="indent1">${c}</div>`).join('')}
 </div>
-<div class="sec"><span class="sec-title">๑๑. ระยะเวลาดำเนินการ</span>&emsp;${fmtDate(p.startDate)} – ${fmtDate(p.endDate)}</div>
+<div class="sec"><span class="sec-title">๑๑. ระยะเวลาดำเนินการ</span><br><div class="indent1">${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}</div></div>
 <div class="sec"><span class="sec-title">๑๒. สถานที่ดำเนินงาน</span>&emsp;${p.location||''}</div>
 <div class="sec"><span class="sec-title">๑๓. กลุ่มเป้าหมายและจำนวน</span>
 ${(p.targets||[]).map((t,i)=>`<div class="indent1">๑๓.${toThai(i+1)} ${t.name} จำนวน ${t.count||'...'} คน</div>`).join('')}
@@ -1554,7 +1558,7 @@ ${(p.phase2Items||[]).map((item,i)=>`<div class="indent2">๑๖.๒.${toThai(i+
 ${(p.phase3Items||[]).map((item,i)=>`<div class="indent2">๑๖.๓.${toThai(i+1)} ${item}</div>`).join('')}
 </div>
 <div class="sec"><span class="sec-title">๑๗. กำหนดการโครงการ</span>
-<table><tr><th style="width:35%">เวลา</th><th>กิจกรรม</th></tr>${schedRows||'<tr><td>&nbsp;</td><td>&nbsp;</td></tr>'}</table></div>
+<table><tr><th style="width:22%">วันที่</th><th style="width:22%">เวลา</th><th>กิจกรรม</th></tr>${schedRows||'<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>'}</table></div>
 <div class="sec"><span class="sec-title">๑๘. เป้าหมายผลผลิต</span>
 <div class="indent1" style="display:grid;grid-template-columns:max-content auto;gap:2pt 6pt;align-items:start">
   <strong>ตัวชี้วัดปริมาณ</strong>${kpiGrid(p.kpiQty)}
@@ -1617,8 +1621,6 @@ async function buildWordDoc(p){
 
   const FONT = 'TH SarabunIT๙';
   const SZ = 32;    // 16pt
-  const SZH = 36;   // 18pt
-  const SZS = 28;   // 14pt
 
   function run(text, opts={}){
     return new TextRun({text:String(text||''), font:FONT,
@@ -1638,11 +1640,11 @@ async function buildWordDoc(p){
       children
     });
   }
-  function blank(keepNext=false){ return para('',{size:SZS,keepNext}); }
+  function blank(keepNext=false){ return para('',{keepNext}); }
   function heading(text){
     return new Paragraph({
       alignment: AlignmentType.LEFT,
-      spacing: {before:0, after:0, line:240, lineRule:'auto'},
+      spacing: {before:320, after:0, line:240, lineRule:'auto'},
       children: [run(text, {bold:true})]
     });
   }
@@ -1651,9 +1653,10 @@ async function buildWordDoc(p){
   // Page margins in twips: 1cm=567
   const total = (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
 
-  const scheduleRows = (p.schedule&&p.schedule.length ? p.schedule : [{time:'',activity:''}]).map(r=>
+  const scheduleRows = (p.schedule&&p.schedule.length ? p.schedule : [{date:'',time:'',activity:''}]).map(r=>
     new TableRow({children:[
-      new TableCell({children:[para(r.time||'')], width:{size:3000,type:WidthType.DXA}}),
+      new TableCell({children:[para(r.date||'')], width:{size:2000,type:WidthType.DXA}}),
+      new TableCell({children:[para(r.time||'')], width:{size:2000,type:WidthType.DXA}}),
       new TableCell({children:[para(r.activity||'')]})
     ]})
   );
@@ -1679,9 +1682,9 @@ async function buildWordDoc(p){
       })]
     })] : []),
     // Header
-    para([run(`โครงการ${p.projectName||'…………………………………………………………………………'}`,{bold:true,size:SZH})],{center:true}),
-    para([run('คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา',{bold:true,size:SZH})],{center:true}),
-    para([run('ของบประมาณรายจ่ายจากเงินรายได้ ประจำปีงบประมาณ พ.ศ. ๒๕๖๘',{bold:true,size:SZH})],{center:true}),
+    para([run(`โครงการ${p.projectName||'…………………………………………………………………………'}`,{bold:true})],{center:true}),
+    para([run('คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา',{bold:true})],{center:true}),
+    para([run('ของบประมาณรายจ่ายจากเงินรายได้ ประจำปีงบประมาณ พ.ศ. ๒๕๖๘',{bold:true})],{center:true}),
     blank(),
     // 1
     new Paragraph({spacing:{before:0,after:0,line:240,lineRule:'auto'},children:[run('๑. ชื่อโครงการ',{bold:true}),run(` โครงการ${p.projectName||''}`)]}),
@@ -1734,12 +1737,14 @@ async function buildWordDoc(p){
     heading('๘. วัตถุประสงค์'),
     ...(p.objectives||[]).map((o,i)=>para(`${toThai(i+1)}. ${o}`,{indent:{left:640}})),
     // 9
-    new Paragraph({spacing:{before:0,after:0,line:240,lineRule:'auto'},children:[run('๙. หน่วยงานที่รับผิดชอบ',{bold:true}),run(` ${p.dept||''}`)]}),
+    heading('๙. หน่วยงานที่รับผิดชอบ'),
+    para(p.dept||'',{indent:{left:640}}),
     // 10
     heading('๑๐. ผู้รับผิดชอบโครงการ'),
     ...(p.coordinators||[]).map(c=>para(c,{indent:{left:640}})),
     // 11
-    new Paragraph({spacing:{before:0,after:0,line:240,lineRule:'auto'},children:[run('๑๑. ระยะเวลาดำเนินการ',{bold:true}),run(` ${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}`)]}),
+    heading('๑๑. ระยะเวลาดำเนินการ'),
+    para(`${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}`,{indent:{left:640}}),
     // 12
     new Paragraph({spacing:{before:0,after:0,line:240,lineRule:'auto'},children:[run('๑๒. สถานที่ดำเนินงาน',{bold:true}),run(` ${p.location||''}`)]}),
     // 13
@@ -1766,7 +1771,8 @@ async function buildWordDoc(p){
     heading('๑๗. กำหนดการโครงการ'),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:tblBorders,rows:[
       new TableRow({children:[
-        new TableCell({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[run('เวลา',{bold:true})]})], width:{size:3000,type:WidthType.DXA}}),
+        new TableCell({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[run('วันที่',{bold:true})]})], width:{size:2000,type:WidthType.DXA}}),
+        new TableCell({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[run('เวลา',{bold:true})]})], width:{size:2000,type:WidthType.DXA}}),
         new TableCell({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[run('กิจกรรม',{bold:true})]})]}),
       ]}),
       ...scheduleRows
