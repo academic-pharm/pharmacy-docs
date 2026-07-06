@@ -1477,6 +1477,12 @@ h2{text-align:center;font-size:16pt;margin:0;font-weight:700}
 .sec-title{font-weight:700;display:inline-block;margin-bottom:2pt}
 .indent1{padding-left:2em;margin-bottom:2pt}
 .indent2{padding-left:4em;margin-bottom:2pt}
+.tgt-tbl{width:100%;border-collapse:collapse;margin-bottom:0}
+.tgt-tbl td{padding:1pt 0;font-size:16pt;vertical-align:top}
+.tgt-td-name{padding-left:2em;width:55%}
+.tgt-td-label{width:15%}
+.tgt-td-cnt{width:15%;text-align:right;padding-right:10pt}
+.tgt-td-unit{width:15%}
 .chk-row{display:flex;gap:0.25em;padding-left:2em}
 .chk-prefix{flex-shrink:0;white-space:nowrap}
 .chk-text{flex:1}
@@ -1539,10 +1545,12 @@ ${(p.objectives||[]).map((o,i)=>`<div class="indent1">${toThai(i+1)}. ${o}</div>
 ${(p.coordinators||[]).map(c=>`<div class="indent1">${c}</div>`).join('')}
 </div>
 <div class="sec"><span class="sec-title">๑๑. ระยะเวลาดำเนินการ</span><br><div class="indent1">${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}</div></div>
-<div class="sec"><span class="sec-title">๑๒. สถานที่ดำเนินงาน</span>&emsp;${p.location||''}</div>
+<div class="sec"><span class="sec-title">๑๒. สถานที่ดำเนินงาน</span><br><div class="indent1">${p.location||''}</div></div>
 <div class="sec"><span class="sec-title">๑๓. กลุ่มเป้าหมายและจำนวน</span>
-${(p.targets||[]).map((t,i)=>`<div class="indent1">๑๓.${toThai(i+1)} ${t.name} จำนวน ${t.count||'...'} คน</div>`).join('')}
-<div class="indent1">รวมทั้งสิ้น ${(p.targets||[]).reduce((s,t)=>s+(parseInt(t.count||0)||0),0).toLocaleString('th-TH')} คน</div>
+<table class="tgt-tbl">
+${(p.targets||[]).map((t,i)=>`<tr><td class="tgt-td-name">๑๓.${toThai(i+1)} ${t.name}</td><td class="tgt-td-label">จำนวน</td><td class="tgt-td-cnt">${t.count||'...'}</td><td class="tgt-td-unit">คน</td></tr>`).join('')}
+<tr><td class="tgt-td-name" style="padding-left:4em">รวมทั้งสิ้น</td><td class="tgt-td-label"></td><td class="tgt-td-cnt">${(p.targets||[]).reduce((s,t)=>s+(parseInt(t.count||0)||0),0).toLocaleString('th-TH')}</td><td class="tgt-td-unit">คน</td></tr>
+</table>
 </div>
 <div class="sec"><span class="sec-title">๑๔. ผลที่คาดว่าจะได้รับ</span>
 ${(p.results||[]).map((r,i)=>`<div class="indent1">๑๔.${toThai(i+1)} ${r}</div>`).join('')}
@@ -1749,11 +1757,35 @@ async function buildWordDoc(p){
     heading('๑๑. ระยะเวลาดำเนินการ'),
     para(`${fmtDate(p.startDate)||'วันที่......เดือน......พ.ศ....'} – ${fmtDate(p.endDate)||'วันที่......เดือน......พ.ศ....'}`,{indent:{left:640}}),
     // 12
-    new Paragraph({spacing:{before:0,after:0,line:240,lineRule:'auto'},children:[run('๑๒. สถานที่ดำเนินงาน',{bold:true}),run(` ${p.location||''}`)]}),
+    heading('๑๒. สถานที่ดำเนินงาน'),
+    para(p.location||'',{indent:{left:640}}),
     // 13
     heading('๑๓. กลุ่มเป้าหมายและจำนวน'),
-    ...(p.targets||[]).map((t,i)=>para(`๑๓.${toThai(i+1)} ${t.name} จำนวน ${t.count||'...'} คน`,{indent:{left:640}})),
-    para(`รวมทั้งสิ้น ${(p.targets||[]).reduce((s,t)=>s+(parseInt(t.count||0)||0),0).toLocaleString('th-TH')} คน`,{indent:{left:1280}}),
+    (()=>{
+      const nb={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+      const nbs={top:nb,bottom:nb,left:nb,right:nb};
+      const tTotal=(p.targets||[]).reduce((s,t)=>s+(parseInt(t.count||0)||0),0);
+      const mkCell=(txt,opts={})=>new TableCell({borders:nbs,width:opts.w?{size:opts.w,type:WidthType.DXA}:undefined,
+        children:[new Paragraph({alignment:opts.right?AlignmentType.RIGHT:AlignmentType.LEFT,
+          spacing:{after:0,line:240,lineRule:'auto'},
+          children:[run(txt,{})]})]});
+      return new Table({width:{size:100,type:WidthType.PERCENTAGE},
+        indent:{type:WidthType.DXA,size:640},
+        borders:{top:nb,bottom:nb,left:nb,right:nb,insideH:nb,insideV:nb},
+        rows:[
+          ...(p.targets||[]).map((t,i)=>new TableRow({children:[
+            mkCell(`๑๓.${toThai(i+1)} ${t.name}`,{w:5000}),
+            mkCell('จำนวน',{w:1100}),
+            mkCell(t.count||'...',{w:1000,right:true}),
+            mkCell('คน',{w:700}),
+          ]})),
+          new TableRow({children:[
+            mkCell('รวมทั้งสิ้น',{w:6100}),
+            mkCell(tTotal.toLocaleString('th-TH'),{w:1000,right:true}),
+            mkCell('คน',{w:700}),
+          ]}),
+        ]});
+    })(),
     // 14
     heading('๑๔. ผลที่คาดว่าจะได้รับ'),
     ...(p.results||[]).map((r,i)=>para(`๑๔.${toThai(i+1)} ${r}`,{indent:{left:640}})),
