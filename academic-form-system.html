@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ระบบแบบฟอร์มบริการวิชาการ · คณะเภสัชศาสตร์</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="auth.js"></script>
 <script>if(!getUser()){location.replace('login.html');}</script>
@@ -713,20 +712,20 @@ function saveProjects(arr, email){
   const e = email || (currentUser&&currentUser.email) || '';
   localStorage.setItem(getUserDbKey(e), JSON.stringify(arr));
   if(e) _registerUser(e);
-  _fbWrite(getFirebaseUID(), arr);
+  _fbWrite(e, arr);
 }
 
 /* ── Firebase Realtime DB sync ── */
-function _fbRef(uid){
+function _fbRef(email){
   try{
     initFirebase();
-    if(typeof firebase==='undefined'||!uid) return null;
-    return firebase.database().ref('pharma-form/'+uid+'/projects');
+    if(typeof firebase==='undefined'||!email) return null;
+    return firebase.database().ref('pharma-form/'+emailToFbKey(email)+'/projects');
   }catch(e){ return null; }
 }
 
-async function _fbSync(uid, email){
-  const ref=_fbRef(uid);
+async function _fbSync(email){
+  const ref=_fbRef(email);
   if(!ref) return;
   try{
     const snap=await ref.once('value');
@@ -755,9 +754,9 @@ async function _fbSync(uid, email){
   }catch(e){ console.warn('[FB] sync error:',e); }
 }
 
-function _fbWrite(uid, arr){
-  if(!uid||!arr) return;
-  const ref=_fbRef(uid);
+function _fbWrite(email, arr){
+  if(!email||!arr) return;
+  const ref=_fbRef(email);
   if(ref) ref.set(arr).catch(e=>console.warn('[FB] write error:',e));
 }
 function _registerUser(email){
@@ -1903,11 +1902,7 @@ function toggleSDGItem(){
   }
 
   // Sync from Firebase first, then render dashboard
-  const _fuid = getFirebaseUID();
-  (_fuid
-    ? _fbSync(_fuid, currentUser.email)
-    : Promise.resolve()
-  ).catch(()=>{}).finally(_renderAndShow);
+  _fbSync(currentUser.email).catch(()=>{}).finally(_renderAndShow);
 })();
 </script>
 </body>

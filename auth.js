@@ -195,9 +195,7 @@ function requireAdmin() {
 /* ── Logout ── */
 function logout() {
   clearUser();
-  clearFirebaseUID();
   try { google.accounts.id.disableAutoSelect(); } catch {}
-  try { if(typeof firebase!=='undefined') firebase.auth().signOut(); } catch {}
   location.replace(AUTH_CONFIG.LOGIN_PAGE);
 }
 
@@ -233,15 +231,10 @@ function renderUserBadge(containerId, user) {
 /* ── Firebase Sync ── */
 const FIREBASE_CONFIG = {
   apiKey:            'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',
-  authDomain:        'pharmacy-buu.firebaseapp.com',
   databaseURL:       'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',
   projectId:         'pharmacy-buu',
-  storageBucket:     'pharmacy-buu.firebasestorage.app',
-  messagingSenderId: '15077505324',
   appId:             '1:15077505324:web:e5fcb9d23cd888ec9bd489'
 };
-
-const FIREBASE_UID_KEY = 'buu_pharma_fuid_v1';
 
 function initFirebase(){
   try{
@@ -250,16 +243,9 @@ function initFirebase(){
   }catch(e){ console.warn('Firebase init:',e); }
 }
 
-async function signInToFirebase(googleIdToken){
-  try{
-    if(typeof firebase==='undefined') return null;
-    initFirebase();
-    const cred=firebase.auth.GoogleAuthProvider.credential(googleIdToken);
-    const r=await firebase.auth().signInWithCredential(cred);
-    sessionStorage.setItem(FIREBASE_UID_KEY, r.user.uid);
-    return r.user.uid;
-  }catch(e){ console.warn('Firebase sign-in:',e); return null; }
+// Convert email to a valid Firebase key (no . # $ / [ ])
+function emailToFbKey(email){
+  return (email||'').toLowerCase()
+    .replace(/\./g,'_').replace(/@/g,'__')
+    .replace(/[#$\[\]\/]/g,'_');
 }
-
-function getFirebaseUID(){ return sessionStorage.getItem(FIREBASE_UID_KEY)||null; }
-function clearFirebaseUID(){ sessionStorage.removeItem(FIREBASE_UID_KEY); }
