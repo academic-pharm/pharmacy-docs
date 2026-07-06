@@ -1491,12 +1491,12 @@ h2{text-align:center;font-size:16pt;margin:0;font-weight:700}
 .sec-title{font-weight:700;display:inline-block;margin-bottom:2pt}
 .indent1{padding-left:2em;margin-bottom:2pt}
 .indent2{padding-left:4em;margin-bottom:2pt}
-.tgt-tbl{width:100%;border-collapse:collapse;margin-bottom:0}
-.tgt-tbl td{padding:1pt 0;font-size:16pt;vertical-align:top}
-.tgt-td-name{padding-left:2em;width:55%}
-.tgt-td-label{width:15%}
-.tgt-td-cnt{width:15%;text-align:right;padding-right:10pt}
-.tgt-td-unit{width:15%}
+.tgt-tbl{width:100%;border-collapse:collapse;margin-bottom:0;table-layout:auto}
+.tgt-tbl td{padding:1pt 0;font-size:16pt;vertical-align:middle;white-space:nowrap}
+.tgt-td-name{padding-left:2em;width:auto}
+.tgt-td-label{padding-left:1em}
+.tgt-td-cnt{text-align:right;padding:0 6pt;min-width:40pt}
+.tgt-td-unit{padding-left:2em}
 .chk-row{display:flex;gap:0.25em;padding-left:2em}
 .chk-prefix{flex-shrink:0;white-space:nowrap}
 .chk-text{flex:1}
@@ -1780,6 +1780,7 @@ async function buildWordDoc(p){
       const nbs={top:nb,bottom:nb,left:nb,right:nb};
       const tTotal=(p.targets||[]).reduce((s,t)=>s+(parseInt(t.count||0)||0),0);
       const mkCell=(txt,opts={})=>new TableCell({borders:nbs,width:opts.w?{size:opts.w,type:WidthType.DXA}:undefined,
+        margins:opts.lm?{top:0,bottom:0,left:opts.lm,right:0}:undefined,
         children:[new Paragraph({alignment:opts.right?AlignmentType.RIGHT:AlignmentType.LEFT,
           spacing:{after:0,line:240,lineRule:'auto'},
           children:[run(txt,{})]})]});
@@ -1791,12 +1792,12 @@ async function buildWordDoc(p){
             mkCell(`๑๓.${toThai(i+1)} ${t.name}`,{w:5000}),
             mkCell('จำนวน',{w:1100}),
             mkCell(t.count||'...',{w:1000,right:true}),
-            mkCell('คน',{w:700}),
+            mkCell('คน',{w:700,lm:640}),
           ]})),
           new TableRow({children:[
             mkCell('รวมทั้งสิ้น',{w:6100}),
             mkCell(tTotal.toLocaleString('th-TH'),{w:1000,right:true}),
-            mkCell('คน',{w:700}),
+            mkCell('คน',{w:700,lm:640}),
           ]}),
         ]});
     })(),
