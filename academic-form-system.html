@@ -301,6 +301,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <p>คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>
   </div>
   <div id="user-badge-nav"></div>
+  <button id="admin-sig-toggle-btn" style="display:none;padding:6px 14px;border-radius:10px;font-size:.78rem;cursor:pointer;font-family:var(--font);transition:.25s ease;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#f87171;white-space:nowrap" onclick="toggleSigUpload()">🔒 ปิดอัพโหลดลายเซ็น</button>
   <button class="btn-home" onclick="showDashboard()" style="margin-left:6px">🏠 หน้าหลัก</button>
   <button class="btn-home" onclick="location.href='index.html'" style="margin-left:4px">← กลับหน้าแรก</button>
 </nav>
@@ -644,14 +645,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       <!-- ผู้รับผิดชอบโครงการ -->
       <div class="sig-card">
         <div class="sig-title">ผู้รับผิดชอบโครงการ</div>
-        <div class="sig-upload-zone" id="sig1-zone" style="width:100%;cursor:pointer" onclick="document.getElementById('sig1-file').click()" ondragover="event.preventDefault()" ondrop="dropSig(event,'sig1')">
-          <img id="sig1-preview" src="" style="display:none">
-          <div id="sig1-hint" class="sig-upload-hint">คลิกหรือลากไฟล์ลายเซ็นมาวางที่นี่<br><span style="font-size:.7rem;opacity:.6">(PNG / JPG)</span></div>
+        <div id="sig-upload-controls">
+          <div class="sig-upload-zone" id="sig1-zone" style="width:100%;cursor:pointer" onclick="document.getElementById('sig1-file').click()" ondragover="event.preventDefault()" ondrop="dropSig(event,'sig1')">
+            <img id="sig1-preview" src="" style="display:none">
+            <div id="sig1-hint" class="sig-upload-hint">คลิกหรือลากไฟล์ลายเซ็นมาวางที่นี่<br><span style="font-size:.7rem;opacity:.6">(PNG / JPG)</span></div>
+          </div>
+          <div id="sig-upload-btns" style="display:flex;gap:8px;margin-bottom:2px">
+            <input type="file" id="sig1-file" accept="image/*" onchange="loadSigImage('sig1',this)" style="display:none">
+            <button class="btn-sig-upload" onclick="document.getElementById('sig1-file').click()">📎 อัพโหลดลายเซ็น</button>
+            <button class="btn-sig-clear" id="sig1-clear-btn" style="display:none" onclick="clearSigImage('sig1')">✕ ลบ</button>
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
-          <input type="file" id="sig1-file" accept="image/*" onchange="loadSigImage('sig1',this)" style="display:none">
-          <button class="btn-sig-upload" onclick="document.getElementById('sig1-file').click()">📎 อัพโหลดลายเซ็น</button>
-          <button class="btn-sig-clear" id="sig1-clear-btn" style="display:none" onclick="clearSigImage('sig1')">✕ ลบ</button>
+        <div id="sig-upload-disabled-notice" style="display:none;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:.83rem;text-align:center;margin-bottom:10px">
+          🔒 ปิดการอัพโหลดลายเซ็นชั่วคราว — กรุณาติดต่อผู้ดูแลระบบ
         </div>
         <hr class="sig-card-divider">
         <div style="width:100%">
@@ -808,6 +814,23 @@ function _fbWrite(email, arr){
   const ref=_fbRef(email);
   if(ref) ref.set(arr).catch(e=>console.warn('[FB] write error:',e));
 }
+
+/* ── Global Settings (admin-controlled) ── */
+async function _fbGetSettings(){
+  try{
+    initFirebase();
+    if(typeof firebase==='undefined') return {};
+    const snap=await firebase.database().ref('pharma-form/_settings').once('value');
+    return snap.val()||{};
+  }catch(e){ return {}; }
+}
+async function _fbSetSetting(key,value){
+  try{
+    initFirebase();
+    if(typeof firebase==='undefined') return;
+    await firebase.database().ref('pharma-form/_settings/'+key).set(value);
+  }catch(e){ console.warn('[FB] setting write error:',e); }
+}
 function _registerUser(email){
   const reg = getAllUserEmails();
   if(!reg.includes(email)){ reg.push(email); localStorage.setItem('pharma_user_registry', JSON.stringify(reg)); }
@@ -864,6 +887,40 @@ const DEAN_LIST = [
 ];
 
 let currentProject = null;
+let sigUploadEnabled = true; // controlled by admin via Firebase
+
+async function loadSettings(){
+  const s=await _fbGetSettings();
+  sigUploadEnabled = s.sigUploadEnabled !== false; // default true
+  applySignatureUploadState();
+}
+function applySignatureUploadState(){
+  const ctrl=document.getElementById('sig-upload-controls');
+  const notice=document.getElementById('sig-upload-disabled-notice');
+  const adminBtn=document.getElementById('admin-sig-toggle-btn');
+  if(ctrl) ctrl.style.display = sigUploadEnabled ? '' : 'none';
+  if(notice) notice.style.display = sigUploadEnabled ? 'none' : '';
+  if(adminBtn){
+    if(sigUploadEnabled){
+      adminBtn.textContent='🔒 ปิดอัพโหลดลายเซ็น';
+      adminBtn.style.background='rgba(239,68,68,.1)';
+      adminBtn.style.color='#f87171';
+      adminBtn.style.borderColor='rgba(239,68,68,.3)';
+    } else {
+      adminBtn.textContent='🔓 เปิดอัพโหลดลายเซ็น';
+      adminBtn.style.background='rgba(34,197,94,.1)';
+      adminBtn.style.color='#4ade80';
+      adminBtn.style.borderColor='rgba(34,197,94,.3)';
+    }
+  }
+}
+async function toggleSigUpload(){
+  if(!isAdmin(currentUser)) return;
+  sigUploadEnabled=!sigUploadEnabled;
+  await _fbSetSetting('sigUploadEnabled',sigUploadEnabled);
+  applySignatureUploadState();
+  showToast(sigUploadEnabled ? '✅ เปิดการอัพโหลดลายเซ็นแล้ว' : '🔒 ปิดการอัพโหลดลายเซ็นแล้ว');
+}
 let adminViewAll = true; // admin toggle: true = show all users, false = show own projects only
 let LOGO_B64 = null;
 fetch('logo-pharm.png').then(r=>r.blob()).then(blob=>{
@@ -1343,7 +1400,7 @@ function addScheduleRow(data){
   const tbody = document.getElementById('schedule-body');
   const tr = document.createElement('tr');
   tr.innerHTML=`<td><input type="text" value="${(data&&data.date)||''}" placeholder="เช่น 01/07/2568"></td>
-    <td><input type="text" value="${(data&&data.time)||''}" placeholder="เช่น 09.00–12.00 น."></td>
+    <td><textarea rows="2" placeholder="เช่น 09.00–12.00 น.">${(data&&data.time)||''}</textarea></td>
     <td><textarea rows="2" placeholder="รายละเอียดกิจกรรม...">${(data&&data.activity)||''}</textarea></td>
     <td><button class="btn-table btn-table-del" onclick="this.closest('tr').remove();updateBudgetTotal()">✕</button></td>`;
   tbody.appendChild(tr);
@@ -1470,7 +1527,7 @@ function fmtDate(d){ if(!d) return ''; const dt=new Date(d); return `${dt.getDat
 
 function buildPrintHTML(p){
   const total = (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
-  const schedRows = (p.schedule||[]).map(r=>`<tr><td>${r.date||''}</td><td>${r.time||''}</td><td>${(r.activity||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
+  const schedRows = (p.schedule||[]).map(r=>`<tr><td>${r.date||''}</td><td>${(r.time||'').replace(/\n/g,'<br>')}</td><td>${(r.activity||'').replace(/\n/g,'<br>')}</td></tr>`).join('');
   const kpiGrid = items => {
     const rows = items||[];
     const inner = rows.length
@@ -1495,7 +1552,7 @@ h2{text-align:center;font-size:16pt;margin:0;font-weight:700}
 .tgt-tbl td{padding:1pt 0;font-size:16pt;vertical-align:top;white-space:nowrap}
 .tgt-tbl td.tgt-td-name{padding-left:4.5em;text-indent:-2.5em;white-space:normal;vertical-align:top}
 .tgt-td-label{padding-left:2em;padding-right:1.2em}
-.tgt-td-cnt{text-align:right;padding:0 16pt;min-width:60pt}
+.tgt-td-cnt{text-align:center;padding:0 16pt;min-width:60pt}
 .tgt-td-unit{padding-left:1.2em}
 .chk-row{display:flex;gap:0.25em;padding-left:2em}
 .chk-prefix{flex-shrink:0;white-space:nowrap}
@@ -1678,11 +1735,20 @@ async function buildWordDoc(p){
   // Page margins in twips: 1cm=567
   const total = (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
 
+  function multilinePara(text){
+    const lines=(text||'').split('\n');
+    const children=[];
+    lines.forEach((line,i)=>{
+      if(i>0) children.push(new TextRun({text:'',break:1,font:FONT,size:SZ}));
+      children.push(run(line));
+    });
+    return para(children.length?children:[run('')]);
+  }
   const scheduleRows = (p.schedule&&p.schedule.length ? p.schedule : [{date:'',time:'',activity:''}]).map(r=>
     new TableRow({children:[
       new TableCell({children:[para(r.date||'')], width:{size:2000,type:WidthType.DXA}}),
-      new TableCell({children:[para(r.time||'')], width:{size:2000,type:WidthType.DXA}}),
-      new TableCell({children:[para(r.activity||'')]})
+      new TableCell({children:[multilinePara(r.time)], width:{size:2000,type:WidthType.DXA}}),
+      new TableCell({children:[multilinePara(r.activity)]})
     ]})
   );
   const budgetRows = (p.budget&&p.budget.length ? p.budget : [{item:'',amount:''}]).map(r=>
@@ -1977,8 +2043,8 @@ function toggleSDGItem(){
   function _renderAndShow(){
     // Render user badge in navbar
     const badgeEl = document.getElementById('user-badge-nav');
+    const admin = isAdmin(currentUser);
     if(badgeEl){
-      const admin = isAdmin(currentUser);
       const roleLabel = admin ? '⚡ ADMIN' : '◉ USER';
       const roleClass = admin ? 'admin' : 'user';
       const short = currentUser.name
@@ -1991,6 +2057,11 @@ function toggleSDGItem(){
         <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
       </div>`;
     }
+    // Show admin sig-toggle button only to admins
+    const adminSigBtn = document.getElementById('admin-sig-toggle-btn');
+    if(adminSigBtn) adminSigBtn.style.display = admin ? '' : 'none';
+    // Load global settings (signature upload toggle etc.)
+    loadSettings();
     showDashboard();
   }
 
