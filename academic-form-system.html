@@ -183,7 +183,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .dyn-row input[type=number]{width:90px;padding:8px 10px;background:rgba(255,255,255,.05);
   border:1px solid var(--brdw);border-radius:8px;color:#e2e8f0;font-family:var(--font);font-size:.9rem}
 .dyn-row input[type=number]:focus{outline:none;border-color:#7c3aed}
-.dyn-row .row-num{color:var(--sub);font-size:.82rem;min-width:22px;text-align:right}
+.dyn-row .row-num{color:var(--sub);font-size:.82rem;min-width:3em;text-align:right;white-space:nowrap}
 .dyn-row .btn-del-row{padding:4px 10px;border:1px solid rgba(239,68,68,.25);
   background:rgba(239,68,68,.08);color:#f87171;border-radius:6px;cursor:pointer;
   font-size:.75rem;flex-shrink:0;transition:var(--tr)}
@@ -1288,12 +1288,25 @@ function saveForm(){
 // ═══════════════════════════════════════════
 // DYNAMIC LIST HELPERS  (sections 8,10,13,14,15,16,18)
 // ═══════════════════════════════════════════
+const DYN_NUM_FMT = {
+  'objectives-list':   i => `๘.${toThai(i)}`,
+  'coordinators-list': () => '',
+  'results-list':      i => `๑๔.${toThai(i)}`,
+  'evals-list':        i => `๑๕.${toThai(i+2)}`,
+};
+const PHASE_NUM_FMT = {
+  1: i => `๑๖.๑.${toThai(i)}`,
+  2: i => `๑๖.๒.${toThai(i)}`,
+  3: i => `๑๖.๓.${toThai(i)}`,
+};
 function addDynItem(listId, placeholder, value=''){
   const list = document.getElementById(listId);
   const idx = list.children.length + 1;
   const div = document.createElement('div');
   div.className = 'dyn-row';
-  div.innerHTML = `<span class="row-num">${idx}.</span>
+  const fmt = DYN_NUM_FMT[listId];
+  const numLabel = fmt ? fmt(idx) : (idx+'.');
+  div.innerHTML = `${numLabel ? `<span class="row-num">${numLabel}</span>` : ''}
     <input type="text" value="${value.replace(/"/g,'&quot;')}" placeholder="${placeholder}">
     <button class="btn-del-row" onclick="this.parentElement.remove();renumberDynList('${listId}')">✕</button>`;
   list.appendChild(div);
@@ -1301,7 +1314,10 @@ function addDynItem(listId, placeholder, value=''){
 function renumberDynList(listId){
   const list = document.getElementById(listId);
   if(!list) return;
-  [...list.querySelectorAll('.row-num')].forEach((span,i)=>span.textContent=(i+1)+'.');
+  const fmt = DYN_NUM_FMT[listId];
+  [...list.querySelectorAll('.row-num')].forEach((span,i)=>{
+    span.textContent = fmt ? fmt(i+1) : ((i+1)+'.');
+  });
 }
 function getDynItems(listId){
   const list = document.getElementById(listId);
@@ -1365,7 +1381,9 @@ function addPhaseItem(phaseNum, value){
   const idx=list.children.length+1;
   const div=document.createElement('div');
   div.className='dyn-row';
-  div.innerHTML=`<span class="row-num">${idx}.</span>
+  const fmt=PHASE_NUM_FMT[phaseNum];
+  const numLabel=fmt ? fmt(idx) : (idx+'.');
+  div.innerHTML=`<span class="row-num">${numLabel}</span>
     <input type="text" value="${(value||'').replace(/"/g,'&quot;')}" placeholder="รายละเอียดขั้นตอน...">
     <button class="btn-del-row" onclick="this.parentElement.remove();renumberPhase(${phaseNum})">✕</button>`;
   list.appendChild(div);
@@ -1373,7 +1391,10 @@ function addPhaseItem(phaseNum, value){
 function renumberPhase(phaseNum){
   const list=document.getElementById('phase'+phaseNum+'-list');
   if(!list) return;
-  [...list.querySelectorAll('.row-num')].forEach((s,i)=>s.textContent=(i+1)+'.');
+  const fmt=PHASE_NUM_FMT[phaseNum];
+  [...list.querySelectorAll('.row-num')].forEach((s,i)=>{
+    s.textContent = fmt ? fmt(i+1) : ((i+1)+'.');
+  });
 }
 function getPhaseItems(phaseNum){
   const list=document.getElementById('phase'+phaseNum+'-list');
