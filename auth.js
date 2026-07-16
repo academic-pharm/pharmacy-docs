@@ -252,12 +252,15 @@ function initFirebase(){
 function syncFirebaseAuth(googleIdToken){
   try{
     initFirebase();
-    if(typeof firebase==='undefined' || !firebase.auth) return;
+    if(typeof firebase==='undefined' || !firebase.auth) return Promise.resolve();
     var cred = firebase.auth.GoogleAuthProvider.credential(googleIdToken);
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    return firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .then(function(){ return firebase.auth().signInWithCredential(cred); })
       .catch(function(e){ console.warn('Firebase Auth sync:', e.message); });
-  }catch(e){ console.warn('Firebase Auth sync error:', e); }
+  }catch(e){
+    console.warn('Firebase Auth sync error:', e);
+    return Promise.resolve();
+  }
 }
 
 // Convert email to a valid Firebase key (no . # $ / [ ])

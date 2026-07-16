@@ -386,8 +386,15 @@ function handleCredentialResponse(response){
     loginAt:Date.now()
   };
   setUser(user);
-  syncFirebaseAuth(response.credential);
-  setTimeout(()=>location.replace(AUTH_CONFIG.HOME_PAGE),300);
+  var dest = AUTH_CONFIG.HOME_PAGE;
+  var fallback = setTimeout(()=>location.replace(dest), 3000);
+  syncFirebaseAuth(response.credential).then(function(){
+    clearTimeout(fallback);
+    location.replace(dest);
+  }).catch(function(){
+    clearTimeout(fallback);
+    location.replace(dest);
+  });
 }
 
 function showLoginError(msg){
