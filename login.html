@@ -368,10 +368,26 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 </div>
 
 <script>
-/* Redirect if already logged in */
+/* Redirect if already logged in (sessionStorage) */
 (function(){
   const u=getUser();
-  if(u)location.replace(AUTH_CONFIG.HOME_PAGE);
+  if(u){ location.replace(AUTH_CONFIG.HOME_PAGE); return; }
+  /* Also check Firebase Auth persistent session */
+  try{
+    initFirebase();
+    firebase.auth().onAuthStateChanged(function(fbUser){
+      if(!fbUser) return;
+      const email=(fbUser.email||'').toLowerCase();
+      const allowed=AUTH_CONFIG.ALLOWED_EMAILS.map(e=>e.trim().toLowerCase());
+      if(!allowed.includes(email)) return;
+      setUser({
+        email, name:fbUser.displayName||email.split('@')[0],
+        picture:fbUser.photoURL||'',
+        role:isAdmin({email})?'admin':'user', loginAt:Date.now()
+      });
+      location.replace(AUTH_CONFIG.HOME_PAGE);
+    });
+  }catch(e){}
 })();
 
 /* ── Auth: Firebase signInWithPopup ── */
