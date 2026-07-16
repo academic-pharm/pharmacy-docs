@@ -1353,20 +1353,31 @@ async function submitRenewalDocs(){
   showToast('⏳ กำลังอัปโหลดและส่งเอกสาร...');
   var record = { orgKey:orgKey, orgName:orgName, submittedAt:new Date().toISOString(), status:'รอตรวจสอบ' };
   var typeLabels = { letter:'หนังสือขอต่ออายุ', form59:'แบบ สภ.59', payment:'หลักฐานชำระ' };
+  var uploadErrors = [];
   for(var t of ['letter','form59','payment']){
     if(renewFileStore[t] && renewFileStore[t].file){
       try{
         var r = await uploadToGDrive(renewFileStore[t].file, orgName, typeLabels[t]);
+        if(!r.url) throw new Error('ไม่ได้รับ URL จาก Google Drive');
         record[t] = { url:r.url, name:renewFileStore[t].name };
       }catch(e){
+        console.error('Upload failed ['+t+']:', e.message);
+        uploadErrors.push(typeLabels[t]+': '+e.message);
         record[t] = { url:'', name:renewFileStore[t].name };
       }
     }
   }
+  if(uploadErrors.length){
+    showToast('⚠️ อัปโหลดไม่สำเร็จ: '+uploadErrors.join(' | '),'err');
+    return;
+  }
   try{
     var key = orgKey||('anon_'+Date.now());
     await db.ref('pharma-form/_cpe_renewals/'+key+'/'+Date.now()).set(record);
-  }catch(e){ console.warn('Firebase save failed:',e.message); }
+  }catch(e){
+    showToast('❌ บันทึกไม่สำเร็จ: '+e.message+' (อาจต้องตรวจสอบ Firebase Rules)','err');
+    return;
+  }
   showToast('✅ ส่งเอกสารต่ออายุเรียบร้อยแล้ว ขอบคุณ');
   renewFileStore = { letter:null, form59:null, payment:null };
   ['letter','form59','payment'].forEach(function(t){ clearRenewFile(t); });

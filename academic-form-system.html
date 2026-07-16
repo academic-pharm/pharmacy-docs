@@ -2857,7 +2857,12 @@ ${(p.phase3Items||[]).map((item,i)=>`<div class="indent2">๑๖.๓.${toThai(i+
 // ═══════════════════════════════════════════
 async function exportWord(){
   saveForm();
-  await exportWordById(currentProject.id);
+  try{
+    await buildWordDoc(getFormData());
+  }catch(e){
+    console.error(e);
+    showToast('Export Word ล้มเหลว: '+e.message,'err');
+  }
 }
 async function exportWordById(id, ownerEmail){
   const email = ownerEmail || (currentUser&&currentUser.email);
