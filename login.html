@@ -51,7 +51,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 @keyframes scanAnim{0%{top:-2px;opacity:1}85%{opacity:.5}100%{top:101%;opacity:0}}
 
 /* ── Wrap ── */
-.wrap{position:relative;z-index:3;width:100%;max-width:900px}
+.wrap{position:relative;z-index:3;width:100%;max-width:1200px}
 
 /* ── Card glow frame ── */
 .card-glow{
@@ -134,10 +134,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 }
 
 /* Logo */
-.logo-wrap{display:flex;justify-content:center;margin-bottom:22px}
+.logo-wrap{display:flex;justify-content:center;margin-bottom:22px;padding-left:2ch}
 .logo-box{
   background:white;border:1.5px solid #ebebf8;border-radius:14px;
-  padding:12px 20px 8px;max-width:260px;width:100%;
+  padding:12px 20px 8px;max-width:780px;width:100%;
   box-shadow:0 4px 16px rgba(74,0,224,.1);
 }
 .logo-box img{width:100%;height:auto;display:block}
@@ -221,12 +221,13 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .right-inner{position:relative;z-index:3;text-align:center;padding:40px;padding-left:84px}
 
 .right-icon{
-  width:64px;height:64px;border-radius:50%;
-  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.22);
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.18);
   display:flex;align-items:center;justify-content:center;
   margin:0 auto 20px;
   box-shadow:0 0 32px rgba(139,92,246,.18),inset 0 1px 0 rgba(255,255,255,.07);
   animation:iconPulse 4s ease-in-out infinite;
+  overflow:hidden;
 }
 @keyframes iconPulse{0%,100%{box-shadow:0 0 32px rgba(139,92,246,.18)}50%{box-shadow:0 0 56px rgba(139,92,246,.32)}}
 
@@ -256,7 +257,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
   .cloud-svg{display:none}
   .cloud-h-svg{display:block}
   .right-inner{padding:62px 22px 22px}
-  .right-icon{width:46px;height:46px}
+  .right-icon{width:70px;height:70px}
   .right-title{font-size:1.15rem;margin-bottom:6px}
   .right-desc{font-size:.75rem;margin-bottom:10px}
   .logo-wrap{margin-bottom:14px}
@@ -283,7 +284,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 
       <div class="logo-wrap">
         <div class="logo-box">
-          <img src="logo.png" alt="BUU Faculty of Pharmaceutical Sciences"
+          <img src="mainlogo2.gif" alt="BUU Faculty of Pharmaceutical Sciences"
             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
           <p class="logo-placeholder" style="display:none">[ BUU · RxBUU Logo ]</p>
         </div>
@@ -331,12 +332,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 
       <div class="right-inner">
         <div class="right-icon" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <circle cx="14" cy="14" r="9" stroke="rgba(167,139,250,.8)" stroke-width="1.5"/>
-            <path d="M10 14a4 4 0 1 0 8 0 4 4 0 0 0-8 0" stroke="rgba(167,139,250,.6)" stroke-width="1.2" fill="none"/>
-            <circle cx="14" cy="14" r="2" fill="rgba(167,139,250,.5)"/>
-            <path d="M14 5v2M14 21v2M5 14h2M21 14h2" stroke="rgba(167,139,250,.4)" stroke-width="1.2" stroke-linecap="round"/>
-          </svg>
+          <img src="logo-RxBUU.png" alt="RxBUU" style="width:144px;height:144px;object-fit:contain;">
         </div>
         <h2 class="right-title">ยินดีต้อนรับ</h2>
         <p class="right-desc">

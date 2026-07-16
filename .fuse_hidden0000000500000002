@@ -9,13 +9,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="auth.js?v=2"></script>
 <script>if(!getUser()){location.replace('login.html');}</script>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#030014;--card:#0d0d22;--brd:rgba(139,92,246,.2);--brdw:rgba(255,255,255,.07);
   --txt:#e8e8ff;--sub:#888aaa;--accent:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--green:#34d399;
-  --font:'Prompt',sans-serif;--mono:'Prompt',sans-serif;
+  --font:'Kanit',sans-serif;--mono:'Kanit',sans-serif;
   --radius:14px;--tr:.25s ease;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;position:relative;overflow-x:hidden;font-size:17px;line-height:1.7}
@@ -99,7 +99,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 /* EXPAND SECTION */
 .proj-card-expand{max-height:0;overflow:hidden;
   transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s ease;opacity:0}
-.proj-card.is-open .proj-card-expand{max-height:400px;opacity:1}
+.proj-card.is-open .proj-card-expand{max-height:260px;opacity:1}
 .proj-card-divider{height:1px;background:rgba(139,92,246,.15);margin:0 16px 12px}
 .proj-card-actions{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px;justify-content:center}
 .proj-card-actions+.proj-card-actions{margin-top:6px}
@@ -130,70 +130,15 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .btn-appt:hover{background:rgba(52,211,153,.22);border-color:#34d399}
 .btn-doc{background:rgba(251,191,36,.08);color:#fde68a;border-color:rgba(251,191,36,.2)}
 .btn-doc:hover{background:rgba(251,191,36,.18);border-color:#fbbf24}
-.btn-meeting{background:rgba(99,102,241,.1);color:#a5b4fc;border-color:rgba(99,102,241,.25)}
-.btn-meeting:hover{background:rgba(99,102,241,.22);border-color:#818cf8}
-.btn-result{background:rgba(251,146,60,.1);color:#fdba74;border-color:rgba(251,146,60,.25)}
-.btn-result:hover{background:rgba(251,146,60,.22);border-color:#fb923c}
-.proj-card-actions-stack{display:flex;flex-direction:column;padding:6px 12px 10px;gap:5px}
-.btn-stack{width:100%;text-align:left;border-radius:20px!important;padding:8px 15px;
-  border:1px solid rgba(139,92,246,.15)!important;background:rgba(255,255,255,.03)!important;
-  font-size:.8rem}
-.btn-edit.btn-stack{border-color:rgba(139,92,246,.22)!important;background:rgba(139,92,246,.06)!important}
-.btn-appt.btn-stack{border-color:rgba(52,211,153,.2)!important;background:rgba(52,211,153,.04)!important}
-.btn-meeting.btn-stack{border-color:rgba(99,102,241,.2)!important;background:rgba(99,102,241,.04)!important}
-.btn-result.btn-stack{border-color:rgba(251,146,60,.2)!important;background:rgba(251,146,60,.04)!important}
-.btn-word.btn-stack{border-color:rgba(6,182,212,.2)!important;background:rgba(6,182,212,.04)!important}
-.btn-stack:hover{transform:translateX(3px)}
-.btn-edit.btn-stack:hover{background:rgba(139,92,246,.18)!important;border-color:#a78bfa!important;color:#c4b5fd}
-.btn-appt.btn-stack:hover{background:rgba(52,211,153,.15)!important;border-color:#34d399!important;color:#6ee7b7}
-.btn-meeting.btn-stack:hover{background:rgba(99,102,241,.18)!important;border-color:#818cf8!important;color:#a5b4fc}
-.btn-result.btn-stack:hover{background:rgba(251,146,60,.18)!important;border-color:#fb923c!important;color:#fdba74}
-.btn-word.btn-stack:hover{background:rgba(6,182,212,.18)!important;border-color:#22d3ee!important;color:#67e8f9}
-.btn-hdivider{display:none}
 .btn-doc-active{background:rgba(52,211,153,.12)!important;color:#6ee7b7!important;border-color:rgba(52,211,153,.35)!important}
 .btn-doc-active:hover{background:rgba(52,211,153,.25)!important;border-color:#34d399!important}
-.doc-new-badge{display:none;align-items:center;gap:3px;font-size:.6rem;font-weight:700;
-  background:rgba(239,68,68,.15);color:#fca5a5;border:0.5px solid rgba(239,68,68,.35);
-  border-radius:20px;padding:1px 6px;letter-spacing:.03em;margin-left:2px;vertical-align:middle}
-.doc-new-badge.visible{display:inline-flex}
-.doc-new-badge-dot{width:5px;height:5px;border-radius:50%;background:#f87171;flex-shrink:0;
-  animation:blink-badge 1.1s ease-in-out infinite}
-@keyframes blink-badge{0%,45%,100%{opacity:1}55%,90%{opacity:0}}
 /* DOC MODAL */
 #doc-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-#doc-modal-box{background:#12122a;border:1px solid rgba(139,92,246,.35);border-radius:16px;padding:24px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#doc-modal-box{background:#12122a;border:1px solid rgba(139,92,246,.35);border-radius:16px;padding:24px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 #doc-modal-box h3{font-size:1rem;font-weight:700;color:#a78bfa;margin-bottom:14px}
 #doc-modal-box .doc-info{font-size:.88rem;color:#e8e8ff;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:14px}
 #doc-modal-box .doc-meta{font-size:.72rem;color:#888aaa;margin-top:4px}
 #doc-modal-box .doc-btns{display:flex;gap:8px;flex-wrap:wrap}
-/* add-doc option cards */
-.doc-opt{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:120px;
-  padding:16px 10px;border-radius:12px;border:1px solid rgba(139,92,246,.25);
-  background:rgba(139,92,246,.07);cursor:pointer;transition:.18s;text-align:center}
-.doc-opt:hover{background:rgba(139,92,246,.18);border-color:#a78bfa}
-.doc-opt .do-ico{font-size:1.6rem}
-.doc-opt .do-lbl{font-size:.8rem;font-weight:700;color:#c4b5fd}
-.doc-opt .do-sub{font-size:.68rem;color:#888aaa}
-/* link input inside modal */
-.doc-link-row{display:flex;gap:8px;margin-top:10px}
-.doc-link-row input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(139,92,246,.3);
-  border-radius:8px;color:#e8e8ff;font-family:var(--font);font-size:.85rem;padding:8px 12px;outline:none}
-.doc-link-row input:focus{border-color:#a78bfa}
-.doc-link-name{margin-top:8px;width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(139,92,246,.22);
-  border-radius:8px;color:#e8e8ff;font-family:var(--font);font-size:.85rem;padding:8px 12px;outline:none}
-.doc-link-name:focus{border-color:#a78bfa}
-.doc-link-name::placeholder,.doc-link-row input::placeholder{color:#555770}
-/* doc list inside modal */
-.doc-list{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;max-height:280px;overflow-y:auto}
-.doc-list-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(139,92,246,.18)}
-.doc-list-item .dl-ico{font-size:1.2rem;flex-shrink:0}
-.doc-list-item .dl-info{flex:1;min-width:0}
-.doc-list-item .dl-name{font-size:.85rem;color:#e8e8ff;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.doc-list-item .dl-meta{font-size:.66rem;color:#888aaa;margin-top:2px}
-.doc-list-item .dl-actions{display:flex;gap:5px;flex-shrink:0}
-#doc-modal-box{max-width:480px}
 .empty-state{text-align:center;padding:60px 20px;color:var(--sub)}
 .empty-state .es-icon{font-size:3rem;margin-bottom:16px;opacity:.4}
 .empty-state p{font-size:.92rem}
@@ -421,8 +366,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   --pink:#db2777 !important;
   --green:#059669 !important;
   --fg:#16181f !important;
-  --font:'Prompt',sans-serif;
-  --mono:'Prompt',sans-serif;
+  --font:'Kanit',sans-serif;
+  --mono:'Kanit',sans-serif;
   --radius:14px !important;
 }
 
@@ -442,12 +387,12 @@ body::before,body::after{display:none !important}
 /* ── AURA Navbar ── */
 .navbar{background:rgba(245,247,252,.52) !important;backdrop-filter:blur(24px) !important;-webkit-backdrop-filter:blur(24px) !important;border-bottom:1px solid rgba(200,210,230,.5) !important;z-index:200 !important}
 .navbar-icon{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;box-shadow:none !important}
-.navbar-info h1{color:#16181f !important;font-family:'Prompt',sans-serif!important;font-size:.9rem !important;letter-spacing:.04em !important}
-.navbar-info p{color:#6a6d77 !important;font-family:'Prompt',sans-serif !important}
-.btn-home{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#16181f !important;backdrop-filter:blur(10px) !important;border-radius:20px !important;font-family:'Prompt',sans-serif !important;font-size:.76rem !important;font-weight:600 !important}
+.navbar-info h1{color:#16181f !important;font-family:'Kanit',sans-serif!important;font-size:.9rem !important;letter-spacing:.04em !important}
+.navbar-info p{color:#6a6d77 !important;font-family:'Kanit',sans-serif !important}
+.btn-home{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#16181f !important;backdrop-filter:blur(10px) !important;border-radius:20px !important;font-family:'Kanit',sans-serif !important;font-size:.76rem !important;font-weight:600 !important}
 .btn-home:hover{background:rgba(255,255,255,.72) !important;border-color:rgba(255,255,255,.92) !important}
 .au-nav-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;background:conic-gradient(from 0deg,#7cc6ff,#c9a6ff,#ff9ecf,#8ef0c4,#7cc6ff);animation:auSpinForm 8s linear infinite;filter:hue-rotate(calc(var(--hue,0)*1deg))}
-.au-brand{font-family:'Prompt',sans-serif;font-weight:700;font-size:15px;color:#16181f;letter-spacing:.04em;white-space:nowrap}
+.au-brand{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#16181f;letter-spacing:.04em;white-space:nowrap}
 
 /* ── Container ── */
 .container{position:relative;z-index:10}
@@ -455,7 +400,7 @@ body::before,body::after{display:none !important}
 /* ── Hero section ── */
 .hero{background:rgba(255,255,255,.46) !important;border:1px solid rgba(255,255,255,.82) !important;backdrop-filter:blur(20px) !important;-webkit-backdrop-filter:blur(20px) !important;box-shadow:0 4px 18px -6px rgba(0,0,0,.09) !important}
 .hero::before{display:none !important}
-.hero h2{color:#16181f !important;font-family:'Prompt',sans-serif!important}
+.hero h2{color:#16181f !important;font-family:'Kanit',sans-serif!important}
 .hero p{color:#6a6d77 !important}
 .hero-stat-pill{background:rgba(90,123,255,.1) !important;border:1px solid rgba(90,123,255,.25) !important;color:#5a7bff !important}
 .projects-label-title{color:#6a6d77 !important}
@@ -473,7 +418,7 @@ body::before,body::after{display:none !important}
 .proj-card:hover{border-color:rgba(90,123,255,.38) !important;box-shadow:0 8px 28px rgba(90,123,255,.14) !important}
 .proj-card.is-open{border-color:rgba(90,123,255,.48) !important;box-shadow:0 10px 36px rgba(90,123,255,.2) !important}
 .proj-card-accent{display:none !important}
-.proj-card-title{color:#16181f !important;font-family:'Prompt',sans-serif!important}
+.proj-card-title{color:#16181f !important;font-family:'Kanit',sans-serif!important}
 .proj-card-meta{color:#6a6d77 !important}
 .proj-card-chevron{background:rgba(90,123,255,.1) !important;color:#5a7bff !important}
 .proj-card:hover .proj-card-chevron{background:rgba(90,123,255,.18) !important}
@@ -497,12 +442,8 @@ body::before,body::after{display:none !important}
 .btn-appt:hover{background:rgba(5,150,105,.18) !important;border-color:#059669 !important}
 .btn-doc{background:rgba(217,119,6,.07) !important;color:#d97706 !important;border-color:rgba(217,119,6,.2) !important}
 .btn-doc:hover{background:rgba(217,119,6,.16) !important;border-color:#d97706 !important}
-.btn-result{background:rgba(234,88,12,.07) !important;color:#ea580c !important;border-color:rgba(234,88,12,.22) !important}
-.btn-result:hover{background:rgba(234,88,12,.16) !important;border-color:#ea580c !important}
 .btn-doc-active{background:rgba(5,150,105,.1) !important;color:#059669 !important;border-color:rgba(5,150,105,.35) !important}
 .btn-doc-active:hover{background:rgba(5,150,105,.2) !important;border-color:#059669 !important}
-.doc-new-badge{background:rgba(220,38,38,.1) !important;color:#dc2626 !important;border-color:rgba(220,38,38,.3) !important}
-.doc-new-badge-dot{background:#dc2626 !important}
 .btn-del-corner{color:rgba(220,38,38,.45) !important}
 .btn-del-corner:hover{color:#dc2626 !important;background:rgba(220,38,38,.1) !important}
 
@@ -516,36 +457,25 @@ body::before,body::after{display:none !important}
 #doc-modal-box h3{color:#5a7bff !important}
 #doc-modal-box .doc-info{background:rgba(90,123,255,.06) !important;color:#16181f !important;border-radius:8px}
 #doc-modal-box .doc-meta{color:#6a6d77 !important}
-.doc-opt{background:rgba(90,123,255,.07) !important;border-color:rgba(90,123,255,.22) !important}
-.doc-opt:hover{background:rgba(90,123,255,.16) !important;border-color:#5a7bff !important}
-.doc-opt .do-lbl{color:#3b5bdb !important}
-.doc-opt .do-sub{color:#6a6d77 !important}
-.doc-link-row input,.doc-link-name{background:rgba(90,123,255,.05) !important;border-color:rgba(90,123,255,.25) !important;color:#16181f !important}
-.doc-link-row input:focus,.doc-link-name:focus{border-color:#5a7bff !important}
-.doc-list-item{background:rgba(90,123,255,.05) !important;border-color:rgba(90,123,255,.18) !important}
-.doc-list-item .dl-name{color:#16181f !important}
-.doc-list-item .dl-meta{color:#6a6d77 !important}
 
 /* ── Form page ── */
 .btn-back{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#16181f !important;backdrop-filter:blur(10px) !important}
 .btn-back:hover{border-color:rgba(90,123,255,.4) !important;color:#5a7bff !important;background:rgba(255,255,255,.72) !important}
-.form-title{color:#16181f !important;font-family:'Prompt',sans-serif!important}
+.form-title{color:#16181f !important;font-family:'Kanit',sans-serif!important}
 
 /* ── Form sections ── */
 .fsec{background:rgba(255,255,255,.46) !important;border:1px solid rgba(255,255,255,.82) !important;backdrop-filter:blur(20px) !important;-webkit-backdrop-filter:blur(20px) !important;box-shadow:0 3px 14px -5px rgba(0,0,0,.08) !important}
 .fsec:hover{border-color:rgba(90,123,255,.3) !important}
-.fsec-title{color:#16181f !important;font-family:'Prompt',sans-serif!important}
+.fsec-title{color:#16181f !important;font-family:'Kanit',sans-serif!important}
 .fsec-title::before{background:linear-gradient(180deg,#5a7bff,#0891b2) !important}
 
 /* ── Form inputs ── */
-.form-group label{color:#6a6d77 !important;font-family:'Prompt',sans-serif !important}
+.form-group label{color:#6a6d77 !important;font-family:'Kanit',sans-serif !important}
 .form-group input[type=text],.form-group input[type=date],.form-group input[type=number],.form-group textarea,.form-group select{background:rgba(255,255,255,.72) !important;border:1px solid rgba(200,210,230,.6) !important;color:#16181f !important}
 .form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:rgba(90,123,255,.5) !important;box-shadow:0 0 0 3px rgba(90,123,255,.1) !important;background:rgba(255,255,255,.9) !important}
 .form-group input::placeholder,.form-group textarea::placeholder{color:rgba(74,77,87,.35) !important}
-.form-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a6d77' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 10px center !important;background-size:12px 8px !important;appearance:none !important;-webkit-appearance:none !important;padding-right:32px !important}
+.form-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a6d77' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 10px center !important;background-size:12px 8px !important;appearance:none !important;-webkit-appearance:none !important}
 .form-group select option{background:#fff !important;color:#16181f !important}
-select{appearance:none !important;-webkit-appearance:none !important;background-color:rgba(255,255,255,.72) !important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a6d77' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 10px center !important;background-size:12px 8px !important;border:1px solid rgba(200,210,230,.6) !important;color:#16181f !important;padding-right:32px !important}
-select option{background:#fff !important;color:#16181f !important}
 
 /* ── Checkboxes ── */
 .check-item{background:rgba(255,255,255,.36) !important;border:1px solid rgba(200,210,230,.4) !important}
@@ -555,7 +485,7 @@ select option{background:#fff !important;color:#16181f !important}
 .check-item input[type=checkbox],.check-item input[type=radio]{accent-color:#5a7bff !important}
 
 /* ── Dynamic table ── */
-.dtable th{background:rgba(90,123,255,.08) !important;color:#6a6d77 !important;border:1px solid rgba(200,210,230,.4) !important;font-family:'Prompt',sans-serif !important}
+.dtable th{background:rgba(90,123,255,.08) !important;color:#6a6d77 !important;border:1px solid rgba(200,210,230,.4) !important;font-family:'Kanit',sans-serif !important}
 .dtable td{border:1px solid rgba(200,210,230,.3) !important;color:#16181f !important}
 .dtable td input,.dtable td textarea{color:#16181f !important;background:transparent !important}
 .dtable tr:hover td{background:rgba(90,123,255,.05) !important}
@@ -601,9 +531,9 @@ select option{background:#fff !important;color:#16181f !important}
 .budget-total{color:#059669 !important}
 
 /* ── Signature section ── */
-.sig-title{color:#5a7bff !important;font-family:'Prompt',sans-serif!important}
+.sig-title{color:#5a7bff !important;font-family:'Kanit',sans-serif!important}
 .sig-card{background:rgba(255,255,255,.46) !important;border:1px solid rgba(255,255,255,.82) !important;backdrop-filter:blur(16px) !important}
-.sig-card label{color:#6a6d77 !important;font-family:'Prompt',sans-serif !important}
+.sig-card label{color:#6a6d77 !important;font-family:'Kanit',sans-serif !important}
 .sig-card input[type=text]{background:rgba(255,255,255,.72) !important;border:1px solid rgba(200,210,230,.6) !important;color:#16181f !important}
 .sig-card input[type=text]:focus{border-color:rgba(90,123,255,.5) !important}
 .sig-card-divider{border-top-color:rgba(200,210,230,.4) !important}
@@ -647,7 +577,7 @@ select option{background:#fff !important;color:#16181f !important}
 .auth-avatar-fallback{background:linear-gradient(135deg,rgba(90,123,255,.3),rgba(168,85,247,.25)) !important;color:#16181f !important}
 
 /* ── Admin sig toggle ── */
-#admin-sig-toggle-btn{border:1px solid rgba(220,38,38,.22) !important;background:rgba(220,38,38,.07) !important;color:#dc2626 !important;font-family:'Prompt',sans-serif !important;border-radius:10px !important}
+#admin-sig-toggle-btn{border:1px solid rgba(220,38,38,.22) !important;background:rgba(220,38,38,.07) !important;color:#dc2626 !important;font-family:'Kanit',sans-serif !important;border-radius:10px !important}
 
 /* ── Toast ── */
 .toast.ok{background:rgba(5,150,105,.12) !important;border:1px solid rgba(5,150,105,.35) !important;color:#059669 !important}
@@ -687,7 +617,9 @@ select option{background:#fff !important;color:#16181f !important}
 
 <div id="mouse-nebula" aria-hidden="true"></div>
 <nav class="navbar">
-  <img src="mainlogo2.gif" alt="คณะเภสัชศาสตร์" style="height:34px;width:auto;object-fit:contain;flex-shrink:0">
+  <div class="au-nav-dot" style="flex-shrink:0"></div>
+  <span class="au-brand">คณะเภสัชศาสตร์</span>
+  <div class="navbar-icon" style="margin-left:4px">💊</div>
   <div class="navbar-info">
     <h1>ระบบแบบฟอร์มบริการวิชาการ</h1>
     <p>คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>
@@ -739,7 +671,7 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 1: ชื่อโครงการ -->
   <div class="fsec">
-    <div class="fsec-title">1. ชื่อโครงการ</div>
+    <div class="fsec-title">๑. ชื่อโครงการ</div>
     <div class="form-group full">
       <label>ชื่อโครงการ (กรอกชื่อที่ต้องการ ไม่ต้องพิมพ์คำว่า "โครงการ")</label>
       <input type="text" id="f-projectName" placeholder="ชื่อโครงการ...">
@@ -748,7 +680,7 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 2: ประเภทโครงการ -->
   <div class="fsec">
-    <div class="fsec-title">2. ประเภทโครงการ</div>
+    <div class="fsec-title">๒. ประเภทโครงการ</div>
     <div class="form-row">
       <div class="form-group">
         <label>2.1 ลักษณะโครงการ</label>
@@ -764,7 +696,7 @@ select option{background:#fff !important;color:#16181f !important}
           <label class="check-item"><input type="radio" name="type22" value="outPlan" id="f-type22-out"> <span>โครงการนอกแผนปฏิบัติการคณะเภสัชศาสตร์</span></label>
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
-          <span style="font-size:.88rem;color:var(--sub)">ปีงบประมาณ พ.ศ. 25</span>
+          <span style="font-size:.88rem;color:var(--sub)">ปีงบประมาณ พ.ศ. ๒๕</span>
           <input type="number" id="f-plan-year" min="60" max="99" placeholder="68" style="width:4.5em;padding:5px 8px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.9rem;text-align:center;outline:none">
         </div>
       </div>
@@ -773,41 +705,41 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 3: ยุทธศาสตร์ มบ. -->
   <div class="fsec">
-    <div class="fsec-title">3. ความสอดคล้องกับยุทธศาสตร์มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. 2568 – 2571</div>
+    <div class="fsec-title">๓. ความสอดคล้องกับยุทธศาสตร์มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. ๒๕๖๘ – ๒๕๗๑</div>
     <div class="check-grid cols2">
       <label class="check-item"><input type="checkbox" id="f-buu1"> <span><strong>ยุทธศาสตร์ 1</strong> การพัฒนาคนคุณภาพ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-buu2"> <span><strong>ยุทธศาสตร์ 2</strong> การพัฒนาความรู้ผ่านการวิจัยและการสร้างนวัตกรรม เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-buu3"> <span><strong>ยุทธศาสตร์ 3</strong> การพัฒนาสังคมอย่างยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-buu2"> <span><strong>ยุทธศาสตร์ ๒</strong> การพัฒนาความรู้ผ่านการวิจัยและการสร้างนวัตกรรม เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-buu3"> <span><strong>ยุทธศาสตร์ ๓</strong> การพัฒนาสังคมอย่างยั่งยืน</span></label>
       <label class="check-item"><input type="checkbox" id="f-buu4"> <span><strong>ยุทธศาสตร์ 4</strong> การเพิ่มขีดความสามารถองค์กรผ่านการใช้ทรัพยากรเชิงกลยุทธ์</span></label>
     </div>
   </div>
 
   <!-- ข้อ 4: พันธกิจ คณะ -->
   <div class="fsec">
-    <div class="fsec-title">4. ความสอดคล้องกับพันธกิจและยุทธศาสตร์คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. 2568 – 2571</div>
+    <div class="fsec-title">๔. ความสอดคล้องกับพันธกิจและยุทธศาสตร์คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ปีงบประมาณ พ.ศ. ๒๕๖๘ – ๒๕๗๑</div>
     <div class="check-grid">
       <label class="check-item"><input type="checkbox" id="f-m1">
         <span style="display:flex;flex-direction:column;gap:4px">
-          <span><strong>พันธกิจ 1</strong> ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ</span>
-          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ 1</strong> การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำ เพื่อตอบสนองต่อความต้องการของประเทศ</span>
+          <span><strong>พันธกิจ ๑</strong> ผลิตบุคลากรที่มีสมรรถนะด้านสุขภาพแม่นยำตอบสนองความต้องการของประเทศ</span>
+          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ ๑</strong> การพัฒนากำลังคนคุณภาพที่มีองค์ความรู้ด้านสุขภาพแม่นยำ เพื่อตอบสนองต่อความต้องการของประเทศ</span>
         </span>
       </label>
       <label class="check-item"><input type="checkbox" id="f-m2">
         <span style="display:flex;flex-direction:column;gap:4px">
-          <span><strong>พันธกิจ 2</strong> สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล</span>
-          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ 2</strong> การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากล และการนำไปใช้ประโยชน์</span>
+          <span><strong>พันธกิจ ๒</strong> สร้างงานวิจัยและนวัตกรรมที่เกี่ยวข้องกับสุขภาพแม่นยำในระดับสากล</span>
+          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ ๒</strong> การยกระดับคุณภาพงานวิจัย การเผยแพร่ความร่วมมือในระดับสากล และการนำไปใช้ประโยชน์</span>
         </span>
       </label>
       <label class="check-item"><input type="checkbox" id="f-m3">
         <span style="display:flex;flex-direction:column;gap:4px">
-          <span><strong>พันธกิจ 3</strong> บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม</span>
-          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ 3</strong> การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคม เพื่อส่งเสริมคุณภาพชีวิต</span>
+          <span><strong>พันธกิจ ๓</strong> บริการวิชาการด้านสุขภาพแม่นยำแก่ประชาชน ชุมชน และสังคม</span>
+          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ ๓</strong> การพัฒนาการบริการวิชาการด้านสุขภาพแม่นยำกับชุมชนและสังคม เพื่อส่งเสริมคุณภาพชีวิต</span>
         </span>
       </label>
       <label class="check-item"><input type="checkbox" id="f-m4">
         <span style="display:flex;flex-direction:column;gap:4px">
-          <span><strong>พันธกิจ 4</strong> ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ</span>
-          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ 4</strong> การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม</span>
+          <span><strong>พันธกิจ ๔</strong> ยกระดับความสามารถขององค์กร เพื่อมุ่งสู่ความเป็นเลิศ</span>
+          <span style="color:#22d3ee;font-size:.88em;padding-left:10px;border-left:2px solid rgba(34,211,238,.4)"><strong>ยุทธศาสตร์ ๔</strong> การพัฒนาระบบการบริหารจัดการ เพื่อความยั่งยืนขององค์กรและสิ่งแวดล้อม</span>
         </span>
       </label>
     </div>
@@ -815,46 +747,46 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 5: EdPEx -->
   <div class="fsec">
-    <div class="fsec-title">5. ความสอดคล้องกับเกณฑ์คุณภาพการศึกษา EdPEx ฉบับปี 2567 - 2570</div>
+    <div class="fsec-title">๕. ความสอดคล้องกับเกณฑ์คุณภาพการศึกษา EdPEx ฉบับปี ๒๕๖๗ - ๒๕๗๐</div>
     <div class="check-grid cols2">
-      <label class="check-item"><input type="checkbox" id="f-edpex1"> <span><strong>หมวด 1</strong> การนำองค์กร</span></label>
-      <label class="check-item"><input type="checkbox" id="f-edpex2"> <span><strong>หมวด 2</strong> กลยุทธ์</span></label>
-      <label class="check-item"><input type="checkbox" id="f-edpex3"> <span><strong>หมวด 3</strong> ลูกค้า</span></label>
-      <label class="check-item"><input type="checkbox" id="f-edpex4"> <span><strong>หมวด 4</strong> การวัด การวิเคราะห์ และการจัดการความรู้</span></label>
-      <label class="check-item"><input type="checkbox" id="f-edpex5"> <span><strong>หมวด 5</strong> บุคลากร</span></label>
-      <label class="check-item"><input type="checkbox" id="f-edpex6"> <span><strong>หมวด 6</strong> การปฏิบัติการ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-edpex7"> <span><strong>หมวด 7</strong> ผลลัพธ์</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex1"> <span><strong>หมวด ๑</strong> การนำองค์กร</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex2"> <span><strong>หมวด ๒</strong> กลยุทธ์</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex3"> <span><strong>หมวด ๓</strong> ลูกค้า</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex4"> <span><strong>หมวด ๔</strong> การวัด การวิเคราะห์ และการจัดการความรู้</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex5"> <span><strong>หมวด ๕</strong> บุคลากร</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex6"> <span><strong>หมวด ๖</strong> การปฏิบัติการ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-edpex7"> <span><strong>หมวด ๗</strong> ผลลัพธ์</span></label>
     </div>
   </div>
 
   <!-- ข้อ 6: SDGs -->
   <div class="fsec">
-    <div class="fsec-title">6. ความสอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)</div>
+    <div class="fsec-title">๖. ความสอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)</div>
     <div class="check-grid cols2">
       <label class="check-item"><input type="checkbox" id="f-sdg0" onchange="toggleSDGNone(this)"> <span>ไม่สอดคล้องกับ SDGs</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg1" onchange="toggleSDGItem()"> <span><strong>1.</strong> ขจัดความยากจน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg2" onchange="toggleSDGItem()"> <span><strong>2.</strong> ยุติความหิวโหย</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg3" onchange="toggleSDGItem()"> <span><strong>3.</strong> สุขภาพและความเป็นอยู่ที่ดี</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg1" onchange="toggleSDGItem()"> <span><strong>๑.</strong> ขจัดความยากจน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg2" onchange="toggleSDGItem()"> <span><strong>๒.</strong> ยุติความหิวโหย</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg3" onchange="toggleSDGItem()"> <span><strong>๓.</strong> สุขภาพและความเป็นอยู่ที่ดี</span></label>
       <label class="check-item"><input type="checkbox" id="f-sdg4" onchange="toggleSDGItem()"> <span><strong>4.</strong> การศึกษาที่มีคุณภาพ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg5" onchange="toggleSDGItem()"> <span><strong>5.</strong> ความเท่าเทียมทางเพศ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg6" onchange="toggleSDGItem()"> <span><strong>6.</strong> น้ำสะอาดและการสุขาภิบาล</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg7" onchange="toggleSDGItem()"> <span><strong>7.</strong> พลังงานสะอาด</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg8" onchange="toggleSDGItem()"> <span><strong>8.</strong> งานที่ดีและการเติบโตทางเศรษฐกิจ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg9" onchange="toggleSDGItem()"> <span><strong>9.</strong> อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg10" onchange="toggleSDGItem()"> <span><strong>10.</strong> ลดความไม่เสมอภาค</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg11" onchange="toggleSDGItem()"> <span><strong>11.</strong> เมืองและชุมชนที่ยั่งยืน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg12" onchange="toggleSDGItem()"> <span><strong>12.</strong> การผลิตและการบริโภคที่ยั่งยืน</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg13" onchange="toggleSDGItem()"> <span><strong>13.</strong> การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg14" onchange="toggleSDGItem()"> <span><strong>14.</strong> ทรัพยากรทางทะเล</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg15" onchange="toggleSDGItem()"> <span><strong>15.</strong> ระบบนิเวศทางบก</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg16" onchange="toggleSDGItem()"> <span><strong>16.</strong> สันติภาพและสถาบันที่เข้มแข็ง</span></label>
-      <label class="check-item"><input type="checkbox" id="f-sdg17" onchange="toggleSDGItem()"> <span><strong>17.</strong> ความร่วมมือเพื่อการพัฒนาที่ยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg5" onchange="toggleSDGItem()"> <span><strong>๕.</strong> ความเท่าเทียมทางเพศ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg6" onchange="toggleSDGItem()"> <span><strong>๖.</strong> น้ำสะอาดและการสุขาภิบาล</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg7" onchange="toggleSDGItem()"> <span><strong>๗.</strong> พลังงานสะอาด</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg8" onchange="toggleSDGItem()"> <span><strong>๘.</strong> งานที่ดีและการเติบโตทางเศรษฐกิจ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg9" onchange="toggleSDGItem()"> <span><strong>๙.</strong> อุตสาหกรรม นวัตกรรม และโครงสร้างพื้นฐาน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg10" onchange="toggleSDGItem()"> <span><strong>๑๐.</strong> ลดความไม่เสมอภาค</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg11" onchange="toggleSDGItem()"> <span><strong>๑๑.</strong> เมืองและชุมชนที่ยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg12" onchange="toggleSDGItem()"> <span><strong>๑๒.</strong> การผลิตและการบริโภคที่ยั่งยืน</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg13" onchange="toggleSDGItem()"> <span><strong>๑๓.</strong> การรับมือการเปลี่ยนแปลงสภาพภูมิอากาศ</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg14" onchange="toggleSDGItem()"> <span><strong>๑๔.</strong> ทรัพยากรทางทะเล</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg15" onchange="toggleSDGItem()"> <span><strong>๑๕.</strong> ระบบนิเวศทางบก</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg16" onchange="toggleSDGItem()"> <span><strong>๑๖.</strong> สันติภาพและสถาบันที่เข้มแข็ง</span></label>
+      <label class="check-item"><input type="checkbox" id="f-sdg17" onchange="toggleSDGItem()"> <span><strong>๑๗.</strong> ความร่วมมือเพื่อการพัฒนาที่ยั่งยืน</span></label>
     </div>
   </div>
 
   <!-- ข้อ 7: หลักการ -->
   <div class="fsec">
-    <div class="fsec-title">7. หลักการและเหตุผล</div>
+    <div class="fsec-title">๗. หลักการและเหตุผล</div>
     <div class="form-group full">
       <textarea id="f-rationale" rows="10" style="min-height:160px;resize:vertical" spellcheck="false" placeholder="อธิบายหลักการและเหตุผลของโครงการ..."></textarea>
     </div>
@@ -862,27 +794,27 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 8: วัตถุประสงค์ -->
   <div class="fsec">
-    <div class="fsec-title">8. วัตถุประสงค์</div>
+    <div class="fsec-title">๘. วัตถุประสงค์</div>
     <div id="objectives-list" class="dyn-list"></div>
     <button class="btn-table" style="margin-top:10px" onclick="addDynItem('objectives-list','วัตถุประสงค์ของโครงการ...')">＋ เพิ่มวัตถุประสงค์</button>
   </div>
 
   <!-- ข้อ 9: หน่วยงาน -->
   <div class="fsec">
-    <div class="fsec-title">9. หน่วยงานที่รับผิดชอบ</div>
+    <div class="fsec-title">๙. หน่วยงานที่รับผิดชอบ</div>
     <div class="form-group full"><input type="text" id="f-dept" placeholder="ชื่อหน่วยงาน / สาขาวิชา"></div>
   </div>
 
   <!-- ข้อ 10: ผู้รับผิดชอบ -->
   <div class="fsec">
-    <div class="fsec-title">10. ผู้รับผิดชอบโครงการ</div>
+    <div class="fsec-title">๑๐. ผู้รับผิดชอบโครงการ</div>
     <div id="coordinators-list" class="dyn-list"></div>
     <button class="btn-table" style="margin-top:10px" onclick="addDynItem('coordinators-list','ชื่อ-นามสกุล ตำแหน่ง...')">＋ เพิ่มผู้รับผิดชอบ</button>
   </div>
 
   <!-- ข้อ 11: ระยะเวลา -->
   <div class="fsec">
-    <div class="fsec-title">11. ระยะเวลาดำเนินการ</div>
+    <div class="fsec-title">๑๑. ระยะเวลาดำเนินการ</div>
     <div class="form-row">
       <div class="form-group"><label>วันที่เริ่มต้น</label><input type="date" id="f-startDate"></div>
       <div class="form-group"><label>วันที่สิ้นสุด</label><input type="date" id="f-endDate"></div>
@@ -891,13 +823,13 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 12: สถานที่ -->
   <div class="fsec">
-    <div class="fsec-title">12. สถานที่ดำเนินงาน</div>
+    <div class="fsec-title">๑๒. สถานที่ดำเนินงาน</div>
     <div class="form-group full"><input type="text" id="f-location" placeholder="สถานที่จัดกิจกรรม..."></div>
   </div>
 
   <!-- ข้อ 13: กลุ่มเป้าหมาย -->
   <div class="fsec">
-    <div class="fsec-title">13. กลุ่มเป้าหมายและจำนวน</div>
+    <div class="fsec-title">๑๓. กลุ่มเป้าหมายและจำนวน</div>
     <div id="targets-list"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
       <button class="btn-table" onclick="addTargetRow()">＋ เพิ่มกลุ่มเป้าหมาย</button>
@@ -913,17 +845,17 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 14: ผลที่คาดว่าจะได้รับ -->
   <div class="fsec">
-    <div class="fsec-title">14. ผลที่คาดว่าจะได้รับ</div>
+    <div class="fsec-title">๑๔. ผลที่คาดว่าจะได้รับ</div>
     <div id="results-list" class="dyn-list"></div>
     <button class="btn-table" style="margin-top:10px" onclick="addDynItem('results-list','ผลที่คาดว่าจะได้รับ...')">＋ เพิ่มข้อ</button>
   </div>
 
   <!-- ข้อ 15: วิธีประเมินผล -->
   <div class="fsec">
-    <div class="fsec-title">15. วิธีการประเมินผลโครงการ</div>
+    <div class="fsec-title">๑๕. วิธีการประเมินผลโครงการ</div>
     <div class="prefilled">
-      <p>15.1 ประเมินจำนวนผู้เข้าร่วมโครงการ</p>
-      <p>15.2 ประเมินความพึงพอใจของผู้เข้าร่วมโครงการ</p>
+      <p>๑๕.๑ ประเมินจำนวนผู้เข้าร่วมโครงการ</p>
+      <p>๑๕.๒ ประเมินความพึงพอใจของผู้เข้าร่วมโครงการ</p>
     </div>
     <div id="evals-list" class="dyn-list" style="margin-top:10px"></div>
     <button class="btn-table" style="margin-top:10px" onclick="addDynItem('evals-list','วิธีการประเมินผลเพิ่มเติม...')">＋ เพิ่มวิธีประเมิน</button>
@@ -931,19 +863,19 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 16: วิธีดำเนินโครงการ -->
   <div class="fsec">
-    <div class="fsec-title">16. วิธีดำเนินโครงการ</div>
+    <div class="fsec-title">๑๖. วิธีดำเนินโครงการ</div>
     <div class="phase-block">
-      <div class="phase-title">16.1 ขั้นเตรียมการ</div>
+      <div class="phase-title">๑๖.๑ ขั้นเตรียมการ</div>
       <div id="phase1-list" class="dyn-list sub-list"></div>
       <button class="btn-table btn-phase" onclick="addPhaseItem(1,'')">＋ เพิ่มรายการ</button>
     </div>
     <div class="phase-block">
-      <div class="phase-title">16.2 ขั้นดำเนินการ</div>
+      <div class="phase-title">๑๖.๒ ขั้นดำเนินการ</div>
       <div id="phase2-list" class="dyn-list sub-list"></div>
       <button class="btn-table btn-phase" onclick="addPhaseItem(2,'')">＋ เพิ่มรายการ</button>
     </div>
     <div class="phase-block">
-      <div class="phase-title">16.3 ขั้นสรุปผล</div>
+      <div class="phase-title">๑๖.๓ ขั้นสรุปผล</div>
       <div id="phase3-list" class="dyn-list sub-list"></div>
       <button class="btn-table btn-phase" onclick="addPhaseItem(3,'')">＋ เพิ่มรายการ</button>
     </div>
@@ -951,7 +883,7 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 17: กำหนดการ -->
   <div class="fsec">
-    <div class="fsec-title">17. กำหนดการโครงการ</div>
+    <div class="fsec-title">๑๗. กำหนดการโครงการ</div>
     <table class="dtable" id="schedule-table">
       <thead><tr><th style="width:22%">วันที่</th><th style="width:22%">เวลา</th><th>กิจกรรม</th><th style="width:60px"></th></tr></thead>
       <tbody id="schedule-body"></tbody>
@@ -961,7 +893,7 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 18: เป้าหมายผลผลิต -->
   <div class="fsec">
-    <div class="fsec-title">18. เป้าหมายผลผลิต</div>
+    <div class="fsec-title">๑๘. เป้าหมายผลผลิต</div>
     <div class="kpi-block">
       <div class="kpi-label">ตัวชี้วัดปริมาณ :</div>
       <div id="kpi-qty-list" class="dyn-list sub-list"></div>
@@ -980,42 +912,14 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 19: งบประมาณ -->
   <div class="fsec">
-    <div class="fsec-title">19. รายละเอียดงบประมาณของโครงการ</div>
+    <div class="fsec-title">๑๙. รายละเอียดงบประมาณของโครงการ</div>
     <div class="form-row">
       <div class="form-group"><label>แหล่งเงิน</label><input type="text" id="f-budget-source" placeholder="เช่น เงินรายได้"></div>
       <div class="form-group"><label>แผนงาน</label><input type="text" id="f-budget-plan" placeholder="แผนงาน"></div>
       <div class="form-group"><label>งาน</label><input type="text" id="f-budget-work" placeholder="งาน"></div>
       <div class="form-group"><label>หมวดเงิน</label><input type="text" id="f-budget-type" placeholder="หมวดเงิน"></div>
     </div>
-
-    <!-- รายรับ -->
-    <div style="margin:14px 0 10px;font-weight:700;color:#34d399;text-decoration:underline">รายรับ</div>
-    <div class="form-row">
-      <div class="form-group" style="flex:2">
-        <label>รายละเอียดรายรับ</label>
-        <input type="text" id="f-income-desc" placeholder="เช่น ค่าลงทะเบียน, ค่าสนับสนุนจากโรงพยาบาล...">
-      </div>
-      <div class="form-group">
-        <label>จำนวนเงิน (บาท)</label>
-        <input type="number" id="income-reg-total" min="0" step="0.01" placeholder="0.00" oninput="_updateSvcAndNet()">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>หัก ค่าตอบแทนบริการวิชาการ 12% (บาท)</label>
-        <input type="text" id="income-svcfee-amt" readonly style="background:rgba(255,255,255,.03);cursor:default;color:#94a3b8" placeholder="คำนวณอัตโนมัติ">
-      </div>
-      <div class="form-group">
-        <label>คงเหลือดำเนินการ (บาท)</label>
-        <input type="text" id="income-net" readonly style="background:rgba(255,255,255,.03);cursor:default;color:#34d399" placeholder="คำนวณอัตโนมัติ">
-      </div>
-    </div>
-    <div class="form-group full" style="margin-bottom:14px">
-      <label>จำนวนเงิน (ตัวอักษร)</label>
-      <input type="text" id="f-income-net-text" readonly style="background:rgba(255,255,255,.03);cursor:default;color:#94a3b8" placeholder="คำนวณอัตโนมัติ">
-    </div>
-
-    <table class="dtable" id="budget-table" style="margin-top:4px">
+    <table class="dtable" id="budget-table" style="margin-top:12px">
       <thead><tr><th>รายการ</th><th style="width:180px">จำนวนเงิน (บาท)</th><th style="width:60px"></th></tr></thead>
       <tbody id="budget-body"></tbody>
       <tfoot>
@@ -1028,11 +932,11 @@ select option{background:#fff !important;color:#16181f !important}
 
   <!-- ข้อ 20: รายงานผล -->
   <div class="fsec">
-    <div class="fsec-title">20. การรายงานผลการจัดกิจกรรม (ไม่เกิน 15 วัน นับถัดจากวันที่สิ้นสุดการดำเนินงาน)</div>
+    <div class="fsec-title">๒๐. การรายงานผลการจัดกิจกรรม (ไม่เกิน 15 วัน นับถัดจากวันที่สิ้นสุดการดำเนินงาน)</div>
     <div class="form-row">
       <div class="form-group full">
         <div style="display:grid;grid-template-columns:max-content 62px max-content max-content max-content 62px;align-items:center;gap:8px 10px;margin-top:4px">
-          <span style="color:var(--sub);font-size:.88rem;white-space:nowrap">20.1 รายงานผลการจัดกิจกรรม</span>
+          <span style="color:var(--sub);font-size:.88rem;white-space:nowrap">๒๐.๑ รายงานผลการจัดกิจกรรม</span>
           <span></span><span></span><span></span><span></span><span></span>
 
           <span style="color:var(--sub);font-size:.82rem;padding-left:16px">วันที่</span>
@@ -1048,7 +952,7 @@ select option{background:#fff !important;color:#16181f !important}
           <span style="color:var(--sub);font-size:.82rem;white-space:nowrap">ปี พ.ศ. 25</span>
           <input type="number" id="f-r1-year" min="60" max="99" placeholder="68" style="width:62px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:7px;color:var(--txt);font-family:var(--font);font-size:.88rem;outline:none">
 
-          <span style="color:var(--sub);font-size:.82rem;padding-left:16px;white-space:nowrap">20.2 ส่งแบบฟอร์มรายงานผลฯ</span>
+          <span style="color:var(--sub);font-size:.82rem;padding-left:16px;white-space:nowrap">๒๐.๒ ส่งแบบฟอร์มรายงานผลฯ</span>
           <span></span><span></span><span></span><span></span><span></span>
 
           <span style="color:var(--sub);font-size:.82rem;padding-left:16px">วันที่</span>
@@ -1138,7 +1042,7 @@ select option{background:#fff !important;color:#16181f !important}
 </div><!-- /page-form -->
 
 <div class="toast" id="toast"></div>
-<input type="file" id="approved-doc-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none" onchange="_handleDocFileSelected(this)">
+<input type="file" id="approved-doc-input" accept=".pdf" style="display:none" onchange="_handleDocFileSelected(this)">
 
 <!-- docx.js for Word export -->
 <script type="module">
@@ -1151,17 +1055,16 @@ select option{background:#fff !important;color:#16181f !important}
 // ═══════════════════════════════════════════
 let currentUser = null;          // set at init from auth.js getUser()
 let currentProjectOwner = null;  // email of the user whose project is being edited/viewed
-let _canonicalEmail = null;      // resolved canonical email after alias lookup
 
 function getUserDbKey(email){
   return 'pharma_projects_' + (email||'').toLowerCase().replace(/[^a-z0-9@._-]/g,'_');
 }
 function getProjects(email){
-  const key = getUserDbKey(email || _canonicalEmail || (currentUser&&currentUser.email) || '');
+  const key = getUserDbKey(email || (currentUser&&currentUser.email) || '');
   return JSON.parse(localStorage.getItem(key)||'[]');
 }
 function saveProjects(arr, email){
-  const e = email || _canonicalEmail || (currentUser&&currentUser.email) || '';
+  const e = email || (currentUser&&currentUser.email) || '';
   localStorage.setItem(getUserDbKey(e), JSON.stringify(arr));
   if(e) _registerUser(e);
   _fbWrite(e, arr);
@@ -1179,24 +1082,10 @@ function _fbRef(email){
     return firebase.database().ref('pharma-form/'+emailToFbKey(email)+'/projects');
   }catch(e){ return null; }
 }
-// Wait for Firebase Auth sign-in to complete (max 4s) before reading DB
-function _waitForAuth(ms=4000){
-  return new Promise(resolve=>{
-    try{
-      if(typeof firebase==='undefined'||!firebase.auth) return resolve();
-      if(firebase.auth().currentUser) return resolve();
-      const t=setTimeout(resolve,ms);
-      const unsub=firebase.auth().onAuthStateChanged(user=>{
-        if(user){ clearTimeout(t); unsub(); resolve(); }
-      });
-    }catch(e){ resolve(); }
-  });
-}
 
 async function _fbSync(email){
-  const ref=_fbRef(email); // calls initFirebase() — triggers auth sign-in
+  const ref=_fbRef(email);
   if(!ref) return;
-  await _waitForAuth(); // wait for auth to complete before reading
   try{
     const snap=await ref.once('value');
     const cloud=snap.val();
@@ -1228,9 +1117,8 @@ async function _fbSync(email){
 
 async function _fbAdminSync(adminEmail){
   try{
-    initFirebase(); // start auth sign-in first
+    initFirebase();
     if(typeof firebase==='undefined') return;
-    await _waitForAuth(); // wait for auth to complete
     // Read entire pharma-form tree in ONE request (efficient)
     const rootSnap=await firebase.database().ref('pharma-form').once('value');
     const rootVal=rootSnap.val()||{};
@@ -1264,19 +1152,6 @@ function _fbWrite(email, arr){
   if(ref) ref.set(arr).catch(e=>console.warn('[FB] write error:',e));
 }
 
-async function _resolveEmail(email){
-  if(!email) return email;
-  try{
-    initFirebase();
-    if(typeof firebase==='undefined') return email;
-    await _waitForAuth();
-    const snap = await firebase.database().ref('pharma-form/_aliases/'+emailToFbKey(email)).once('value');
-    const alias = snap.val();
-    if(alias){ console.log('[Alias] '+email+' → '+alias); }
-    return alias || email;
-  }catch(e){ return email; }
-}
-
 /* ── Global Settings (admin-controlled) ── */
 async function _fbGetSettings(){
   try{
@@ -1300,42 +1175,13 @@ function _registerUser(email){
 function getAllUserEmails(){
   return JSON.parse(localStorage.getItem('pharma_user_registry')||'[]');
 }
-// ─── ADMIN GLOBAL ORDER (เก็บ order ที่ admin กำหนดเองใน localStorage) ───
-const _ADMIN_ORDER_KEY = 'pharma_admin_order_v2';
-function _getAdminOrder(){ return JSON.parse(localStorage.getItem(_ADMIN_ORDER_KEY)||'null'); }
-function _saveAdminOrder(arr){ localStorage.setItem(_ADMIN_ORDER_KEY, JSON.stringify(arr)); }
-function _aKey(email,pid){ return email+'::'+pid; }
-
 function getAllProjects(){
   const emails = getAllUserEmails();
-  const allMap = new Map();
+  const all = [];
   emails.forEach(email => {
-    getProjects(email).forEach(p => allMap.set(_aKey(email,p.id), {...p, _ownerEmail:email}));
+    getProjects(email).forEach(p => all.push({...p, _ownerEmail: email}));
   });
-  const saved = _getAdminOrder();
-  if(saved && saved.length){
-    const result = [];
-    saved.forEach(k=>{ if(allMap.has(k)){ result.push(allMap.get(k)); allMap.delete(k); } });
-    allMap.forEach(p=>result.push(p)); // โปรเจคใหม่ที่ยังไม่อยู่ใน order → เพิ่มท้าย
-    return result;
-  }
-  return [...allMap.values()].sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
-}
-
-// reorder ใน admin view-all mode (ข้าม owner ได้)
-function _reorderAdminGlobal(srcOwner, srcPid, tgtOwner, tgtPid){
-  const projs = getAllProjects();
-  let order = projs.map(p=>_aKey(p._ownerEmail, p.id));
-  const srcKey = _aKey(srcOwner, srcPid);
-  const tgtKey = _aKey(tgtOwner, tgtPid);
-  const srcIdx = order.indexOf(srcKey);
-  if(srcIdx<0){ console.warn('[drag] src not found:', srcKey, order); return; }
-  if(order.indexOf(tgtKey)<0){ console.warn('[drag] tgt not found:', tgtKey, order); return; }
-  order.splice(srcIdx, 1);                    // ลบออกก่อน
-  const newTgtIdx = order.indexOf(tgtKey);    // หา tgt ใหม่หลังลบ (index อาจเลื่อน)
-  order.splice(newTgtIdx, 0, srcKey);         // แทรกก่อน tgt
-  console.log('[drag] admin reorder → idx', srcIdx, '→ before', newTgtIdx);
-  _saveAdminOrder(order);
+  return all.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 }
 
 function newProjectTemplate(){
@@ -1363,7 +1209,6 @@ function newProjectTemplate(){
     kpiQty:[], kpiQual:[],
     schedule:[], budget:[],
     budgetSource:'', budgetPlan:'', budgetWork:'', budgetType:'', budgetTotalText:'',
-    incomeDesc:'', incomeRegFee:'', incomeRegCount:'', incomeRegTotal:'', incomeServiceFeeRate:'', incomeNetText:'',
     r1Day:'', r1Month:'', r1Year:'', r2Day:'', r2Month:'', r2Year:'',
     sig1Name:'', sig1Pos:'', sig1Image:'',
     deanIdx:0, deanName:'ผู้ช่วยศาสตราจารย์ ดร. เภสัชกรหญิง ณัฎฐิณี ธีรกุลกิตติพงศ์', deanPos:'คณบดีคณะเภสัชศาสตร์', deanActing:false
@@ -1388,7 +1233,7 @@ async function loadSettings(){
 }
 function watchSettings(){
   try{
-    initFirebase();
+    initFirebase(); // auth.js version — initializes Firebase + signs in
     if(typeof firebase==='undefined') return;
     const _attachListener = ()=>{
       firebase.database().ref('pharma-form/_settings').on('value', snap=>{
@@ -1397,12 +1242,13 @@ function watchSettings(){
         applySignatureUploadState();
       }, ()=>{}); // ignore permission errors silently
     };
+    // Wait for auth to complete before reading (rules require auth != null)
     if(firebase.auth){
       firebase.auth().onAuthStateChanged(user=>{ if(user) _attachListener(); });
     } else {
-      _attachListener();
+      _attachListener(); // no auth SDK — try anyway (open rules)
     }
-  }catch(e){ loadSettings(); }
+  }catch(e){ loadSettings(); } // fallback to one-time read
 }
 function applySignatureUploadState(){
   const ctrl=document.getElementById('sig-upload-controls');
@@ -1504,9 +1350,7 @@ function renderProjectList(){
     projects = getAllProjects().filter(p=> !q || (p.projectName||'').toLowerCase().includes(q) || (p._ownerEmail||'').toLowerCase().includes(q));
   } else {
     projects = getProjects().filter(p=> !q || (p.projectName||'').toLowerCase().includes(q));
-    // ใช้ canonical email เสมอ (ป้องกัน alias email mismatch กับ localStorage key)
-    const _ownEmail = _canonicalEmail || (currentUser&&currentUser.email);
-    projects = projects.map(p=>({...p, _ownerEmail: _ownEmail}));
+    projects = projects.map(p=>({...p, _ownerEmail: currentUser&&currentUser.email}));
   }
   // อัพเดต count pill
   const countPill = document.getElementById('projects-count-pill');
@@ -1533,26 +1377,24 @@ function renderProjectList(){
         <div class="proj-card-title">${p.projectName||'(ไม่มีชื่อโครงการ)'}</div>
         <div class="proj-card-chevron">▾</div>
       </div>
-      <div class="proj-card-meta">🕐 ${dd}${ownerTag ? ' &nbsp;·&nbsp; '+ownerTag : ''}<span id="doc-badge-${p.id}" class="doc-new-badge"><span class="doc-new-badge-dot"></span>ใหม่</span></div>
+      <div class="proj-card-meta">🕐 ${dd}${ownerTag ? ' &nbsp;·&nbsp; '+ownerTag : ''}</div>
       <div class="proj-card-expand">
         <div class="proj-card-divider"></div>
-        <div class="proj-card-actions-stack">
-          <button class="btn-sm btn-edit btn-stack" onclick="showForm('${p.id}','${safeOwner}')">✏️ โครงการ</button>
-          <div class="btn-hdivider"></div>
-          <button class="btn-sm btn-appt btn-stack" onclick="location.href='appointment-order.html?id=${p.id}'">📋 คำสั่งแต่งตั้ง</button>
-          <div class="btn-hdivider"></div>
-          <button class="btn-sm btn-result btn-stack" onclick="location.href='project-result.html?id=${p.id}'">📊 รายงานผลการดำเนินงานโครงการฯ</button>
+        <div class="proj-card-actions">
+          <button class="btn-sm btn-edit" onclick="showForm('${p.id}','${safeOwner}')">✏️ โครงการ</button>
+          <button class="btn-sm btn-appt" onclick="location.href='appointment-order.html?id=${p.id}'">📋 คำสั่งแต่งตั้ง</button>
+          ${isAdmin(currentUser) ? `<button class="btn-sm btn-word" onclick="exportWordById('${p.id}','${safeOwner}')">📄 Word</button>` : ''}
         </div>
         <div class="proj-card-divider" style="margin-top:10px"></div>
         <div class="proj-card-actions-bottom">
-          <button class="btn-sm btn-doc" id="doc-btn-${p.id}" onclick="handleApprovedDoc('${p.id}')">📎 เอกสารที่อนุมัติแล้ว</button>
+          <button class="btn-sm btn-doc" id="doc-btn-${p.id}" onclick="handleApprovedDoc('${p.id}','${safeOwner}')">📎 เอกสารที่อนุมัติแล้ว</button>
           <button class="btn-del-corner" onclick="deleteProject('${p.id}','${safeOwner}')" title="ลบโครงการ">🗑️ Delete</button>
         </div>
       </div>
     </div>`;
   }).join('')}</div>`;
   _initCardDrag();
-  _loadDocMetas();
+  _loadDocMetas(currentUser&&currentUser.email);
 }
 
 function toggleCard(id){
@@ -1563,37 +1405,17 @@ function toggleCard(id){
 
 // ─── DRAG-AND-DROP REORDER ───────────────────────────────────────
 let _dragSrcPid = null, _dragSrcOwner = null, _dragMoved = false;
-let _autoScrollRaf = null, _autoScrollDir = 0;
-
-function _autoScrollStep(){
-  if(_autoScrollDir !== 0){
-    window.scrollBy(0, _autoScrollDir);
-    _autoScrollRaf = requestAnimationFrame(_autoScrollStep);
-  } else {
-    _autoScrollRaf = null;
-  }
-}
-function _onDocDragOver(e){
-  const ZONE = 100, SPEED = 12, vh = window.innerHeight;
-  if(e.clientY < ZONE)           _autoScrollDir = -Math.max(2, Math.round(SPEED*(1-e.clientY/ZONE)));
-  else if(e.clientY > vh-ZONE)   _autoScrollDir =  Math.max(2, Math.round(SPEED*(1-(vh-e.clientY)/ZONE)));
-  else                            _autoScrollDir = 0;
-  if(_autoScrollDir !== 0 && !_autoScrollRaf) _autoScrollRaf = requestAnimationFrame(_autoScrollStep);
-}
-function _stopAutoScroll(){
-  _autoScrollDir = 0; _autoScrollRaf = null;
-  document.removeEventListener('dragover', _onDocDragOver);
-}
 
 function _reorderProjects(srcPid, targetPid, ownerEmail){
-  const email = ownerEmail || _canonicalEmail || (currentUser&&currentUser.email);
+  const email = ownerEmail || (currentUser&&currentUser.email);
   const arr = getProjects(email);
-  const srcIdx = arr.findIndex(p=>p.id===srcPid);
-  if(srcIdx<0){ console.warn('[drag] src not found for email:', email); return; }
-  if(!arr.find(p=>p.id===targetPid)){ console.warn('[drag] tgt not found for email:', email); return; }
-  const [item] = arr.splice(srcIdx, 1);               // ลบออกก่อน
-  const newTgtIdx = arr.findIndex(p=>p.id===targetPid); // หา tgt index ใหม่หลังลบ
-  arr.splice(newTgtIdx, 0, item);                     // แทรกก่อน tgt
+  const srcIdx  = arr.findIndex(p=>p.id===srcPid);
+  const tgtIdx  = arr.findIndex(p=>p.id===targetPid);
+  if(srcIdx<0||tgtIdx<0||srcIdx===tgtIdx) return;
+  const [item] = arr.splice(srcIdx,1);
+  // หลัง splice ออก ถ้า srcIdx < tgtIdx index ของ target จะเลื่อนซ้าย 1
+  const insertAt = tgtIdx > srcIdx ? tgtIdx - 1 : tgtIdx;
+  arr.splice(insertAt,0,item);
   saveProjects(arr, email);
   // Firebase sync
   try{
@@ -1605,69 +1427,46 @@ function _reorderProjects(srcPid, targetPid, ownerEmail){
 }
 
 function _initCardDrag(){
-  const grid = document.querySelector('.project-grid');
-  if(!grid) return;
-  const isAdminAll = !!(currentUser && isAdmin(currentUser) && adminViewAll);
-
-  // หาการ์ดที่ cursor อยู่ "ก่อน" ในลำดับการอ่าน (left-to-right, top-to-bottom)
-  // ใช้ทั้ง X และ Y เพื่อรองรับ multi-column grid
-  function _cardAfterXY(x, y){
-    const cards = [...grid.querySelectorAll('.proj-card[draggable]:not(.dragging)')];
-    for(const card of cards){
-      const r = card.getBoundingClientRect();
-      if(y < r.bottom){                            // cursor อยู่เหนือก้นการ์ด
-        if(y < r.top) return card;                 // cursor อยู่เหนือการ์ดทั้งใบ → insert ก่อนการ์ดนี้
-        if(x < r.left + r.width / 2) return card; // cursor อยู่ซีกซ้ายของการ์ด → insert ก่อนการ์ดนี้
-        // cursor อยู่ซีกขวา → ดูการ์ดถัดไป (insert ก่อนการ์ดถัดไป = หลังการ์ดนี้)
-      }
-    }
-    return null; // cursor ต่ำกว่าทุกการ์ด → ไม่ insert
-  }
-
-  // dragstart / dragend — ติดกับแต่ละการ์ด
-  grid.querySelectorAll('.proj-card[draggable]').forEach(card=>{
+  const cards = document.querySelectorAll('.proj-card[draggable]');
+  cards.forEach(card=>{
     card.addEventListener('dragstart', e=>{
       _dragSrcPid   = card.dataset.pid;
       _dragSrcOwner = card.dataset.owner;
       _dragMoved    = false;
       e.dataTransfer.effectAllowed = 'move';
+      // slight delay so the ghost image renders before opacity drops
       setTimeout(()=>card.classList.add('dragging'), 0);
-      document.addEventListener('dragover', _onDocDragOver);
     });
     card.addEventListener('dragend', ()=>{
       card.classList.remove('dragging');
-      grid.querySelectorAll('.proj-card.drag-over').forEach(c=>c.classList.remove('drag-over'));
-      _stopAutoScroll();
+      document.querySelectorAll('.proj-card.drag-over').forEach(c=>c.classList.remove('drag-over'));
       if(_dragMoved) renderProjectList();
     });
-  });
-
-  // dragover / drop — ติดกับ grid ทั้งก้อน
-  grid.addEventListener('dragover', e=>{
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    grid.querySelectorAll('.proj-card.drag-over').forEach(c=>c.classList.remove('drag-over'));
-    const after = _cardAfterXY(e.clientX, e.clientY);
-    if(after && (isAdminAll || after.dataset.owner === _dragSrcOwner)){
-      after.classList.add('drag-over');
-    }
-  });
-
-  grid.addEventListener('drop', e=>{
-    e.preventDefault();
-    grid.querySelectorAll('.proj-card.drag-over').forEach(c=>c.classList.remove('drag-over'));
-    if(!_dragSrcPid) return;
-    const after = _cardAfterXY(e.clientX, e.clientY);
-    if(after && after.dataset.pid !== _dragSrcPid){
-      if(isAdminAll){
-        _reorderAdminGlobal(_dragSrcOwner, _dragSrcPid, after.dataset.owner, after.dataset.pid);
-      } else if(after.dataset.owner === _dragSrcOwner){
-        _reorderProjects(_dragSrcPid, after.dataset.pid, _dragSrcOwner);
-      } else {
-        return;
+    card.addEventListener('dragenter', e=>{
+      e.preventDefault();
+      if(card.dataset.pid!==_dragSrcPid && card.dataset.owner===_dragSrcOwner){
+        card.classList.add('drag-over');
       }
-      _dragMoved = true;
-    }
+    });
+    card.addEventListener('dragleave', e=>{
+      // ป้องกัน flicker เมื่อ mouse ข้าม child element ภายในการ์ด
+      if(card.contains(e.relatedTarget)) return;
+      card.classList.remove('drag-over');
+    });
+    card.addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    card.addEventListener('drop', e=>{
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const tgtPid   = card.dataset.pid;
+      const tgtOwner = card.dataset.owner;
+      if(_dragSrcPid && tgtPid && _dragSrcPid!==tgtPid && _dragSrcOwner===tgtOwner){
+        _reorderProjects(_dragSrcPid, tgtPid, tgtOwner);
+        _dragMoved = true;
+      }
+    });
   });
 }
 
@@ -1708,9 +1507,6 @@ function showForm(id, ownerEmail){
   document.getElementById('page-dashboard').style.display='none';
   document.getElementById('page-form').style.display='block';
   applySignatureUploadState(); // re-apply lock state each time form opens
-  // Show Word export button for admin only
-  const btnWordForm = document.getElementById('btn-export-word-form');
-  if(btnWordForm) btnWordForm.style.display = admin ? '' : 'none';
   window.scrollTo(0,0);
 }
 
@@ -1723,10 +1519,6 @@ function loadFormData(p){
     'f-budget-source':'budgetSource','f-budget-plan':'budgetPlan',
     'f-budget-work':'budgetWork','f-budget-type':'budgetType',
     'f-budget-total-text':'budgetTotalText',
-    'f-income-desc':'incomeDesc',
-    'f-income-reg-fee':'incomeRegFee','f-income-reg-count':'incomeRegCount',
-    'income-reg-total':'incomeRegTotal',
-    'f-income-svcfee-rate':'incomeServiceFeeRate',
     'f-r1-day':'r1Day','f-r1-year':'r1Year','f-r2-day':'r2Day','f-r2-year':'r2Year',
     'f-plan-year':'planYear',
     'f-sig1-name':'sig1Name','f-sig1-pos':'sig1Pos','f-rationale':'rationale'
@@ -1787,7 +1579,6 @@ function loadFormData(p){
   // Budget table
   renderBudgetTable(p.budget||[]);
   updateBudgetTotal();
-  _updateSvcAndNet();
   // Load signature image
   setSigPreview('sig1', p.sig1Image||'');
   updateDeanPreview();
@@ -1895,10 +1686,6 @@ function getFormData(){
     'f-budget-source':'budgetSource','f-budget-plan':'budgetPlan',
     'f-budget-work':'budgetWork','f-budget-type':'budgetType',
     'f-budget-total-text':'budgetTotalText',
-    'f-income-desc':'incomeDesc',
-    'f-income-reg-fee':'incomeRegFee','f-income-reg-count':'incomeRegCount',
-    'income-reg-total':'incomeRegTotal',
-    'f-income-svcfee-rate':'incomeServiceFeeRate','f-income-net-text':'incomeNetText',
     'f-r1-day':'r1Day','f-r1-year':'r1Year','f-r2-day':'r2Day','f-r2-year':'r2Year',
     'f-plan-year':'planYear',
     'f-sig1-name':'sig1Name','f-sig1-pos':'sig1Pos','f-rationale':'rationale'
@@ -1953,17 +1740,9 @@ function saveForm(){
   const email = currentProjectOwner || (currentUser&&currentUser.email);
   const projects = getProjects(email);
   const idx = projects.findIndex(x=>x.id===p.id);
-  const isNew = idx < 0;
-  const oldProject = idx >= 0 ? projects[idx] : null;
   if(idx>=0) projects[idx]=p; else projects.unshift(p);
   saveProjects(projects, email);
   showToast('✓ บันทึกโครงการสำเร็จ','ok');
-  // Drive: สร้างโฟลเดอร์ใหม่ หรือเปลี่ยนชื่อโฟลเดอร์ถ้าชื่อโครงการเปลี่ยน
-  if(isNew){
-    _createDriveFolders(p.id, p.projectName||'โครงการใหม่');
-  } else if(oldProject?.driveFolderId && oldProject.projectName !== p.projectName){
-    _renameDriveFolder(oldProject.driveFolderId, p.projectName||'โครงการใหม่');
-  }
 }
 
 // ═══════════════════════════════════════════
@@ -2173,27 +1952,6 @@ function numToThaiBaht(amount){
   text+=(satang>0?seg(satang)+'สตางค์':'ถ้วน');
   return text;
 }
-function _updateSvcAndNet(){
-  const regTotal = parseFloat(document.getElementById('income-reg-total')?.value)||0;
-  const ceil10 = n => Math.ceil(n / 10) * 10;
-  const svcFee = ceil10(regTotal * 5 / 112) + ceil10(regTotal * 7 / 112);
-  const net    = regTotal - svcFee;
-  const fmt = n => n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const setVal = (id, v) => { const el=document.getElementById(id); if(el) el.value=v; };
-  setVal('income-svcfee-amt', fmt(svcFee));
-  setVal('income-net', fmt(net));
-  const netTxt = document.getElementById('f-income-net-text');
-  if(netTxt) netTxt.value = net > 0 ? numToThaiBaht(net) : '';
-}
-function updateIncomeCalc(){
-  // เมื่อกรอกค่าลงทะเบียน/จำนวนคน → คำนวณรายรับรวมอัตโนมัติ
-  const fee   = parseFloat(document.getElementById('f-income-reg-fee')?.value)||0;
-  const count = parseFloat(document.getElementById('f-income-reg-count')?.value)||0;
-  const regTotal = fee * count;
-  const el = document.getElementById('income-reg-total');
-  if(el) el.value = regTotal || '';
-  _updateSvcAndNet();
-}
 function updateBudgetTotal(){
   let total = 0;
   document.querySelectorAll('#budget-body input[type=number]').forEach(inp=>{
@@ -2251,290 +2009,58 @@ document.addEventListener('focusout', function(e){
 });
 
 // ═══════════════════════════════════════════
-// GOOGLE DRIVE INTEGRATION
+// APPROVED DOCUMENTS
 // ═══════════════════════════════════════════
-// วาง URL ของ Apps Script Web App หลัง deploy แล้ว
-// (deploy-manager.gs → Deploy → Web app → Execute as Me, Anyone)
-const _DRIVE_URL = 'https://script.google.com/macros/s/AKfycbz7n_WT63VSW_BH6Eqdju0kOzT8Qh0cmiNBvpU2jnoPE0aauyZPTXnBSWRQt9s15v8H3w/exec';
-
-async function _driveCall(data){
-  if(!_DRIVE_URL) return null;
-  try{
-    // ใช้ GET params สำหรับ action เล็กๆ (หลีกเลี่ยง CORS preflight)
-    if(data.action !== 'uploadFile'){
-      const params = new URLSearchParams(data);
-      const res = await fetch(_DRIVE_URL + '?' + params.toString());
-      const json = await res.json();
-      return json;
-    }
-    // POST สำหรับ file upload เท่านั้น
-    const res = await fetch(_DRIVE_URL, {method:'POST', body:JSON.stringify(data)});
-    return await res.json();
-  }catch(e){
-    console.warn('[Drive] error:', e);
-    showToast('Drive error: '+e.message,'err');
-    return null;
-  }
-}
-
-async function _renameDriveFolder(folderId, newName){
-  if(!_DRIVE_URL) return;
-  showToast('📁 กำลังเปลี่ยนชื่อโฟลเดอร์ Drive...','ok');
-  const result = await _driveCall({action:'renameFolder', folderId, newName});
-  if(!result?.success){
-    showToast('Drive: '+(result?.error||'เปลี่ยนชื่อโฟลเดอร์ล้มเหลว'),'err');
-    return;
-  }
-  showToast('📁 เปลี่ยนชื่อโฟลเดอร์ Drive แล้ว','ok');
-}
-
-async function _createDriveFolders(pid, projectName){
-  if(!_DRIVE_URL) return;
-  showToast('📁 กำลังสร้างโฟลเดอร์ Drive...','ok');
-  const result = await _driveCall({action:'createProjectFolder', pid, projectName});
-  if(!result?.success){
-    showToast('Drive: '+(result?.error||'สร้างโฟลเดอร์ล้มเหลว'),'err');
-    console.warn('[Drive] folder create failed:', result);
-    return;
-  }
-  // บันทึก folder IDs ลงใน project object
-  const email = currentProjectOwner || _canonicalEmail || (currentUser?.email||'');
-  const projs = getProjects(email);
-  const idx = projs.findIndex(p=>p.id===pid);
-  if(idx>=0){
-    projs[idx].driveFolderId          = result.projectFolderId;
-    projs[idx].driveFolderUrl         = result.projectFolderUrl;
-    projs[idx].driveApprovedFolderId  = result.approvedFolderId;
-    projs[idx].driveApprovedFolderUrl = result.approvedFolderUrl;
-    saveProjects(projs, email);
-  }
-  showToast('📁 สร้างโฟลเดอร์ Drive เรียบร้อย','ok');
-}
-
-// หา driveApprovedFolderId จาก project ที่ให้ pid
-function _getDriveApprovedFolderId(pid){
-  try{
-    const email = currentProjectOwner || _canonicalEmail || (currentUser?.email||'');
-    const projs = getProjects(email);
-    return projs.find(p=>p.id===pid)?.driveApprovedFolderId || null;
-  }catch{ return null; }
-}
-// หาชื่อโครงการจาก pid
-function _getProjectName(pid){
-  try{
-    const email = currentProjectOwner || _canonicalEmail || (currentUser?.email||'');
-    return getProjects(email).find(p=>p.id===pid)?.projectName || 'โครงการ';
-  }catch{ return 'โครงการ'; }
-}
-
-// ═══════════════════════════════════════════
-// APPROVED DOCUMENTS  (multi-doc per project)
-// Structure: pharma-form/_approved_/approved-docs/{pid}/{docId}
-//            pharma-form/_approved_/approved-pdf/{pid}/{docId}
-// ═══════════════════════════════════════════
-const _FB_DOC_KEY = '_approved_';
-
-function _fbDocsRef(pid){
+function _fbDocMetaRef(email, pid){
   try{ initFirebase(); if(typeof firebase==='undefined') return null;
-    return firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-docs/'+pid);
+    return firebase.database().ref('pharma-form/'+emailToFbKey(email)+'/approved-docs/'+pid);
   }catch{ return null; }
 }
-function _fbDocMetaRef(pid, docId){
+function _fbDocPdfRef(email, pid){
   try{ initFirebase(); if(typeof firebase==='undefined') return null;
-    return firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-docs/'+pid+'/'+docId);
-  }catch{ return null; }
-}
-function _fbDocPdfRef(pid, docId){
-  try{ initFirebase(); if(typeof firebase==='undefined') return null;
-    return firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-pdf/'+pid+'/'+docId);
+    return firebase.database().ref('pharma-form/'+emailToFbKey(email)+'/approved-pdf/'+pid);
   }catch{ return null; }
 }
 
-// Load doc metadata for all visible projects — one call, mark button states
-async function _loadDocMetas(){
+// Load doc metadata for all visible projects and update button states
+async function _loadDocMetas(email){
   try{
     initFirebase();
     if(typeof firebase==='undefined') return;
-    const snap = await firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-docs').once('value');
+    const snap = await firebase.database().ref('pharma-form/'+emailToFbKey(email)+'/approved-docs').once('value');
     const val = snap.val()||{};
     Object.keys(val).forEach(pid=>{
-      const docs = val[pid]||{};
-      const count = Object.keys(docs).length;
       const btn = document.getElementById('doc-btn-'+pid);
-      if(btn && count>0){
-        btn.classList.add('btn-doc-active');
-        btn.title = 'เอกสารอนุมัติ: '+count+' ไฟล์';
-        // show count badge
-        if(!btn.querySelector('.doc-count')) {
-          const badge = document.createElement('span');
-          badge.className = 'doc-count';
-          badge.style.cssText = 'margin-left:5px;background:rgba(52,211,153,.8);color:#fff;border-radius:10px;padding:0 6px;font-size:.7rem;font-weight:700';
-          badge.textContent = count;
-          btn.appendChild(badge);
-        } else {
-          btn.querySelector('.doc-count').textContent = count;
-        }
-        // new-doc badge inline next to owner name — keyed per user so admin≠user
-        const _sk = 'doc-seen-'+(emailToFbKey(currentUser?.email||'anon'))+'-'+pid;
-        const lastSeen = parseInt(localStorage.getItem(_sk)||'0');
-        const hasNew = Object.values(docs).some(d => new Date(d.uploadedAt||0).getTime() > lastSeen);
-        const badge = document.getElementById('doc-badge-'+pid);
-        if(badge) badge.classList.toggle('visible', hasNew);
-      }
+      if(btn){ btn.classList.add('btn-doc-active'); btn.title='เอกสารอนุมัติ: '+val[pid].filename; }
     });
   }catch(e){ console.warn('[FB] doc meta load:',e); }
 }
 
-let _docUploadTarget = null; // {pid, pid}
+let _docUploadTarget = null;
 
-async function handleApprovedDoc(pid){
-  // mark as seen — keyed by user email so admin viewing doesn't clear user's notification
-  const _seenK = 'doc-seen-'+(emailToFbKey(currentUser?.email||'anon'))+'-'+pid;
-  localStorage.setItem(_seenK, Date.now());
-  document.getElementById('doc-badge-'+pid)?.classList.remove('visible');
-  const docsRef = _fbDocsRef(pid);
-  if(!docsRef){ showToast('ไม่สามารถเชื่อมต่อ Firebase','err'); return; }
+async function handleApprovedDoc(pid, ownerEmail){
+  const email = ownerEmail || (currentUser&&currentUser.email);
+  const metaRef = _fbDocMetaRef(email, pid);
+  if(!metaRef){ showToast('ไม่สามารถเชื่อมต่อ Firebase','err'); return; }
+  showToast('กำลังตรวจสอบ...','ok');
   try{
-    const snap = await docsRef.once('value');
-    const docs = snap.val()||{};
-    const docList = Object.entries(docs).map(([id,meta])=>({id,...meta}));
-    _showDocListModal(pid, docList);
+    const snap = await metaRef.once('value');
+    const meta = snap.val();
+    if(isAdmin(currentUser)){
+      if(meta){ _showDocModal(pid, email, meta); }
+      else { showToast('','ok'); _triggerDocUpload(pid, email); }
+    } else {
+      if(meta){ await _openApprovedDoc(pid, email, meta.filename); }
+      else { showToast('ยังไม่มีเอกสารอนุมัติสำหรับโครงการนี้','err'); }
+    }
   }catch(e){ showToast('โหลดข้อมูลล้มเหลว: '+e.message,'err'); }
 }
 
-// ── Modal แสดงรายการเอกสารทั้งหมด ──
-function _showDocListModal(pid, docList){
-  document.getElementById('doc-modal-overlay')?.remove();
-  const overlay = document.createElement('div');
-  overlay.id = 'doc-modal-overlay';
-  const admin = isAdmin(currentUser);
-
-  let listHtml = '';
-  if(docList.length === 0){
-    listHtml = `<div style="text-align:center;padding:20px;color:var(--sub);font-size:.85rem">ยังไม่มีเอกสาร</div>`;
-  } else {
-    listHtml = `<div class="doc-list">${docList.map(doc=>{
-      const ico = doc.type==='link' ? '🔗' : '📄';
-      const dt = doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString('th-TH') : '-';
-      const delBtn = admin
-        ? `<button class="btn-sm" style="background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.25);padding:3px 8px;font-size:.72rem" data-del="${doc.id}">🗑</button>`
-        : '';
-      return `<div class="doc-list-item">
-        <span class="dl-ico">${ico}</span>
-        <div class="dl-info">
-          <div class="dl-name" title="${doc.filename||''}">${doc.filename||'เอกสารอนุมัติ'}</div>
-          <div class="dl-meta">${dt}</div>
-        </div>
-        <div class="dl-actions">
-          <button class="btn-sm btn-appt" style="padding:3px 8px;font-size:.72rem" data-view="${doc.id}">🔍 ดู</button>
-          ${delBtn}
-        </div>
-      </div>`;
-    }).join('')}</div>`;
-  }
-
-  const addBtn = admin
-    ? `<button class="btn-sm btn-appt" style="width:100%;margin-top:4px" onclick="_showAddDocModal('${pid}',true)">＋ เพิ่มเอกสาร</button>`
-    : '';
-
-  overlay.innerHTML = `<div id="doc-modal">
-    <div id="doc-modal-box">
-      <h3>📎 เอกสารที่ได้รับการอนุมัติแล้ว</h3>
-      ${listHtml}
-      ${addBtn}
-      <div style="margin-top:10px;text-align:right">
-        <button class="btn-sm" style="border-color:var(--brdw)" onclick="document.getElementById('doc-modal-overlay').remove()">ปิด</button>
-      </div>
-    </div>
-  </div>`;
-  overlay.addEventListener('click', e=>{ if(e.target===overlay||e.target.id==='doc-modal') overlay.remove(); });
-  document.body.appendChild(overlay);
-
-  // Bind view buttons
-  overlay.querySelectorAll('[data-view]').forEach(btn=>{
-    const docId = btn.dataset.view;
-    const meta = docList.find(d=>d.id===docId);
-    btn.addEventListener('click', ()=>{ document.getElementById('doc-modal-overlay')?.remove(); _openApprovedDoc(pid, docId, meta); });
-  });
-  // Bind delete buttons (admin only)
-  overlay.querySelectorAll('[data-del]').forEach(btn=>{
-    const docId = btn.dataset.del;
-    btn.addEventListener('click', ()=>_deleteApprovedDoc(pid, docId));
-  });
-}
-
-// ── Admin: modal เพิ่มเอกสารใหม่ ──
-function _showAddDocModal(pid, fromList=false){
-  document.getElementById('doc-modal-overlay')?.remove();
-  const overlay = document.createElement('div');
-  overlay.id = 'doc-modal-overlay';
-  overlay.innerHTML = `<div id="doc-modal">
-    <div id="doc-modal-box">
-      <h3>📎 เพิ่มเอกสารที่อนุมัติแล้ว</h3>
-      <div style="display:flex;gap:10px;margin-bottom:16px">
-        <div class="doc-opt" onclick="_pickAddMethod('${pid}','file')">
-          <span class="do-ico">📤</span>
-          <span class="do-lbl">อัปโหลดไฟล์</span>
-          <span class="do-sub">PDF สูงสุด 4 MB</span>
-        </div>
-        <div class="doc-opt" onclick="_pickAddMethod('${pid}','link')">
-          <span class="do-ico">🔗</span>
-          <span class="do-lbl">ลิงก์เอกสาร</span>
-          <span class="do-sub">Google Drive / URL</span>
-        </div>
-      </div>
-      <div id="doc-link-section" style="display:none">
-        <input class="doc-link-name" id="doc-link-name-inp" placeholder="ชื่อเอกสาร เช่น อนุมัติโครงการ 2568.pdf">
-        <div class="doc-link-row">
-          <input type="url" id="doc-link-url-inp" placeholder="https://drive.google.com/...">
-          <button class="btn-sm btn-appt" onclick="_saveLinkDoc('${pid}')">บันทึก</button>
-        </div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-        ${fromList ? `<button class="btn-sm" style="border-color:var(--brdw)" onclick="handleApprovedDoc('${pid}')">← กลับ</button>` : ''}
-        <button class="btn-sm" style="border-color:var(--brdw)" onclick="document.getElementById('doc-modal-overlay').remove()">ยกเลิก</button>
-      </div>
-    </div>
-  </div>`;
-  overlay.addEventListener('click', e=>{ if(e.target===overlay||e.target.id==='doc-modal') overlay.remove(); });
-  document.body.appendChild(overlay);
-}
-
-function _pickAddMethod(pid, method){
-  if(method==='file'){
-    document.getElementById('doc-modal-overlay')?.remove();
-    _triggerDocUpload(pid);
-  } else {
-    document.getElementById('doc-link-section').style.display='block';
-    document.getElementById('doc-link-name-inp').focus();
-  }
-}
-
-async function _saveLinkDoc(pid){
-  const url = document.getElementById('doc-link-url-inp').value.trim();
-  const name = document.getElementById('doc-link-name-inp').value.trim() || 'เอกสารอนุมัติ';
-  if(!url){ showToast('กรุณาใส่ลิงก์ก่อนครับ','err'); return; }
-  try{
-    // push new doc under this pid
-    const newRef = firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-docs/'+pid).push();
-    const meta = {type:'link', url, filename:name, uploadedAt:new Date().toISOString(), uploadedBy:currentUser.email};
-    await newRef.set(meta);
-    document.getElementById('doc-modal-overlay')?.remove();
-    showToast('✓ บันทึกลิงก์เรียบร้อย','ok');
-    _refreshDocBtn(pid);
-  }catch(e){ showToast('บันทึกล้มเหลว: '+e.message,'err'); }
-}
-
-async function _openApprovedDoc(pid, docId, meta){
-  if(!meta){ showToast('ไม่พบข้อมูลเอกสาร','err'); return; }
-  if(meta.type==='link'){
-    if(!meta.url){ showToast('ไม่พบลิงก์เอกสาร','err'); return; }
-    window.open(meta.url,'_blank');
-    return;
-  }
+async function _openApprovedDoc(pid, email, filename){
   showToast('กำลังโหลด PDF...','ok');
   try{
-    const snap = await _fbDocPdfRef(pid, docId).once('value');
+    const pdfRef = _fbDocPdfRef(email, pid);
+    const snap = await pdfRef.once('value');
     const b64 = snap.val();
     if(!b64){ showToast('ไม่พบไฟล์ PDF','err'); return; }
     const raw = atob(b64.includes(',') ? b64.split(',')[1] : b64);
@@ -2546,99 +2072,54 @@ async function _openApprovedDoc(pid, docId, meta){
   }catch(e){ showToast('โหลด PDF ล้มเหลว: '+e.message,'err'); }
 }
 
-function _triggerDocUpload(pid){
-  _docUploadTarget = pid;
+function _showDocModal(pid, email, meta){
+  document.getElementById('doc-modal-overlay')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'doc-modal-overlay';
+  const uploadedAt = meta.uploadedAt ? new Date(meta.uploadedAt).toLocaleString('th-TH') : '-';
+  overlay.innerHTML = `<div id="doc-modal">
+    <div id="doc-modal-box">
+      <h3>📎 เอกสารที่ได้รับการอนุมัติแล้ว</h3>
+      <div class="doc-info">
+        <div>📄 ${meta.filename||'document.pdf'}</div>
+        <div class="doc-meta">อัปโหลดเมื่อ: ${uploadedAt} โดย ${meta.uploadedBy||'-'}</div>
+      </div>
+      <div class="doc-btns">
+        <button class="btn-sm btn-appt" onclick="_openApprovedDoc('${pid}','${email}','${meta.filename||''}');document.getElementById('doc-modal-overlay').remove()">🔍 ดูเอกสาร</button>
+        <button class="btn-sm btn-word" onclick="document.getElementById('doc-modal-overlay').remove();_triggerDocUpload('${pid}','${email}')">🔄 อัปโหลดใหม่</button>
+        <button class="btn-sm btn-del" onclick="document.getElementById('doc-modal-overlay').remove()">ปิด</button>
+      </div>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e=>{ if(e.target===overlay||e.target.id==='doc-modal') overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function _triggerDocUpload(pid, email){
+  _docUploadTarget = {pid, email};
   const inp = document.getElementById('approved-doc-input');
   inp.value = '';
   inp.click();
 }
 
-async function _deleteApprovedDoc(pid, docId){
-  if(!confirm('ลบเอกสารนี้?')) return;
-  try{
-    // ดึง meta ก่อนลบ เพื่อเช็ค driveFileId
-    const metaSnap = await _fbDocMetaRef(pid, docId).once('value');
-    const meta = metaSnap.val();
-    await _fbDocMetaRef(pid, docId).remove();
-    if(meta?.type==='file') await _fbDocPdfRef(pid, docId).remove();
-    // ลบจาก Google Drive ด้วย (ถ้ามี)
-    if(meta?.driveFileId && _DRIVE_URL){
-      _driveCall({action:'deleteFile', fileId:meta.driveFileId}).catch(()=>{});
-    }
-    showToast('ลบเอกสารแล้ว','ok');
-    // refresh modal list
-    handleApprovedDoc(pid);
-    _refreshDocBtn(pid);
-  }catch(e){ showToast('ลบล้มเหลว: '+e.message,'err'); }
-}
-
-async function _refreshDocBtn(pid){
-  try{
-    const snap = await _fbDocsRef(pid).once('value');
-    const docs = snap.val()||{};
-    const count = Object.keys(docs).length;
-    const btn = document.getElementById('doc-btn-'+pid);
-    if(!btn) return;
-    if(count > 0){
-      btn.classList.add('btn-doc-active');
-      let badge = btn.querySelector('.doc-count');
-      if(!badge){ badge=document.createElement('span'); badge.className='doc-count'; badge.style.cssText='margin-left:5px;background:rgba(52,211,153,.8);color:#fff;border-radius:10px;padding:0 6px;font-size:.7rem;font-weight:700'; btn.appendChild(badge); }
-      badge.textContent = count;
-    } else {
-      btn.classList.remove('btn-doc-active');
-      btn.querySelector('.doc-count')?.remove();
-    }
-  }catch(e){}
-}
-
 async function _handleDocFileSelected(input){
   if(!input.files||!input.files[0]) return;
   const file = input.files[0];
-  const MAX_MB = 15;
+  const MAX_MB = 4;
   if(file.size > MAX_MB*1024*1024){ showToast(`ไฟล์ใหญ่เกิน ${MAX_MB}MB ครับ`,'err'); return; }
   showToast('กำลังอัปโหลด...','ok');
   const reader = new FileReader();
   reader.onload = async e=>{
     const b64 = e.target.result;
-    const pid = _docUploadTarget;
+    const {pid, email} = _docUploadTarget;
     try{
-      // ── ถ้ายังไม่มีโฟลเดอร์ Drive ให้สร้างก่อน ──
-      let driveApprovedFolderId = _getDriveApprovedFolderId(pid);
-      if(!driveApprovedFolderId && _DRIVE_URL){
-        showToast('📁 สร้างโฟลเดอร์ Drive...','ok');
-        await _createDriveFolders(pid, _getProjectName(pid));
-        driveApprovedFolderId = _getDriveApprovedFolderId(pid);
-      }
-      // ── อัปโหลดสู่ Google Drive ──
-      if(driveApprovedFolderId && _DRIVE_URL){
-        showToast('📤 กำลังอัปโหลดสู่ Google Drive...','ok');
-        const drRes = await _driveCall({
-          action:'uploadFile', folderId:driveApprovedFolderId,
-          filename:file.name, base64:b64, mimeType:file.type||'application/pdf'
-        });
-        if(drRes?.success){
-          const newRef = firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-docs/'+pid).push();
-          const meta = {type:'link', url:drRes.fileUrl, filename:file.name,
-            driveFileId:drRes.fileId, source:'drive',
-            uploadedAt:new Date().toISOString(), uploadedBy:currentUser.email};
-          await newRef.set(meta);
-          showToast('✓ อัปโหลดสู่ Google Drive แล้ว','ok');
-          _refreshDocBtn(pid);
-          handleApprovedDoc(pid); // refresh รายการเอกสารใน modal
-          return;
-        }
-        showToast('Drive upload ล้มเหลว — บันทึก Firebase แทน','err');
-        console.warn('[Drive] upload failed:', drRes);
-      }
-      // ── Fallback: เก็บ base64 ใน Firebase ──
-      const newRef = firebase.database().ref('pharma-form/'+_FB_DOC_KEY+'/approved-docs/'+pid).push();
-      const docId = newRef.key;
-      const meta = {type:'file', filename:file.name, uploadedAt:new Date().toISOString(), uploadedBy:currentUser.email};
-      await newRef.set(meta);
-      await _fbDocPdfRef(pid, docId).set(b64);
-      showToast('✓ อัปโหลดเรียบร้อย (Firebase)','ok');
-      _refreshDocBtn(pid);
-      handleApprovedDoc(pid);
+      const meta = {filename:file.name, uploadedAt:new Date().toISOString(), uploadedBy:currentUser.email};
+      await _fbDocMetaRef(email, pid).set(meta);
+      await _fbDocPdfRef(email, pid).set(b64);
+      // Update button state
+      const btn = document.getElementById('doc-btn-'+pid);
+      if(btn){ btn.classList.add('btn-doc-active'); btn.title='เอกสารอนุมัติ: '+file.name; }
+      showToast('✓ อัปโหลดเสร็จแล้ว','ok');
     }catch(err){ showToast('อัปโหลดล้มเหลว: '+err.message,'err'); }
   };
   reader.readAsDataURL(file);
@@ -2685,14 +2166,6 @@ function thaiWrap(str){
 
 function buildPrintHTML(p){
   const total = (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
-  const _incRegFee  = parseFloat(p.incomeRegFee)||0;
-  const _incCount   = parseFloat(p.incomeRegCount)||0;
-  const _incTotal   = parseFloat(p.incomeRegTotal) || (_incRegFee * _incCount);
-  const _ceil10p    = n => Math.ceil(n / 10) * 10;
-  const _incSvc     = _ceil10p(_incTotal * 5 / 112) + _ceil10p(_incTotal * 7 / 112);
-  const _incNet     = _incTotal - _incSvc;
-  const _fmtB = n => n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const _incNetTxt  = p.incomeNetText || (_incNet > 0 ? numToThaiBaht(_incNet) : '');
   const schedRows = (p.schedule||[]).map(r=>`<tr><td style="white-space:nowrap;text-align:center;vertical-align:middle">${r.date||''}</td><td style="text-align:center">${(r.time||'').split('\n').map(t=>`<span style="white-space:nowrap;display:block">${t}</span>`).join('')}</td><td>${(r.activity||'').split('\n').map(thaiWrap).join('<br>')}</td></tr>`).join('');
   const kpiGrid = items => {
     const rows = items||[];
@@ -2819,13 +2292,6 @@ ${(p.phase3Items||[]).map((item,i)=>`<div class="indent2">๑๖.๓.${toThai(i+
 </div>
 </div>
 <div class="sec"><span class="sec-title">๑๙. รายละเอียดงบประมาณของโครงการ</span>
-<div style="margin-bottom:4pt"><u><strong>รายรับ</strong></u></div>
-<table style="border-collapse:collapse;width:100%;margin-bottom:6pt">
-<tr><td style="padding:2pt 4pt">${p.incomeDesc||'ค่าลงทะเบียน'} เป็นเงิน</td><td style="text-align:right;width:130pt;padding:2pt 4pt;font-weight:600">${_fmtB(_incTotal)}</td><td style="width:28pt;padding:2pt 4pt">บาท</td></tr>
-<tr><td style="padding:2pt 4pt">หัก ค่าตอบแทนบริการวิชาการ 12% เป็นเงิน</td><td style="text-align:right;padding:2pt 4pt;font-weight:600">${_fmtB(_incSvc)}</td><td style="padding:2pt 4pt">บาท</td></tr>
-<tr><td style="padding:2pt 4pt"><strong>คงเหลือดำเนินการ เป็นเงิน</strong></td><td style="text-align:right;padding:2pt 4pt;font-weight:700">${_fmtB(_incNet)}</td><td style="padding:2pt 4pt"><strong>บาท</strong></td></tr>
-<tr><td colspan="3" style="padding:2pt 4pt">(${_incNetTxt||'............................................บาทถ้วน'})</td></tr>
-</table>
 <div>ใช้งบประมาณดำเนินการจากเงิน ${p.budgetSource||'...............'} แผนงาน ${p.budgetPlan||'...............'} งาน ${p.budgetWork||'...............'} หมวดเงิน ${p.budgetType||'...............'} เป็นจำนวนเงิน ${total.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท (${p.budgetTotalText||'..............................................'})</div>
 <table><tr><th>รายการ</th><th style="width:150pt;text-align:right">จำนวนเงิน (บาท)</th></tr>${budgRows}<tr><td style="font-weight:700">รวมทั้งสิ้น</td><td style="font-weight:700;text-align:right">${total.toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr><tr><td colspan="2">(${p.budgetTotalText||'..............................................................บาทถ้วน'})</td></tr></table>
 </div>
@@ -2937,14 +2403,6 @@ async function buildWordDoc(p){
       new TableCell({children:[para((parseFloat(r.amount||0)).toLocaleString('th-TH',{minimumFractionDigits:2}))], width:{size:2000,type:WidthType.DXA}})
     ]})
   );
-  const _wIncRegFee = parseFloat(p.incomeRegFee)||0;
-  const _wIncCount  = parseFloat(p.incomeRegCount)||0;
-  const _wIncTotal  = parseFloat(p.incomeRegTotal) || (_wIncRegFee * _wIncCount);
-  const _wCeil10    = n => Math.ceil(n / 10) * 10;
-  const _wIncSvc    = _wCeil10(_wIncTotal * 5 / 112) + _wCeil10(_wIncTotal * 7 / 112);
-  const _wIncNet    = _wIncTotal - _wIncSvc;
-  const _wFmt = n => n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const _wIncNetTxt = p.incomeNetText || '';
 
   const tblBorder = {style:BorderStyle.SINGLE,size:4,color:'000000'};
   const tblBorders = {top:tblBorder,bottom:tblBorder,left:tblBorder,right:tblBorder,insideH:tblBorder,insideV:tblBorder};
@@ -3097,12 +2555,6 @@ async function buildWordDoc(p){
     new Paragraph({spacing:{after:0,line:240,lineRule:'auto'},indent:{left:640},children:[run('ตัวชี้วัดเชิงต้นทุน',{bold:true}),run(' : ค่าใช้จ่ายไม่เกินงบประมาณที่กำหนดไว้')]}),
     // 19
     heading('๑๙. รายละเอียดงบประมาณของโครงการ'),
-    para([run('รายรับ',{bold:true,underline:{type:'single'}})],{indent:{left:640}}),
-    para(`${p.incomeDesc||'ค่าลงทะเบียน'} เป็นเงิน ${_wFmt(_wIncTotal)} บาท`,{indent:{left:960}}),
-    para(`หัก ค่าตอบแทนบริการวิชาการ 12% เป็นเงิน ${_wFmt(_wIncSvc)} บาท`,{indent:{left:960}}),
-    para(`คงเหลือดำเนินการ เป็นเงิน ${_wFmt(_wIncNet)} บาท`,{bold:true,indent:{left:960}}),
-    para(`(${_wIncNetTxt||'............................................บาทถ้วน'})`,{indent:{left:960}}),
-    blank(),
     para(`ใช้งบประมาณดำเนินการจากเงิน ${p.budgetSource||'...............'} แผนงาน ${p.budgetPlan||'...............'} งาน ${p.budgetWork||'...............'} หมวดเงิน ${p.budgetType||'...............'} เป็นจำนวนเงิน ${total.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท (${p.budgetTotalText||'...................................'})`,{indent:{left:640}}),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:tblBorders,rows:[
       new TableRow({children:[
@@ -3238,6 +2690,9 @@ function toggleSDGItem(){
       localStorage.removeItem(OLD_KEY);
     }
   }catch(e){ console.warn('Migration error:',e); }
+  // Register this user in the registry
+  _registerUser(currentUser.email);
+
   function _renderAndShow(){
     // Render user badge in navbar
     const badgeEl = document.getElementById('user-badge-nav');
@@ -3263,13 +2718,10 @@ function toggleSDGItem(){
     showDashboard();
   }
 
-  // Resolve email alias first, then sync from Firebase, then render
+  // Sync from Firebase first, then render dashboard
   const _isAdmin = isAdmin(currentUser);
-  _resolveEmail(currentUser.email).then(canonical => {
-    _canonicalEmail = canonical;
-    _registerUser(canonical);
-    return _fbSync(canonical);
-  }).then(()=> _isAdmin ? _fbAdminSync(_canonicalEmail||currentUser.email) : Promise.resolve())
+  _fbSync(currentUser.email)
+    .then(()=> _isAdmin ? _fbAdminSync(currentUser.email) : Promise.resolve())
     .catch(()=>{}).finally(_renderAndShow);
 })();
 </script>

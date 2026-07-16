@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>รายงานผลการดำเนินงานโครงการฯ · คณะเภสัชศาสตร์</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="auth.js?v=2"></script>
+<script>if(!getUser()){location.replace('login.html');}</script>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030014;--card:#0d0d22;--brd:rgba(139,92,246,.2);--brdw:rgba(255,255,255,.07);
+  --txt:#e8e8ff;--sub:#888aaa;--accent:#a78bfa;--orange:#fb923c;--green:#34d399;
+  --font:'Prompt',sans-serif;--radius:14px;--tr:.25s ease;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;position:relative;overflow-x:hidden;font-size:15px;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 55% at 8% 50%,rgba(6,182,212,.14) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 55% at 92% 40%,rgba(139,92,246,.16) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 50% 60%,rgba(251,146,60,.07) 0%,transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,#0a061a 0%,#06040f 100%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(1.5px 1.5px at 15% 20%,rgba(255,255,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 40% 8%,rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(2px 2px at 72% 14%,rgba(255,255,255,.24) 0%,transparent 100%),
+    radial-gradient(1px 1px at 90% 45%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 5% 70%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(2px 2px at 78% 78%,rgba(200,180,255,.24) 0%,transparent 100%)}
+#mouse-nebula{position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse 40% 35% at 50% 50%,rgba(251,146,60,.12) 0%,transparent 70%)}
+
+/* NAVBAR */
+.navbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;gap:14px;padding:12px 24px;
+  background:rgba(3,0,20,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd)}
+.navbar-icon{width:36px;height:36px;background:linear-gradient(135deg,#fb923c,#a78bfa);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.navbar-info{flex:1;min-width:0}
+.navbar-info h1{font-size:.88rem;font-weight:700;color:#fdba74;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navbar-info p{font-size:.65rem;color:var(--sub)}
+.btn-home{background:none;border:1px solid var(--brd);color:var(--sub);font-family:var(--font);
+  font-size:.78rem;padding:.35rem .9rem;border-radius:20px;cursor:pointer;transition:var(--tr)}
+.btn-home:hover{border-color:#fb923c;color:#fb923c}
+
+/* PROJECT BANNER */
+.proj-banner{margin:20px 24px 0;padding:14px 20px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(251,146,60,.08),rgba(139,92,246,.06));
+  border:1px solid rgba(251,146,60,.2);position:relative;z-index:2}
+.proj-banner-label{font-size:.68rem;color:var(--sub);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.proj-banner-name{font-size:.95rem;font-weight:700;color:#f0efff}
+
+/* TABS */
+.tab-nav{display:flex;gap:0;padding:16px 24px 0;position:relative;z-index:2;border-bottom:1px solid var(--brdw)}
+.tab-btn{padding:10px 24px;background:none;border:none;border-bottom:2px solid transparent;color:var(--sub);
+  font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.tab-btn.active{color:#fdba74;border-bottom-color:#fb923c}
+.tab-btn:hover{color:#e8e8ff}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* CONTAINER */
+.container{max-width:940px;margin:0 auto;padding:20px 20px 60px;position:relative;z-index:2}
+
+/* FORM SECTIONS */
+.fsec{background:rgba(255,255,255,.03);border:1px solid var(--brdw);border-radius:var(--radius);
+  padding:20px;margin-bottom:14px}
+.fsec:hover{border-color:rgba(251,146,60,.18);transition:border-color .3s}
+.fsec-title{font-size:.92rem;font-weight:700;color:#fdba74;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
+.fsec-title::before{content:'';width:3px;height:16px;
+  background:linear-gradient(180deg,#fb923c,#a78bfa);border-radius:2px}
+
+/* BASIC INPUTS */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
+.form-group.full{flex:100%;min-width:0}
+.form-group.w2{flex:2}
+.form-group label{font-size:.74rem;font-weight:600;color:var(--sub);letter-spacing:.04em}
+.finput{background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:8px;
+  color:var(--txt);font-family:var(--font);font-size:.88rem;padding:7px 11px;
+  outline:none;transition:var(--tr);width:100%}
+.finput:focus{border-color:rgba(251,146,60,.5);background:rgba(255,255,255,.07)}
+textarea.finput{resize:none;overflow:hidden;min-height:64px}
+select.finput option{background:#0d0d22;color:var(--txt)}
+
+/* SECTION NUMBER BADGE */
+.sec-num{display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;background:rgba(251,146,60,.2);
+  color:#fdba74;font-size:.72rem;font-weight:700;flex-shrink:0}
+
+/* DATA TABLE */
+.dtable-wrap{overflow-x:auto;margin-bottom:10px}
+.dtable{width:100%;border-collapse:collapse;font-size:.82rem}
+.dtable th{background:rgba(251,146,60,.12);color:#fdba74;font-weight:700;
+  padding:8px 10px;border:1px solid rgba(251,146,60,.18);text-align:center;white-space:nowrap}
+.dtable td{padding:6px 8px;border:1px solid rgba(255,255,255,.06);vertical-align:top}
+.dtable tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.dtable td .finput{padding:5px 8px;font-size:.8rem;border-radius:6px}
+.dtable td textarea.finput{min-height:48px}
+.dtable tfoot td{background:rgba(251,146,60,.08);color:#fdba74;font-weight:700;
+  padding:8px 10px;border:1px solid rgba(251,146,60,.18)}
+.td-num{text-align:center;width:36px;color:var(--sub);font-size:.75rem}
+.td-action{text-align:center;width:36px}
+.td-achieved{width:96px;text-align:center}
+.td-status{width:80px;text-align:center}
+
+/* ADD / DELETE BUTTONS */
+.btn-add{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;
+  background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.22);
+  border-radius:8px;color:#fdba74;font-size:.78rem;font-family:var(--font);
+  cursor:pointer;transition:var(--tr)}
+.btn-add:hover{background:rgba(251,146,60,.2);border-color:#fb923c}
+.drag-handle{cursor:grab;color:var(--sub);font-size:1rem;padding:0 3px 0 0;opacity:.4;user-select:none;vertical-align:middle;line-height:1;display:inline-block}
+.drag-handle:hover{opacity:.85;color:var(--green)}
+tr.svy-dragging{opacity:.3;background:rgba(74,222,128,.06)!important}
+tr.svy-drag-over td{box-shadow:inset 0 -2px 0 rgba(74,222,128,.7)}
+#t3-survey-body{counter-reset:survey-item}
+#t3-survey-body tr[data-type="item"]{counter-increment:survey-item}
+.svy-num::before{content:counter(survey-item) ". ";font-size:.78rem;font-weight:700;color:var(--sub);white-space:nowrap;flex-shrink:0;min-width:2em;display:inline-block}
+.btn-del-row{background:none;border:1px solid rgba(239,68,68,.2);color:#f87171;
+  border-radius:6px;cursor:pointer;font-size:.7rem;padding:3px 7px;transition:var(--tr)}
+.btn-del-row:hover{background:rgba(239,68,68,.15)}
+
+/* PROBLEM/SUGGESTION PAIRS */
+.prob-block{background:rgba(255,255,255,.02);border:1px solid rgba(251,146,60,.12);
+  border-radius:12px;padding:14px;margin-bottom:10px;position:relative}
+.prob-num{display:inline-block;background:rgba(251,146,60,.18);color:#fdba74;
+  font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px}
+.prob-label{font-size:.74rem;color:var(--sub);font-weight:600;margin-bottom:4px}
+.prob-del{position:absolute;top:10px;right:10px}
+
+/* BENEFIT ITEMS */
+.benefit-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
+.benefit-num{color:var(--orange);font-weight:700;min-width:1.8em;padding-top:8px;font-size:.8rem}
+
+/* EVAL TABLE */
+.eval-avg-row td{background:rgba(52,211,153,.08);color:#34d399;font-weight:700;border-color:rgba(52,211,153,.2)}
+
+/* FORM ACTIONS */
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;
+  padding:18px 0 8px;border-top:1px solid var(--brdw);margin-top:6px}
+.btn-save{padding:9px 24px;background:linear-gradient(135deg,#ea580c,#7c3aed);color:#fff;
+  border:none;border-radius:10px;font-family:var(--font);font-size:.88rem;font-weight:700;
+  cursor:pointer;transition:var(--tr)}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(234,88,12,.4)}
+.btn-pdf{padding:9px 20px;background:rgba(219,39,119,.12);color:#f472b6;
+  border:1px solid rgba(219,39,119,.25);border-radius:10px;font-family:var(--font);
+  font-size:.86rem;font-weight:700;cursor:pointer;transition:var(--tr)}
+.btn-pdf:hover{background:rgba(219,39,119,.25)}
+.btn-pdf2{padding:9px 20px;background:rgba(6,182,212,.1);color:#22d3ee;
+  border:1px solid rgba(6,182,212,.25);border-radius:10px;font-family:var(--font);
+  font-size:.86rem;font-weight:700;cursor:pointer;transition:var(--tr)}
+.btn-pdf2:hover{background:rgba(6,182,212,.22)}
+.btn-pdf3{padding:9px 20px;background:rgba(34,197,94,.1);color:#4ade80;
+  border:1px solid rgba(34,197,94,.25);border-radius:10px;font-family:var(--font);font-size:.82rem;
+  font-weight:600;cursor:pointer;transition:var(--tr)}
+.btn-pdf3:hover{background:rgba(34,197,94,.22)}
+/* SURVEY TABLE */
+.svy-hdr td{background:rgba(251,146,60,.1);color:#fdba74;font-weight:700;font-size:.82rem}
+.svy-avg{text-align:center;font-weight:700;color:var(--green)}
+
+/* GOOGLE SHEET IMPORT CARD */
+.gsheet-card{border-color:rgba(34,197,94,.28) !important;background:rgba(34,197,94,.05) !important}
+.btn-import{padding:9px 18px;background:rgba(34,197,94,.12);color:#4ade80;
+  border:1px solid rgba(34,197,94,.3);border-radius:8px;font-family:var(--font);font-size:.82rem;
+  font-weight:600;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.btn-import:hover{background:rgba(34,197,94,.24)}
+.btn-import:disabled{opacity:.5;cursor:default}
+
+/* SUMMARY CHIPS */
+.sum-chip{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:600;
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#34d399;margin:4px 4px 4px 0}
+
+/* DIVIDER */
+.sec-div{height:1px;background:rgba(251,146,60,.1);margin:12px 0}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;z-index:9999;padding:11px 20px;
+  border-radius:12px;font-size:.85rem;font-weight:600;opacity:0;transform:translateY(12px);
+  transition:.3s;pointer-events:none;backdrop-filter:blur(20px)}
+.toast.show{opacity:1;transform:none}
+.toast.ok{background:rgba(52,211,153,.2);border:1px solid rgba(52,211,153,.4);color:#6ee7b7}
+.toast.err{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5}
+
+/* USER BADGE */
+.user-badge{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:20px;
+  background:rgba(255,255,255,.05);border:1px solid var(--brdw);font-size:.76rem;color:var(--sub);white-space:nowrap}
+.user-badge .ub-name{color:var(--txt);font-weight:600}
+.ub-role{font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:700}
+.ub-role.admin{background:rgba(204,255,0,.15);color:#CCFF00;border:1px solid rgba(204,255,0,.3)}
+.ub-role.user{background:rgba(34,211,238,.1);color:#22d3ee;border:1px solid rgba(34,211,238,.25)}
+
+@media(max-width:640px){
+  .navbar{padding:10px 14px}.proj-banner,.tab-nav{margin-left:14px;margin-right:14px}
+  .container{padding:14px 14px 48px}.tab-btn{padding:8px 14px;font-size:.78rem}
+}
+</style>
+
+<!-- ══════ AURA LIGHT THEME OVERRIDE ══════ -->
+<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eceff5 !important;--card:rgba(255,255,255,.52) !important;
+  --brd:rgba(200,210,230,.55) !important;--brdw:rgba(255,255,255,.82) !important;
+  --txt:#16181f !important;--sub:#6a6d77 !important;--accent:#5a7bff !important;
+  --orange:#f59e0b !important;--green:#059669 !important;
+}
+body{background:#eceff5 !important;color:#16181f !important;font-family:'Prompt',sans-serif!important}
+body::before,body::after{display:none !important}
+#mouse-nebula{display:none !important}
+
+/* ── AURA Orbs ── */
+@keyframes auSpinAO{to{transform:rotate(360deg)}}
+.au-orb{position:fixed;border-radius:50%;pointer-events:none;z-index:1}
+.au-orb1{width:500px;height:500px;background:conic-gradient(from 0deg,#86c5ff,#c5a0ff,#ff95d0,#95f5d0,#86c5ff);filter:blur(80px) hue-rotate(calc(var(--hue,0)*1deg));opacity:.5;left:calc(6% + var(--mx,.5)*50%);top:calc(-20% + var(--my,.5)*50%);animation:auSpinAO 26s linear infinite}
+.au-orb2{width:360px;height:360px;background:conic-gradient(from 130deg,#95f5d0,#86c5ff,#c5a0ff,#95f5d0);filter:blur(70px) hue-rotate(calc(var(--hue,0)*-.8deg));opacity:.4;left:calc(55% - var(--mx,.5)*50%);top:calc(32% + var(--my,.5)*38%);animation:auSpinAO 38s linear infinite reverse}
+.au-orb3{width:250px;height:250px;background:conic-gradient(from 240deg,#ffd090,#ff95d0,#b9a4ff);filter:blur(58px) hue-rotate(calc(var(--hue,0)*1.6deg));opacity:.38;left:calc(2% + var(--mx,.5)*22%);top:calc(16% + var(--my,.5)*48%);animation:auSpinAO 44s linear infinite}
+#au-cursor{position:fixed;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle at center,rgba(255,255,255,.18),transparent 65%);pointer-events:none;z-index:5;transform:translate(-50%,-50%)}
+
+/* ── Navbar ── */
+.navbar{background:rgba(245,247,252,.52) !important;backdrop-filter:blur(24px) !important;-webkit-backdrop-filter:blur(24px) !important;border-bottom:1px solid rgba(200,210,230,.5) !important}
+.navbar-icon{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;box-shadow:none !important}
+.navbar-info h1{color:#16181f !important;font-size:.9rem !important}
+.navbar-info p{color:#6a6d77 !important}
+.btn-home{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#16181f !important;font-size:.76rem !important;font-weight:600 !important;backdrop-filter:blur(10px) !important;border-radius:20px !important}
+.btn-home:hover{background:rgba(255,255,255,.72) !important;border-color:rgba(200,210,230,.8) !important;color:#16181f !important}
+
+/* ── Project banner ── */
+.proj-banner{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;backdrop-filter:blur(16px) !important}
+.proj-banner-name{color:#16181f !important}
+.proj-banner-label{color:#6a6d77 !important}
+
+/* ── Tabs ── */
+.tab-nav{background:rgba(255,255,255,.38) !important;border-bottom:1px solid rgba(200,210,230,.45) !important}
+.tab-btn{color:#6a6d77 !important}
+.tab-btn.active{color:#5a7bff !important;border-bottom-color:#5a7bff !important}
+.tab-btn:hover{color:#16181f !important}
+
+/* ── Form cards ── */
+.fsec{background:rgba(255,255,255,.46) !important;border:1px solid rgba(255,255,255,.82) !important;backdrop-filter:blur(20px) !important;-webkit-backdrop-filter:blur(20px) !important;box-shadow:0 4px 18px -6px rgba(0,0,0,.09) !important}
+.fsec:hover{border-color:rgba(90,123,255,.2) !important}
+.fsec-title{color:#16181f !important}
+.fsec-title::before{background:linear-gradient(180deg,#5a7bff,#a855f7) !important}
+.sec-num{background:rgba(90,123,255,.12) !important;color:#5a7bff !important}
+
+/* ── Inputs ── */
+.form-group label{color:#6a6d77 !important}
+.finput{background:rgba(255,255,255,.72) !important;border:1px solid rgba(200,210,230,.6) !important;color:#16181f !important}
+.finput:focus{border-color:rgba(90,123,255,.5) !important;background:rgba(255,255,255,.9) !important;box-shadow:0 0 0 3px rgba(90,123,255,.1) !important}
+.finput::placeholder{color:rgba(74,77,87,.35) !important}
+select.finput option{background:#fff !important;color:#16181f !important}
+select.finput{appearance:none !important;-webkit-appearance:none !important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a6d77' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 10px center !important;background-size:12px 8px !important;padding-right:32px !important}
+
+/* ── Data tables ── */
+.dtable th{background:rgba(90,123,255,.08) !important;color:#5a7bff !important;border-color:rgba(90,123,255,.18) !important}
+.dtable td{border-color:rgba(200,210,230,.4) !important;color:#16181f !important}
+.dtable tbody tr:nth-child(even) td{background:rgba(90,123,255,.03) !important}
+.dtable tfoot td{background:rgba(90,123,255,.08) !important;color:#5a7bff !important;border-color:rgba(90,123,255,.18) !important}
+.td-num{color:#6a6d77 !important}
+
+/* ── Buttons ── */
+.btn-add{background:rgba(8,145,178,.08) !important;border:1px solid rgba(8,145,178,.22) !important;color:#0891b2 !important}
+.btn-add:hover{background:rgba(8,145,178,.18) !important}
+.btn-del-row{background:rgba(220,38,38,.07) !important;border:1px solid rgba(220,38,38,.2) !important;color:#dc2626 !important}
+.btn-del-row:hover{background:rgba(220,38,38,.14) !important}
+.btn-save{background:linear-gradient(135deg,#5a7bff,#7c3aed) !important;box-shadow:0 4px 20px rgba(90,123,255,.28) !important}
+.btn-save:hover{box-shadow:0 8px 30px rgba(90,123,255,.4) !important}
+.btn-pdf{background:rgba(219,39,119,.08) !important;color:#db2777 !important;border:1px solid rgba(219,39,119,.2) !important}
+.btn-pdf:hover{background:rgba(219,39,119,.16) !important}
+.btn-pdf2{background:rgba(8,145,178,.08) !important;color:#0891b2 !important;border:1px solid rgba(8,145,178,.22) !important}
+.btn-pdf2:hover{background:rgba(8,145,178,.16) !important}
+.btn-pdf3{background:rgba(34,197,94,.07) !important;color:#16a34a !important;border:1px solid rgba(34,197,94,.22) !important}
+.btn-pdf3:hover{background:rgba(34,197,94,.15) !important}
+.svy-hdr td{background:rgba(90,123,255,.06) !important;color:#5a7bff !important;font-weight:700}
+.svy-avg{text-align:center !important;font-weight:700 !important;color:#16a34a !important}
+.gsheet-card{border-color:rgba(22,163,74,.22) !important;background:rgba(22,163,74,.04) !important}
+.btn-import{background:rgba(22,163,74,.08) !important;color:#16a34a !important;border:1px solid rgba(22,163,74,.25) !important}
+.btn-import:hover{background:rgba(22,163,74,.18) !important}
+
+/* ── Problem blocks ── */
+.prob-block{background:rgba(90,123,255,.04) !important;border:1px solid rgba(90,123,255,.18) !important}
+.prob-num{background:rgba(90,123,255,.1) !important;color:#5a7bff !important}
+.prob-label{color:#6a6d77 !important}
+.benefit-num{color:#f59e0b !important}
+
+/* ── Misc ── */
+.eval-avg-row td{background:rgba(5,150,105,.08) !important;color:#059669 !important;border-color:rgba(5,150,105,.2) !important}
+.sec-div{background:rgba(200,210,230,.4) !important}
+.sum-chip{background:rgba(5,150,105,.08) !important;border:1px solid rgba(5,150,105,.22) !important;color:#059669 !important}
+.form-actions{border-top:1px solid rgba(200,210,230,.35) !important}
+
+/* ── Toast ── */
+.toast.ok{background:rgba(5,150,105,.12) !important;border-color:rgba(5,150,105,.35) !important;color:#059669 !important}
+.toast.err{background:rgba(220,38,38,.1) !important;border-color:rgba(220,38,38,.3) !important;color:#dc2626 !important}
+
+/* ── User badge ── */
+.user-badge{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#6a6d77 !important}
+.ub-name{color:#16181f !important}
+.ub-role.admin{background:rgba(90,123,255,.12) !important;color:#5a7bff !important;border:1px solid rgba(90,123,255,.25) !important}
+.ub-role.user{background:rgba(8,145,178,.1) !important;color:#0891b2 !important;border:1px solid rgba(8,145,178,.25) !important}
+</style>
+</head>
+<body>
+<!-- AURA Orbs -->
+<div class="au-orb au-orb1" aria-hidden="true"></div>
+<div class="au-orb au-orb2" aria-hidden="true"></div>
+<div class="au-orb au-orb3" aria-hidden="true"></div>
+<div id="au-cursor" aria-hidden="true"></div>
+<div id="mouse-nebula" style="display:none"></div>
+
+<nav class="navbar">
+  <div class="navbar-icon">📊</div>
+  <div class="navbar-info">
+    <h1>รายงานผลการดำเนินงานโครงการฯ</h1>
+    <p id="nav-proj-name">กำลังโหลด...</p>
+  </div>
+  <div id="user-badge-container"></div>
+  <button class="btn-home" onclick="goBack()">← ย้อนกลับ</button>
+</nav>
+
+<div class="proj-banner" id="proj-banner">
+  <div class="proj-banner-label">โครงการ</div>
+  <div class="proj-banner-name" id="banner-proj-name">กำลังโหลด...</div>
+</div>
+
+<!-- TAB NAV -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">📋 บทสรุปผู้บริหาร</button>
+  <button class="tab-btn" onclick="switchTab(1)">📄 แบบรายงานผลการดำเนินงาน</button>
+  <button class="tab-btn" onclick="switchTab(2)">📊 แบบสรุปผลการประเมินโครงการ</button>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════
+     TAB 1 : บทสรุปผู้บริหาร
+══════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-0">
+
+  <!-- Header -->
+  <div class="fsec">
+    <div class="fsec-title">บทสรุปผู้บริหาร</div>
+    <div class="form-row">
+      <div style="display:flex;align-items:flex-start;gap:0;width:100%">
+        <label style="white-space:nowrap;font-size:.78rem;font-weight:600;color:var(--sub);padding-top:9px;flex-shrink:0;margin-right:2em">ชื่อโครงการ</label>
+        <textarea class="finput" id="t1-projName" placeholder="ชื่อโครงการบริการวิชาการ" oninput="autoResize(this);syncProjName()" style="min-height:36px;resize:none;flex:1;text-align:left"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ปีงบประมาณ พ.ศ.</label>
+        <input class="finput" id="t1-year" placeholder="เช่น 2569">
+      </div>
+      <div class="form-group"></div>
+    </div>
+  </div>
+
+  <!-- ข้อ 1 กิจกรรม -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">1</span> ข้อมูลกิจกรรม</div>
+    <div class="dtable-wrap">
+      <table class="dtable" id="t1-act-table" style="min-width:860px;table-layout:fixed">
+        <colgroup>
+          <col style="width:36px"><col style="width:175px"><col style="width:130px">
+          <col style="width:220px"><col style="width:150px"><col style="width:155px"><col style="width:38px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ช่วงวันที่<br><span style="font-weight:400;font-size:.75em">(ตั้งแต่ – ถึง)</span></th>
+            <th>สถานที่</th>
+            <th>กิจกรรมที่ดำเนินงาน</th>
+            <th>กลุ่มเป้าหมาย</th>
+            <th>ผู้รับผิดชอบ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="t1-act-body"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addActRow('','','','','',projectCoordinators[0]||'')">＋ เพิ่มแถว</button>
+  </div>
+
+  <!-- ข้อ 2 งบประมาณ -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">2</span> งบประมาณ</div>
+    <div class="dtable-wrap">
+      <table class="dtable" id="t1-budget-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>แหล่งงบประมาณ</th>
+            <th>วงเงินที่ได้รับจัดสรร (บาท)</th>
+            <th>วงเงินที่ใช้จ่ายจริง (บาท)</th>
+            <th>คิดเป็นร้อยละ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="t1-budget-body"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="text-align:center">รวม</td>
+            <td style="text-align:right" id="t1-budget-alloc-total">0.00</td>
+            <td style="text-align:right" id="t1-budget-used-total">0.00</td>
+            <td style="text-align:center" id="t1-budget-pct-total">0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addBudgetRow()">＋ เพิ่มแถว</button>
+  </div>
+
+  <!-- ข้อ 3 ผลสำเร็จตามตัวชี้วัด -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">3</span> ผลสำเร็จของการดำเนินงานตามตัวชี้วัด</div>
+
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">ตัวชี้วัดเชิงปริมาณ</div>
+    <div class="dtable-wrap">
+      <table class="dtable">
+        <thead>
+          <tr><th>#</th><th>ตัวชี้วัด</th><th>ผลของการดำเนินงาน</th><th class="td-achieved">บรรลุ/ไม่บรรลุ</th><th></th></tr>
+        </thead>
+        <tbody id="t1-kpi-qty-body"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addKpiRow('t1-kpi-qty-body')" style="margin-bottom:14px">＋ เพิ่มตัวชี้วัดเชิงปริมาณ</button>
+
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">ตัวชี้วัดเชิงคุณภาพ</div>
+    <div class="dtable-wrap">
+      <table class="dtable">
+        <thead>
+          <tr><th>#</th><th>ตัวชี้วัด</th><th>ผลของการดำเนินงาน</th><th class="td-achieved">บรรลุ/ไม่บรรลุ</th><th></th></tr>
+        </thead>
+        <tbody id="t1-kpi-ql-body"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addKpiRow('t1-kpi-ql-body')">＋ เพิ่มตัวชี้วัดเชิงคุณภาพ</button>
+  </div>
+
+  <!-- ข้อ 4 ปัญหาและข้อเสนอแนะ -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">4</span> ปัญหา อุปสรรค และข้อเสนอแนะ</div>
+    <div id="t1-prob-container"></div>
+    <button class="btn-add" onclick="addProbRow('t1-prob-container')">＋ เพิ่มปัญหา/ข้อเสนอแนะ</button>
+  </div>
+
+  <!-- ลายมือชื่อ -->
+  <div class="fsec">
+    <div class="fsec-title">ลายมือชื่อผู้รับผิดชอบโครงการ</div>
+    <div class="form-row">
+      <div class="form-group w2">
+        <label>ชื่อ-สกุล ผู้รับผิดชอบ</label>
+        <textarea class="finput" id="t1-signerName" placeholder="ชื่อผู้รับผิดชอบโครงการ" oninput="autoResize(this)" style="min-height:36px;resize:none"></textarea>
+      </div>
+      <div class="form-group">
+        <label>วันที่ลงนาม</label>
+        <input class="finput" type="date" id="t1-signDate">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-pdf" onclick="exportPDF1()">🖨️ Export PDF บทสรุปผู้บริหาร</button>
+    <button class="btn-save" onclick="saveForm()">💾 บันทึก</button>
+  </div>
+</div><!-- /tab-0 -->
+
+
+<!-- ══════════════════════════════════════
+     TAB 2 : แบบรายงานผลการดำเนินงาน
+══════════════════════════════════════ -->
+<div class="tab-panel" id="tab-1">
+
+  <!-- ข้อ 1-7 -->
+  <div class="fsec">
+    <div class="fsec-title">ข้อมูลโครงการ</div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>1. ชื่อโครงการ</label>
+        <textarea class="finput" id="t2-projName" placeholder="ชื่อโครงการ" oninput="autoResize(this);syncProjName()" style="min-height:36px;resize:none"></textarea>
+      </div>
+    </div>
+
+    <div class="sec-div"></div>
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">2. ตอบสนองต่อยุทธศาสตร์ คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>
+    <div id="t2-strategy-container"></div>
+    <button class="btn-add" onclick="addStrategyRow()" style="margin-bottom:12px">＋ เพิ่มยุทธศาสตร์</button>
+
+    <div class="sec-div"></div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>3. หน่วยงานที่รับผิดชอบ</label>
+        <textarea class="finput" id="t2-dept" placeholder="ชื่อหน่วยงาน" oninput="autoResize(this)" style="min-height:36px;resize:none"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>4. ผู้รับผิดชอบโครงการ</label>
+        <textarea class="finput" id="t2-responsible" placeholder="ชื่อ-ตำแหน่ง ผู้รับผิดชอบ" oninput="autoResize(this)" style="min-height:36px;resize:none"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ระยะเวลา -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">5</span> ระยะเวลาการดำเนินโครงการ</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ระยะเวลาเตรียมงาน (เริ่ม)</label>
+        <input class="finput" type="date" id="t2-prepStart">
+      </div>
+      <div class="form-group">
+        <label>ระยะเวลาเตรียมงาน (สิ้นสุด)</label>
+        <input class="finput" type="date" id="t2-prepEnd">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ระยะเวลาดำเนินงานจริง (เริ่ม)</label>
+        <input class="finput" type="date" id="t2-workStart">
+      </div>
+      <div class="form-group">
+        <label>ระยะเวลาดำเนินงานจริง (สิ้นสุด)</label>
+        <input class="finput" type="date" id="t2-workEnd">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ระยะเวลาสรุปงาน</label>
+        <input class="finput" type="date" id="t2-summaryDate">
+      </div>
+      <div class="form-group"></div>
+    </div>
+  </div>
+
+  <!-- ข้อ 6-7 -->
+  <div class="fsec">
+    <div class="fsec-title">สถานที่และผู้เข้าร่วม</div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>6. สถานที่จัดโครงการ</label>
+        <textarea class="finput" id="t2-location" placeholder="สถานที่" oninput="autoResize(this)" style="min-height:36px;resize:none"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>7. ผู้เข้าร่วมโครงการ</label>
+        <textarea class="finput" id="t2-participants" placeholder="กลุ่มผู้เข้าร่วม" oninput="autoResize(this)" style="min-height:36px;resize:none"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ข้อ 8 งบประมาณ -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">8</span> งบประมาณที่ใช้ในการดำเนินโครงการ</div>
+
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">สรุปรายเดือน</div>
+    <div class="dtable-wrap">
+      <table class="dtable">
+        <thead><tr><th>#</th><th>เดือน/ปี</th><th>จำนวนชั่วโมงรวม</th><th>ค่าตอบแทน (บาท)</th><th></th></tr></thead>
+        <tbody id="t2-bmonth-body"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="text-align:center">รวม</td>
+            <td style="text-align:right" id="t2-bmonth-hrs-total">0</td>
+            <td style="text-align:right" id="t2-bmonth-amt-total">0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addBmonthRow()" style="margin-bottom:14px">＋ เพิ่มเดือน</button>
+
+    <!-- สรุปยอด -->
+    <div class="sec-div"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ค่าตอบแทนรวม (บาท)</label>
+        <input class="finput" type="number" id="t2-totalComp" placeholder="0.00" min="0" step="0.01" oninput="calcBudget2()">
+      </div>
+      <div class="form-group">
+        <label>อัตราค่าธรรมเนียม (%)</label>
+        <input class="finput" type="number" id="t2-feeRate" value="12" min="0" step="0.01" oninput="calcBudget2()">
+      </div>
+      <div class="form-group">
+        <label>ค่าธรรมเนียม (บาท)</label>
+        <input class="finput" id="t2-feeAmt" readonly placeholder="คำนวณอัตโนมัติ" style="color:#fdba74">
+      </div>
+      <div class="form-group">
+        <label>ยอดรวมทั้งหมด (บาท)</label>
+        <input class="finput" id="t2-grandTotal" readonly placeholder="คำนวณอัตโนมัติ" style="color:#34d399">
+      </div>
+    </div>
+
+    <div class="sec-div"></div>
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">รายละเอียดบุคคล</div>
+    <div class="dtable-wrap">
+      <table class="dtable">
+        <thead><tr><th>#</th><th>เดือน</th><th>ชื่อ</th><th>จำนวนคาบ</th><th>จำนวนชั่วโมง</th><th>จำนวนเงิน (บาท)</th><th></th></tr></thead>
+        <tbody id="t2-bperson-body"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addBpersonRow()">＋ เพิ่มรายการ</button>
+  </div>
+
+  <!-- ข้อ 9 ตัวชี้วัด -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">9</span> ผลสำเร็จของการดำเนินงานตามตัวชี้วัด</div>
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">ตัวชี้วัดเชิงปริมาณ</div>
+    <div class="dtable-wrap">
+      <table class="dtable">
+        <thead><tr><th>#</th><th>ตัวชี้วัด</th><th>ผลของการดำเนินงาน</th><th class="td-achieved">บรรลุ/ไม่บรรลุ</th><th></th></tr></thead>
+        <tbody id="t2-kpi-qty-body"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addKpiRow('t2-kpi-qty-body')" style="margin-bottom:14px">＋ เพิ่มตัวชี้วัดเชิงปริมาณ</button>
+
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">ตัวชี้วัดเชิงคุณภาพ</div>
+    <div class="dtable-wrap">
+      <table class="dtable">
+        <thead><tr><th>#</th><th>ตัวชี้วัด</th><th>ผลของการดำเนินงาน</th><th class="td-achieved">บรรลุ/ไม่บรรลุ</th><th></th></tr></thead>
+        <tbody id="t2-kpi-ql-body"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" onclick="addKpiRow('t2-kpi-ql-body')">＋ เพิ่มตัวชี้วัดเชิงคุณภาพ</button>
+  </div>
+
+  <!-- ข้อ 10 ประโยชน์ -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">10</span> ประโยชน์ที่ได้รับจากการจัดโครงการฯ</div>
+    <div id="t2-benefit-container"></div>
+    <button class="btn-add" onclick="addBenefitRow()">＋ เพิ่มประโยชน์</button>
+  </div>
+
+  <!-- ข้อ 11 ปัญหา -->
+  <div class="fsec">
+    <div class="fsec-title"><span class="sec-num">11</span> ปัญหา อุปสรรค และข้อเสนอแนะ</div>
+    <div id="t2-prob-container"></div>
+    <button class="btn-add" onclick="addProbRow('t2-prob-container')">＋ เพิ่มปัญหา/ข้อเสนอแนะ</button>
+  </div>
+
+
+  <div class="form-actions">
+    <button class="btn-pdf2" onclick="exportPDF2()">🖨️ Export PDF แบบรายงานฯ</button>
+    <button class="btn-save" onclick="saveForm()">💾 บันทึก</button>
+  </div>
+</div><!-- /tab-1 -->
+
+<!-- ══════════════════════════════════════
+     TAB 3 : แบบสรุปผลการประเมินโครงการ
+══════════════════════════════════════ -->
+<div class="tab-panel" id="tab-2">
+
+  <!-- GOOGLE SHEET IMPORT CARD -->
+  <div class="fsec gsheet-card">
+    <div class="fsec-title" style="color:#22c55e">🔗 นำเข้าข้อมูลจาก Google Form</div>
+    <div style="font-size:.78rem;color:var(--sub);margin-bottom:12px;line-height:1.65">
+      วางลิงก์ Google Sheet ที่เชื่อมต่อกับ Google Form แล้วกด "นำเข้าข้อมูล" ระบบจะดึงคำตอบมาคำนวณสถิติและกรอกทุก field ให้อัตโนมัติ
+      <br><span style="color:var(--orange);font-weight:600">※ ต้องตั้ง Google Sheet เป็น "Anyone with the link can view" และ Publish to web (File → Share → Publish to web → CSV) ก่อน</span>
+    </div>
+    <div id="gsheet-url-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="finput gsheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/…/edit  หรือ URL จาก Publish to web" style="flex:1;min-width:200px">
+        <button onclick="addSheetUrlRow()" title="เพิ่ม Sheet" style="padding:8px 14px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:8px;font-size:.84rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:var(--tr)">➕</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn-import" id="btn-import-gsheet" onclick="importFromGoogleSheet()">🔗 นำเข้าข้อมูล</button>
+      <span style="font-size:.72rem;color:var(--sub)">รองรับหลาย Sheet — กด ➕ เพื่อเพิ่ม Sheet จากโครงการอื่น</span>
+    </div>
+    <div id="gsheet-status" style="font-size:.76rem;margin-top:7px;min-height:18px"></div>
+    <div style="margin-top:10px;font-size:.72rem;color:var(--sub);line-height:1.6">
+      <strong>รูปแบบ Google Form ที่รองรับ:</strong>
+      ตั้งคำถามเพศ (ตัวเลือก ชาย/หญิง) · ความพึงพอใจแต่ละข้อ (ระดับคะแนน 1–5) · ความสนใจครั้งถัดไป (ตัวเลือก "สนใจเข้าร่วม/ไม่แน่ใจ/ไม่เข้าร่วม") · ข้อเสนอแนะ (ย่อหน้า) ·
+      <a id="gform-template-link" href="#" onclick="showGFormGuide();return false;" style="color:#22c55e;text-decoration:none">ดูคู่มือการสร้าง Google Form →</a>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <button class="btn-import" onclick="syncTab3FromProject(true)" title="ดึงข้อมูลจาก Tab 1/2">🔗 เชื่อมข้อมูลจากฟอร์ม</button>
+      <span style="font-size:.72rem;color:var(--sub)">ดึงชื่อโครงการ / วันที่ / สถานที่ จากฟอร์ม Tab 1–2</span>
+    </div>
+
+    <!-- ชื่อโครงการ -->
+    <div class="form-row">
+      <div style="display:flex;align-items:flex-start;gap:0;width:100%">
+        <label style="white-space:nowrap;font-size:.78rem;font-weight:600;color:var(--sub);padding-top:9px;flex-shrink:0;margin-right:2em">ชื่อโครงการ</label>
+        <textarea class="finput" id="t3-projName" placeholder="ชื่อโครงการ" oninput="autoResize(this)" style="min-height:36px;resize:none;flex:1;text-align:left"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="flabel">วันที่จัดโครงการ (เริ่ม)</label><input class="finput" type="date" id="t3-dateStart"></div>
+      <div class="form-field"><label class="flabel">วันที่สิ้นสุด</label><input class="finput" type="date" id="t3-dateEnd"></div>
+    </div>
+    <div class="form-group">
+      <label class="flabel">สถานที่</label>
+      <textarea class="finput" id="t3-location" placeholder="สถานที่จัดโครงการ" oninput="autoResize(this)" style="min-height:36px;resize:none"></textarea>
+    </div>
+
+    <div class="sec-div"></div>
+    <!-- บทนำ -->
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">บทนำ / สรุปข้อมูลผู้ตอบแบบสอบถาม</div>
+    <div class="form-row">
+      <div class="form-field"><label class="flabel">จำนวนผู้เข้าร่วมโครงการ (คน)</label><input class="finput" type="number" id="t3-totalParticipants" placeholder="0" oninput="updateSurveyStats()"></div>
+      <div class="form-field"><label class="flabel">จำนวนผู้ตอบแบบสอบถาม (คน)</label><input class="finput" type="number" id="t3-totalRespondents" placeholder="0" oninput="updateSurveyStats()"></div>
+      <div class="form-field"><label class="flabel">คิดเป็นร้อยละ</label><input class="finput" id="t3-responsePct" readonly style="opacity:.7"></div>
+    </div>
+
+    <div class="sec-div"></div>
+    <!-- ส่วนที่ 1 เพศ -->
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">ส่วนที่ 1 ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม</div>
+    <div style="font-size:.78rem;color:var(--sub);margin-bottom:6px">เพศ</div>
+    <div class="form-row">
+      <div class="form-field"><label class="flabel">ชาย (จำนวน)</label><input class="finput" type="number" id="t3-maleCount" placeholder="0" oninput="updateGenderPct()"></div>
+      <div class="form-field"><label class="flabel">ชาย (ร้อยละ)</label><input class="finput" id="t3-malePct" readonly style="opacity:.7"></div>
+      <div class="form-field"><label class="flabel">หญิง (จำนวน)</label><input class="finput" type="number" id="t3-femaleCount" placeholder="0" oninput="updateGenderPct()"></div>
+      <div class="form-field"><label class="flabel">หญิง (ร้อยละ)</label><input class="finput" id="t3-femalePct" readonly style="opacity:.7"></div>
+    </div>
+
+    <div class="sec-div"></div>
+    <!-- ส่วนที่ 2 ตารางความพึงพอใจ -->
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">ส่วนที่ 2 ความคิดเห็นของผู้เข้าร่วมโครงการ</div>
+    <div style="font-size:.72rem;color:var(--sub);margin-bottom:8px">เกณฑ์: น้อยที่สุด 1.00–1.80 &nbsp;|&nbsp; น้อย 1.81–2.60 &nbsp;|&nbsp; ปานกลาง 2.61–3.40 &nbsp;|&nbsp; มาก 3.41–4.20 &nbsp;|&nbsp; มากที่สุด 4.21–5.00</div>
+    <div class="dtable-wrap">
+      <table class="dtable" id="t3-survey-table" style="min-width:640px">
+        <thead><tr>
+          <th style="width:45%;text-align:left">รายละเอียด</th>
+          <th style="width:7%">1</th><th style="width:7%">2</th><th style="width:7%">3</th><th style="width:7%">4</th><th style="width:7%">5</th>
+          <th style="width:10%">ค่าเฉลี่ย</th>
+          <th style="width:36px"></th>
+        </tr></thead>
+        <tbody id="t3-survey-body"></tbody>
+        <tfoot><tr class="total-row">
+          <td colspan="6" style="text-align:right;font-weight:700">ความพึงพอใจโดยเฉลี่ยรวม</td>
+          <td class="svy-avg" id="t3-overall-avg">-</td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn-add" onclick="addSurveyHeader()">＋ เพิ่มหัวข้อหมวด</button>
+      <button class="btn-add" onclick="addSurveyItem()">＋ เพิ่มรายการ</button>
+      <button class="btn-add" onclick="resetSurveyToDefault()" style="margin-left:auto;color:#f97316;border-color:rgba(249,115,22,.35)">🔄 รีเซ็ตค่าเริ่มต้น</button>
+    </div>
+
+    <div class="sec-div"></div>
+    <!-- ความสนใจครั้งถัดไป -->
+    <div style="font-size:.8rem;color:var(--sub);font-weight:600;margin-bottom:8px">หากมีโครงการในครั้งถัดไป ท่านสนใจจะเข้าร่วมอีกหรือไม่</div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="flabel">สนใจเข้าร่วม (จำนวน)</label>
+        <input class="finput" type="number" id="t3-nextYes" placeholder="0" oninput="updateNextPct()">
+        <div id="t3-nextYesPct" style="font-size:.72rem;color:var(--green);margin-top:3px"></div>
+      </div>
+      <div class="form-field">
+        <label class="flabel">ไม่แน่ใจ (จำนวน)</label>
+        <input class="finput" type="number" id="t3-nextMaybe" placeholder="0" oninput="updateNextPct()">
+        <div id="t3-nextMaybePct" style="font-size:.72rem;color:var(--orange);margin-top:3px"></div>
+      </div>
+      <div class="form-field">
+        <label class="flabel">ไม่เข้าร่วม (จำนวน)</label>
+        <input class="finput" type="number" id="t3-nextNo" placeholder="0" oninput="updateNextPct()">
+        <div id="t3-nextNoPct" style="font-size:.72rem;color:#f87171;margin-top:3px"></div>
+      </div>
+    </div>
+
+    <div class="sec-div"></div>
+    <!-- ข้อเสนอแนะ -->
+    <div class="form-group">
+      <label class="flabel">ข้อคิดเห็น หรือข้อเสนอแนะ เพื่อใช้ในการพัฒนาการจัดโครงการในครั้งถัดไป</label>
+      <textarea class="finput" id="t3-suggestions" placeholder="ระบุข้อคิดเห็น / ข้อเสนอแนะ" rows="4" oninput="autoResize(this)" style="min-height:80px;resize:vertical"></textarea>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-pdf3" onclick="exportPDF3()">🖨️ Export PDF แบบสรุปผลการประเมินฯ</button>
+    <button class="btn-save" onclick="saveForm()">💾 บันทึก</button>
+  </div>
+</div><!-- /tab-2 -->
+
+</div><!-- /container -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+const currentUser = getUser();
+let projectId = null, projectName = '', db = null, projectCoordinators = [], projectKpiQty = [], projectKpiQual = [],
+    projectDept = '', projectLocation = '', projectStartDate = '', projectEndDate = '', projectPlanYear = '',
+    projectObjectives = [], projectResults = [], projectBudget = [], projectTargets = [], projectBudgetSource = '',
+    projectStrategies = [];
+const LS_KEY = () => `pharma_result_${projectId}`;
+const FB_PATH = () => {
+  const k = typeof emailToFbKey==='function'?emailToFbKey(currentUser.email):currentUser.email.replace(/\./g,'_');
+  return `pharma-form/${k}/projectResults/${projectId}`;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(location.search);
+  projectId = p.get('id');
+  if (!projectId) { alert('ไม่พบ ID โครงการ'); goBack(); return; }
+  if (typeof renderUserBadge==='function') renderUserBadge('user-badge-container');
+  loadProjectName();
+  if (typeof initFirebase==='function') db = initFirebase();
+  loadForm();
+  document.addEventListener('mousemove', e => {
+    const n = document.getElementById('mouse-nebula');
+    if(n) n.style.background = `radial-gradient(ellipse 40% 35% at ${e.clientX}px ${e.clientY}px,rgba(251,146,60,.12) 0%,transparent 70%)`;
+  });
+});
+
+const FACULTY_STRAT_MAP = [
+  {key:'buu1', text:'ยุทธศาสตร์ 1 การพัฒนาคนคุณภาพ'},
+  {key:'buu2', text:'ยุทธศาสตร์ 2 การพัฒนาความรู้ผ่านการวิจัยและการสร้างนวัตกรรม เพื่อสร้างโอกาสใหม่ และความพร้อมของประเทศ'},
+  {key:'buu3', text:'ยุทธศาสตร์ 3 การพัฒนาสังคมอย่างยั่งยืน'},
+  {key:'buu4', text:'ยุทธศาสตร์ 4 การเพิ่มขีดความสามารถองค์กรผ่านการใช้ทรัพยากรเชิงกลยุทธ์'}
+];
+function buildProjectStrategies(pr){
+  projectStrategies=FACULTY_STRAT_MAP.filter(s=>pr[s.key]).map(s=>s.text);
+}
+
+function loadProjectName() {
+  // 1) ค้นหาจาก localStorage ก่อน
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('pharma_projects_')){
+      try{
+        const arr=JSON.parse(localStorage.getItem(k)||'[]');
+        const pr=arr.find(x=>x.id===projectId);
+        if(pr){
+          projectName=pr.projectName||pr.name||projectId;
+          projectCoordinators=pr.coordinators||[];
+          projectKpiQty=pr.kpiQty&&pr.kpiQty.length?pr.kpiQty:['จำนวนผู้เข้าร่วมโครงการไม่น้อยกว่า ร้อยละ 80'];
+          projectKpiQual=pr.kpiQual&&pr.kpiQual.length?pr.kpiQual:['ค่าเฉลี่ยความพึงพอใจของผู้เข้าร่วมโครงการ ไม่น้อยกว่า 3.51'];
+          projectDept=pr.dept||'';
+          projectLocation=pr.location||'';
+          projectStartDate=pr.startDate||'';
+          projectEndDate=pr.endDate||'';
+          const py=String(pr.planYear||'');projectPlanYear=py&&py.length<=2?'25'+py:py;
+          projectObjectives=pr.objectives||[];
+          projectResults=pr.results||[];
+          projectBudget=pr.budget||[];
+          projectTargets=pr.targets||[];
+          projectBudgetSource=pr.budgetSource||'';
+          buildProjectStrategies(pr);
+          break;
+        }
+      }catch{}
+    }
+  }
+  applyProjectName();
+
+  // 2) ถ้ายังหาไม่เจอ ลองดึงจาก Firebase
+  if(projectName===projectId && typeof initFirebase==='function'){
+    const fbDb=initFirebase();
+    if(fbDb){
+      fbDb.ref('pharma-form').once('value').then(snap=>{
+        if(!snap.exists())return;
+        snap.forEach(userSnap=>{
+          const projs=userSnap.child('projects').val();
+          if(Array.isArray(projs)){
+            const pr=projs.find(x=>x.id===projectId);
+            if(pr&&(pr.projectName||pr.name)){
+              projectName=pr.projectName||pr.name;
+              projectCoordinators=pr.coordinators||[];
+              projectKpiQty=pr.kpiQty&&pr.kpiQty.length?pr.kpiQty:['จำนวนผู้เข้าร่วมโครงการไม่น้อยกว่า ร้อยละ 80'];
+              projectKpiQual=pr.kpiQual&&pr.kpiQual.length?pr.kpiQual:['ค่าเฉลี่ยความพึงพอใจของผู้เข้าร่วมโครงการ ไม่น้อยกว่า 3.51'];
+              projectDept=pr.dept||'';projectLocation=pr.location||'';projectStartDate=pr.startDate||'';projectEndDate=pr.endDate||'';
+              const py2=String(pr.planYear||'');projectPlanYear=py2&&py2.length<=2?'25'+py2:py2;
+              projectObjectives=pr.objectives||[];projectResults=pr.results||[];projectBudget=pr.budget||[];projectTargets=pr.targets||[];projectBudgetSource=pr.budgetSource||'';
+              buildProjectStrategies(pr);
+              applyProjectName();
+            }
+          }
+        });
+      }).catch(()=>{});
+    }
+  }
+}
+function applyProjectName(){
+  if(!projectName) projectName=projectId;
+  document.getElementById('banner-proj-name').textContent=projectName;
+  document.getElementById('nav-proj-name').textContent=projectName;
+  // ถ้าช่อง projName ยังว่างอยู่ ให้เติมชื่อโครงการจากการ์ดลงไปเลย
+  if(!document.getElementById('t1-projName').value) sv('t1-projName',projectName);
+  if(!document.getElementById('t2-projName').value) sv('t2-projName',projectName);
+}
+
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  if(idx===2) syncTab3FromProject(false);
+}
+function syncTab3FromProject(force){
+  const name=v('t1-projName')||v('t2-projName')||projectName;
+  const ds=v('t2-workStart')||projectStartDate;
+  const de=v('t2-workEnd')||projectEndDate;
+  const loc=v('t2-location')||projectLocation;
+  if(force||!v('t3-projName'))sv('t3-projName',name);
+  if(force||!v('t3-dateStart'))sv('t3-dateStart',ds);
+  if(force||!v('t3-dateEnd'))sv('t3-dateEnd',de);
+  if(force||!v('t3-location'))sv('t3-location',loc);
+  if(force)toast('เชื่อมข้อมูลจากฟอร์มแล้ว','ok');
+}
+
+function goBack(){history.length>1?history.back():location.href='academic-form-system.html';}
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.className='toast',2600);
+}
+function v(id){return(document.getElementById(id)||{}).value||'';}
+function sv(id,val){const el=document.getElementById(id);if(el){el.value=val;if(el.tagName==='TEXTAREA')autoResize(el);}}
+function autoResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+function syncProjName(){
+  const a=v('t1-projName'),b=v('t2-projName');
+  if(document.activeElement.id==='t1-projName'&&b!==a) sv('t2-projName',a);
+  if(document.activeElement.id==='t2-projName'&&a!==b) sv('t1-projName',b);
+}
+function fmt(n){return(parseFloat(n)||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtDate(s){
+  if(!s)return'-';
+  const [y,m,d]=s.split('-');
+  const mn=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  return `${parseInt(d)} ${mn[parseInt(m)]} พ.ศ. ${parseInt(y)+543}`;
+}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — ACT (Tab1)
+// ══════════════════════════════════════════
+let actN=0;
+function addActRow(dateFrom='',dateTo='',loc='',act='',target='',resp='',_date='',_time=''){
+  // backward compat: ถ้าส่ง date/time เก่ามา ให้ใช้เป็น dateFrom
+  if(!dateFrom&&_date) dateFrom=_date;
+  actN++;const n=actN;
+  const tr=document.createElement('tr');
+  tr.id=`act-row-${n}`;
+  tr.innerHTML=`
+    <td class="td-num">${n}</td>
+    <td style="min-width:160px">
+      <div style="font-size:.7rem;color:var(--sub);margin-bottom:2px">ตั้งแต่</div>
+      <input class="finput" type="date" id="act-dateFrom-${n}" value="${esc(dateFrom)}">
+      <div style="font-size:.7rem;color:var(--sub);margin:4px 0 2px">ถึง</div>
+      <input class="finput" type="date" id="act-dateTo-${n}" value="${esc(dateTo)}">
+    </td>
+    <td><textarea class="finput" id="act-loc-${n}" oninput="autoResize(this)" style="min-height:40px">${esc(loc)}</textarea></td>
+    <td><textarea class="finput" id="act-act-${n}" oninput="autoResize(this)" style="min-height:40px">${esc(act)}</textarea></td>
+    <td><textarea class="finput" id="act-target-${n}" oninput="autoResize(this)" style="min-height:40px">${esc(target)}</textarea></td>
+    <td><textarea class="finput" id="act-resp-${n}" oninput="autoResize(this)" style="min-height:40px">${esc(resp)}</textarea></td>
+    <td class="td-action"><button class="btn-del-row" onclick="document.getElementById('act-row-${n}').remove()">✕</button></td>`;
+  document.getElementById('t1-act-body').appendChild(tr);
+  setTimeout(()=>['act-loc','act-act','act-target','act-resp'].forEach(p=>{const el=document.getElementById(`${p}-${n}`);if(el)autoResize(el);}),0);
+}
+function gatherAct(){
+  return [...document.querySelectorAll('[id^="act-row-"]')].map(r=>{
+    const n=r.id.replace('act-row-','');
+    return{dateFrom:v(`act-dateFrom-${n}`),dateTo:v(`act-dateTo-${n}`),
+      loc:v(`act-loc-${n}`),act:v(`act-act-${n}`),target:v(`act-target-${n}`),resp:v(`act-resp-${n}`)};
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — BUDGET TAB1
+// ══════════════════════════════════════════
+let budN=0;
+function addBudgetRow(src='',alloc='',used=''){
+  budN++;const n=budN;
+  const tr=document.createElement('tr');
+  tr.id=`bud-row-${n}`;
+  tr.innerHTML=`
+    <td class="td-num">${n}</td>
+    <td><textarea class="finput" id="bud-src-${n}" oninput="autoResize(this)" style="min-height:36px;resize:none">${esc(src)}</textarea></td>
+    <td><input class="finput" type="number" id="bud-alloc-${n}" value="${alloc}" min="0" step="0.01" oninput="calcBudget1()" style="text-align:right"></td>
+    <td><input class="finput" type="number" id="bud-used-${n}" value="${used}" min="0" step="0.01" oninput="calcBudget1()" style="text-align:right"></td>
+    <td style="text-align:center" id="bud-pct-${n}">-</td>
+    <td class="td-action"><button class="btn-del-row" onclick="document.getElementById('bud-row-${n}').remove();calcBudget1()">✕</button></td>`;
+  document.getElementById('t1-budget-body').appendChild(tr);
+  setTimeout(()=>{const el=document.getElementById(`bud-src-${n}`);if(el)autoResize(el);},0);
+  calcBudget1();
+}
+function calcBudget1(){
+  let ta=0,tu=0;
+  document.querySelectorAll('[id^="bud-row-"]').forEach(r=>{
+    const n=r.id.replace('bud-row-','');
+    const a=parseFloat(document.getElementById(`bud-alloc-${n}`)?.value)||0;
+    const u=parseFloat(document.getElementById(`bud-used-${n}`)?.value)||0;
+    ta+=a;tu+=u;
+    const pctEl=document.getElementById(`bud-pct-${n}`);
+    if(pctEl) pctEl.textContent=a>0?((u/a)*100).toFixed(2)+' %':'-';
+  });
+  document.getElementById('t1-budget-alloc-total').textContent=fmt(ta);
+  document.getElementById('t1-budget-used-total').textContent=fmt(tu);
+  document.getElementById('t1-budget-pct-total').textContent=ta>0?((tu/ta)*100).toFixed(2)+' %':'-';
+}
+function gatherBudget1(){
+  return [...document.querySelectorAll('[id^="bud-row-"]')].map(r=>{
+    const n=r.id.replace('bud-row-','');
+    return{src:v(`bud-src-${n}`),alloc:v(`bud-alloc-${n}`),used:v(`bud-used-${n}`)};
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — KPI
+// ══════════════════════════════════════════
+let kpiN=0;
+function addKpiRow(bodyId,kpi='',result='',achieved='บรรลุ'){
+  kpiN++;const n=kpiN;
+  const tr=document.createElement('tr');
+  tr.id=`kpi-row-${n}`;
+  tr.innerHTML=`
+    <td class="td-num">${document.getElementById(bodyId).children.length+1}</td>
+    <td><textarea class="finput" id="kpi-kpi-${n}" oninput="autoResize(this)">${esc(kpi)}</textarea></td>
+    <td><textarea class="finput" id="kpi-result-${n}" oninput="autoResize(this)">${esc(result)}</textarea></td>
+    <td class="td-achieved">
+      <select class="finput" id="kpi-ach-${n}">
+        <option value="บรรลุ" ${achieved==='บรรลุ'?'selected':''}>บรรลุ</option>
+        <option value="ไม่บรรลุ" ${achieved==='ไม่บรรลุ'?'selected':''}>ไม่บรรลุ</option>
+      </select>
+    </td>
+    <td class="td-action"><button class="btn-del-row" onclick="document.getElementById('kpi-row-${n}').remove()">✕</button></td>`;
+  document.getElementById(bodyId).appendChild(tr);
+  setTimeout(()=>{autoResize(document.getElementById(`kpi-kpi-${n}`));autoResize(document.getElementById(`kpi-result-${n}`));},0);
+}
+function mergeKpi(projectKpis,savedKpis){
+  if(!projectKpis||!projectKpis.length) return savedKpis&&savedKpis.length?savedKpis:[];
+  return projectKpis.map(function(kpiText){
+    const s=(savedKpis||[]).find(function(k){return k.kpi===kpiText;});
+    return{kpi:kpiText,result:s?s.result:'',achieved:s?s.achieved:'บรรลุ'};
+  });
+}
+function gatherKpi(bodyId){
+  return [...document.getElementById(bodyId).querySelectorAll('tr')].map(r=>{
+    const n=r.id.replace('kpi-row-','');
+    return{kpi:v(`kpi-kpi-${n}`),result:v(`kpi-result-${n}`),achieved:v(`kpi-ach-${n}`)};
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — PROBLEMS
+// ══════════════════════════════════════════
+let probN=0;
+function addProbRow(containerId,problem='',suggestion=''){
+  probN++;const n=probN;
+  const div=document.createElement('div');
+  div.className='prob-block';div.id=`prob-block-${n}`;
+  div.innerHTML=`
+    <button class="btn-del-row prob-del" onclick="document.getElementById('prob-block-${n}').remove()">✕</button>
+    <div class="prob-num" id="prob-num-${n}">ข้อ ${document.getElementById(containerId).children.length+1}</div>
+    <div class="prob-label">ปัญหา / อุปสรรค</div>
+    <textarea class="finput" id="prob-prob-${n}" placeholder="ระบุปัญหา..." oninput="autoResize(this)">${esc(problem)}</textarea>
+    <div class="prob-label" style="margin-top:10px">ข้อเสนอแนะ</div>
+    <textarea class="finput" id="prob-sugg-${n}" placeholder="ระบุข้อเสนอแนะ..." oninput="autoResize(this)">${esc(suggestion)}</textarea>`;
+  document.getElementById(containerId).appendChild(div);
+  setTimeout(()=>{autoResize(document.getElementById(`prob-prob-${n}`));autoResize(document.getElementById(`prob-sugg-${n}`));},0);
+}
+function gatherProb(containerId){
+  return [...document.getElementById(containerId).querySelectorAll('.prob-block')].map(b=>{
+    const n=b.id.replace('prob-block-','');
+    return{problem:v(`prob-prob-${n}`),suggestion:v(`prob-sugg-${n}`)};
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — STRATEGY (Tab2)
+// ══════════════════════════════════════════
+let stratN=0;
+function addStrategyRow(val=''){
+  stratN++;const n=stratN;
+  const div=document.createElement('div');
+  div.id=`strat-row-${n}`;
+  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  div.innerHTML=`
+    <span style="color:var(--orange);font-weight:700;min-width:1.5em">${document.getElementById('t2-strategy-container').children.length+1}.</span>
+    <textarea class="finput" id="strat-val-${n}" placeholder="ระบุยุทธศาสตร์" oninput="autoResize(this)" style="flex:1;min-height:36px;resize:none">${esc(val)}</textarea>
+    <button class="btn-del-row" onclick="document.getElementById('strat-row-${n}').remove()" style="margin-top:6px">✕</button>`;
+  setTimeout(()=>{const el=document.getElementById(`strat-val-${n}`);if(el)autoResize(el);},0);
+  document.getElementById('t2-strategy-container').appendChild(div);
+}
+function gatherStrategy(){
+  return [...document.querySelectorAll('[id^="strat-row-"]')].map(r=>{
+    const n=r.id.replace('strat-row-','');return v(`strat-val-${n}`);
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — BUDGET MONTH (Tab2)
+// ══════════════════════════════════════════
+let bmonN=0;
+function addBmonthRow(month='',hrs='',amt=''){
+  bmonN++;const n=bmonN;
+  const tr=document.createElement('tr');tr.id=`bmon-row-${n}`;
+  tr.innerHTML=`
+    <td class="td-num">${n}</td>
+    <td><input class="finput" id="bmon-month-${n}" value="${esc(month)}" placeholder="เช่น มกราคม 2569"></td>
+    <td><input class="finput" type="number" id="bmon-hrs-${n}" value="${hrs}" min="0" oninput="calcBmonth()" style="text-align:right"></td>
+    <td><input class="finput" type="number" id="bmon-amt-${n}" value="${amt}" min="0" step="0.01" oninput="calcBmonth();sv('t2-totalComp',calcBmonthTotal());calcBudget2()" style="text-align:right"></td>
+    <td class="td-action"><button class="btn-del-row" onclick="document.getElementById('bmon-row-${n}').remove();calcBmonth()">✕</button></td>`;
+  document.getElementById('t2-bmonth-body').appendChild(tr);
+}
+function calcBmonth(){
+  let th=0,ta=0;
+  document.querySelectorAll('[id^="bmon-row-"]').forEach(r=>{
+    const n=r.id.replace('bmon-row-','');
+    th+=parseFloat(document.getElementById(`bmon-hrs-${n}`)?.value)||0;
+    ta+=parseFloat(document.getElementById(`bmon-amt-${n}`)?.value)||0;
+  });
+  document.getElementById('t2-bmonth-hrs-total').textContent=th;
+  document.getElementById('t2-bmonth-amt-total').textContent=fmt(ta);
+  return ta;
+}
+function calcBmonthTotal(){
+  return document.querySelectorAll('[id^="bmon-row-"]').length?
+    [...document.querySelectorAll('[id^="bmon-row-"]')].reduce((s,r)=>{
+      const n=r.id.replace('bmon-row-','');
+      return s+(parseFloat(document.getElementById(`bmon-amt-${n}`)?.value)||0);
+    },0):0;
+}
+function gatherBmonth(){
+  return [...document.querySelectorAll('[id^="bmon-row-"]')].map(r=>{
+    const n=r.id.replace('bmon-row-','');
+    return{month:v(`bmon-month-${n}`),hrs:v(`bmon-hrs-${n}`),amt:v(`bmon-amt-${n}`)};
+  });
+}
+function calcBudget2(){
+  const comp=parseFloat(v('t2-totalComp'))||0;
+  const rate=(parseFloat(v('t2-feeRate'))||0)/100;
+  const fee=Math.round(comp*rate/10)*10;
+  const total=comp+fee;
+  sv('t2-feeAmt',fmt(fee));sv('t2-grandTotal',fmt(total));
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — BUDGET PERSON (Tab2)
+// ══════════════════════════════════════════
+let bpersN=0;
+function addBpersonRow(month='',name='',sessions='',hrs='',amt=''){
+  bpersN++;const n=bpersN;
+  const tr=document.createElement('tr');tr.id=`bpers-row-${n}`;
+  tr.innerHTML=`
+    <td class="td-num">${n}</td>
+    <td><input class="finput" id="bpers-month-${n}" value="${esc(month)}" placeholder="เดือน" style="min-width:80px"></td>
+    <td><input class="finput" id="bpers-name-${n}" value="${esc(name)}" placeholder="ชื่อ" style="min-width:100px"></td>
+    <td><input class="finput" type="number" id="bpers-sess-${n}" value="${sessions}" min="0" style="text-align:right;max-width:70px"></td>
+    <td><input class="finput" type="number" id="bpers-hrs-${n}" value="${hrs}" min="0" style="text-align:right;max-width:70px"></td>
+    <td><input class="finput" type="number" id="bpers-amt-${n}" value="${amt}" min="0" step="0.01" style="text-align:right;max-width:90px"></td>
+    <td class="td-action"><button class="btn-del-row" onclick="document.getElementById('bpers-row-${n}').remove()">✕</button></td>`;
+  document.getElementById('t2-bperson-body').appendChild(tr);
+}
+function gatherBperson(){
+  return [...document.querySelectorAll('[id^="bpers-row-"]')].map(r=>{
+    const n=r.id.replace('bpers-row-','');
+    return{month:v(`bpers-month-${n}`),name:v(`bpers-name-${n}`),sessions:v(`bpers-sess-${n}`),hrs:v(`bpers-hrs-${n}`),amt:v(`bpers-amt-${n}`)};
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — BENEFITS (Tab2)
+// ══════════════════════════════════════════
+let benN=0;
+function addBenefitRow(val=''){
+  benN++;const n=benN;
+  const div=document.createElement('div');div.className='benefit-row';div.id=`ben-row-${n}`;
+  div.innerHTML=`
+    <span class="benefit-num">${document.getElementById('t2-benefit-container').children.length+1}.</span>
+    <textarea class="finput" id="ben-val-${n}" oninput="autoResize(this)" style="flex:1">${esc(val)}</textarea>
+    <button class="btn-del-row" onclick="document.getElementById('ben-row-${n}').remove()" style="margin-top:6px">✕</button>`;
+  document.getElementById('t2-benefit-container').appendChild(div);
+  setTimeout(()=>autoResize(document.getElementById(`ben-val-${n}`)),0);
+}
+function gatherBenefit(){
+  return [...document.querySelectorAll('[id^="ben-row-"]')].map(r=>{
+    const n=r.id.replace('ben-row-','');return v(`ben-val-${n}`);
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — EVAL (Tab2)
+// ══════════════════════════════════════════
+let evalN=0;
+function addEvalRow(gender='',age='',score=''){
+  evalN++;const n=evalN;
+  const tr=document.createElement('tr');tr.id=`eval-row-${n}`;
+  tr.innerHTML=`
+    <td class="td-num">${n}</td>
+    <td>
+      <select class="finput" id="eval-gender-${n}">
+        <option value="" ${!gender?'selected':''}>-</option>
+        <option value="ชาย" ${gender==='ชาย'?'selected':''}>ชาย</option>
+        <option value="หญิง" ${gender==='หญิง'?'selected':''}>หญิง</option>
+      </select>
+    </td>
+    <td>
+      <select class="finput" id="eval-age-${n}">
+        <option value="" ${!age?'selected':''}>-</option>
+        <option value="18-30 ปี" ${age==='18-30 ปี'?'selected':''}>18-30 ปี</option>
+        <option value="31-45 ปี" ${age==='31-45 ปี'?'selected':''}>31-45 ปี</option>
+        <option value="46-60 ปี" ${age==='46-60 ปี'?'selected':''}>46-60 ปี</option>
+        <option value="61 ปีขึ้นไป" ${age==='61 ปีขึ้นไป'?'selected':''}>61 ปีขึ้นไป</option>
+      </select>
+    </td>
+    <td>
+      <select class="finput" id="eval-score-${n}" onchange="calcEvalAvg()">
+        <option value="" ${!score?'selected':''}>-</option>
+        <option value="1" ${score==='1'?'selected':''}>1 – น้อยที่สุด</option>
+        <option value="2" ${score==='2'?'selected':''}>2 – น้อย</option>
+        <option value="3" ${score==='3'?'selected':''}>3 – ปานกลาง</option>
+        <option value="4" ${score==='4'?'selected':''}>4 – มาก</option>
+        <option value="5" ${score==='5'?'selected':''}>5 – มากที่สุด</option>
+      </select>
+    </td>
+    <td class="td-action"><button class="btn-del-row" onclick="document.getElementById('eval-row-${n}').remove();calcEvalAvg()">✕</button></td>`;
+  document.getElementById('t2-eval-body').appendChild(tr);
+}
+function calcEvalAvg(){
+  const rows=[...document.querySelectorAll('[id^="eval-row-"]')];
+  const scores=rows.map(r=>{const n=r.id.replace('eval-row-','');return parseFloat(v(`eval-score-${n}`))||0;}).filter(s=>s>0);
+  const avg=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:null;
+  {const _ea=document.getElementById('t2-eval-avg');if(_ea)_ea.textContent=avg!==null?avg.toFixed(2)+' / 5.00':'-';}
+}
+function gatherEval(){
+  return [...document.querySelectorAll('[id^="eval-row-"]')].map(r=>{
+    const n=r.id.replace('eval-row-','');
+    return{gender:v(`eval-gender-${n}`),age:v(`eval-age-${n}`),score:v(`eval-score-${n}`)};
+  });
+}
+
+// ══════════════════════════════════════════
+// DYNAMIC ROWS — EVAL SUGGESTIONS (Tab2)
+// ══════════════════════════════════════════
+let esN=0;
+function addEvalSuggRow(val=''){
+  esN++;const n=esN;
+  const div=document.createElement('div');div.className='benefit-row';div.id=`es-row-${n}`;
+  div.innerHTML=`
+    <span class="benefit-num">${document.getElementById('t2-evalSugg-container').children.length+1}.</span>
+    <textarea class="finput" id="es-val-${n}" oninput="autoResize(this)" style="flex:1">${esc(val)}</textarea>
+    <button class="btn-del-row" onclick="document.getElementById('es-row-${n}').remove()" style="margin-top:6px">✕</button>`;
+  document.getElementById('t2-evalSugg-container').appendChild(div);
+  setTimeout(()=>autoResize(document.getElementById(`es-val-${n}`)),0);
+}
+function gatherEvalSugg(){
+  return [...document.querySelectorAll('[id^="es-row-"]')].map(r=>{
+    const n=r.id.replace('es-row-','');return v(`es-val-${n}`);
+  });
+}
+
+// ══════════════════════════════════════════
+// SAVE / LOAD
+// ══════════════════════════════════════════
+function gatherData(){
+  return{
+    tab1:{
+      projName:v('t1-projName'),year:v('t1-year'),
+      activities:gatherAct(),
+      budgets:gatherBudget1(),
+      kpiQty:gatherKpi('t1-kpi-qty-body'),
+      kpiQl:gatherKpi('t1-kpi-ql-body'),
+      problems:gatherProb('t1-prob-container'),
+      signerName:v('t1-signerName'),signDate:v('t1-signDate'),
+    },
+    tab2:{
+      projName:v('t2-projName'),
+      strategies:gatherStrategy(),
+      dept:v('t2-dept'),responsible:v('t2-responsible'),
+      prepStart:v('t2-prepStart'),prepEnd:v('t2-prepEnd'),
+      workStart:v('t2-workStart'),workEnd:v('t2-workEnd'),summaryDate:v('t2-summaryDate'),
+      location:v('t2-location'),participants:v('t2-participants'),
+      bmonths:gatherBmonth(),
+      totalComp:v('t2-totalComp'),feeRate:v('t2-feeRate'),
+      bpersons:gatherBperson(),
+      kpiQty:gatherKpi('t2-kpi-qty-body'),
+      kpiQl:gatherKpi('t2-kpi-ql-body'),
+      benefits:gatherBenefit(),
+      problems:gatherProb('t2-prob-container'),
+      evalStart:v('t2-evalStart'),evalEnd:v('t2-evalEnd'),
+      evalLocation:v('t2-evalLocation'),evalTotal:v('t2-evalTotal'),
+      evalRows:gatherEval(),
+      evalSuggestions:gatherEvalSugg(),
+    },
+    tab3:{
+      projName:v('t3-projName'),
+      dateStart:v('t3-dateStart'),dateEnd:v('t3-dateEnd'),
+      location:v('t3-location'),
+      totalParticipants:v('t3-totalParticipants'),
+      totalRespondents:v('t3-totalRespondents'),
+      maleCount:v('t3-maleCount'),femaleCount:v('t3-femaleCount'),
+      surveyItems:gatherSurveyItems(),
+      nextYes:v('t3-nextYes'),nextMaybe:v('t3-nextMaybe'),nextNo:v('t3-nextNo'),
+      suggestions:v('t3-suggestions'),
+    }
+  };
+}
+
+function fillForm(d){
+  if(!d)return;
+  const t1=d.tab1||{},t2=d.tab2||{};
+  sv('t1-projName',t1.projName||projectName);sv('t1-year',t1.year||projectPlanYear);
+  sv('t1-signerName',t1.signerName||(projectCoordinators[0]||''));sv('t1-signDate',t1.signDate||'');
+  const _tStr=projectTargets.length?projectTargets.map(t=>t.name+(t.count?' '+t.count+' คน':'')).join(', '):'';
+  document.getElementById('t1-act-body').innerHTML='';
+  (t1.activities||[]).forEach(a=>addActRow(a.dateFrom||'',a.dateTo||'',a.loc&&a.loc.trim()?a.loc:projectLocation,a.act,a.target&&a.target.trim()?a.target:_tStr,a.resp||projectCoordinators[0]||'',a.date,a.time));
+  if(!document.getElementById('t1-act-body').children.length)addActRow(projectStartDate,projectEndDate,projectLocation,'',_tStr,projectCoordinators[0]||'');
+  document.getElementById('t1-budget-body').innerHTML='';
+  if(t1.budgets&&t1.budgets.some(b=>b.src&&b.src.trim())){t1.budgets.forEach(b=>addBudgetRow(b.src,b.alloc,b.used));}
+  else if(projectBudgetSource){const _tot=projectBudget.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);addBudgetRow(projectBudgetSource,_tot||'','');}
+  else{addBudgetRow();}
+  document.getElementById('t1-kpi-qty-body').innerHTML='';mergeKpi(projectKpiQty,t1.kpiQty).forEach(k=>addKpiRow('t1-kpi-qty-body',k.kpi,k.result,k.achieved));
+  document.getElementById('t1-kpi-ql-body').innerHTML='';mergeKpi(projectKpiQual,t1.kpiQl).forEach(k=>addKpiRow('t1-kpi-ql-body',k.kpi,k.result,k.achieved));
+  document.getElementById('t1-prob-container').innerHTML='';
+  (t1.problems||[]).forEach(p=>addProbRow('t1-prob-container',p.problem,p.suggestion));
+
+  sv('t2-projName',t2.projName||projectName);
+  sv('t2-dept',t2.dept||projectDept);sv('t2-responsible',t2.responsible||(projectCoordinators.join('\n'))||'');
+  sv('t2-prepStart',t2.prepStart||'');sv('t2-prepEnd',t2.prepEnd||'');
+  sv('t2-workStart',t2.workStart||projectStartDate);sv('t2-workEnd',t2.workEnd||projectEndDate);
+  sv('t2-summaryDate',t2.summaryDate||'');
+  sv('t2-location',t2.location||projectLocation);sv('t2-participants',t2.participants||(projectTargets.length?projectTargets.map(t=>t.name+(t.count?' '+t.count+' คน':'')).join(', '):''));
+  sv('t2-totalComp',t2.totalComp||'');sv('t2-feeRate',t2.feeRate||'12');
+  sv('t2-evalStart',t2.evalStart||'');sv('t2-evalEnd',t2.evalEnd||'');
+  sv('t2-evalLocation',t2.evalLocation||'');sv('t2-evalTotal',t2.evalTotal||'');
+
+  document.getElementById('t2-strategy-container').innerHTML='';
+  {const _src=projectStrategies.length?projectStrategies:(t2.strategies&&t2.strategies.some(s=>s&&s.trim())?t2.strategies:(projectObjectives.length?projectObjectives:[]));
+  (_src.length?_src:['']).forEach(s=>addStrategyRow(s));}
+  clearAndFill('t2-bmonth-body',()=>{},(t2.bmonths||[]).forEach(b=>addBmonthRow(b.month,b.hrs,b.amt)));
+  clearAndFill('t2-bperson-body',()=>{},(t2.bpersons||[]).forEach(b=>addBpersonRow(b.month,b.name,b.sessions,b.hrs,b.amt)));
+  document.getElementById('t2-kpi-qty-body').innerHTML='';mergeKpi(projectKpiQty,t2.kpiQty).forEach(k=>addKpiRow('t2-kpi-qty-body',k.kpi,k.result,k.achieved));
+  document.getElementById('t2-kpi-ql-body').innerHTML='';mergeKpi(projectKpiQual,t2.kpiQl).forEach(k=>addKpiRow('t2-kpi-ql-body',k.kpi,k.result,k.achieved));
+  document.getElementById('t2-benefit-container').innerHTML='';
+  (t2.benefits&&t2.benefits.some(b=>b&&b.trim())?t2.benefits:projectResults).forEach(b=>addBenefitRow(b));
+  if(!document.getElementById('t2-benefit-container').children.length)addBenefitRow();
+  document.getElementById('t2-prob-container').innerHTML='';
+  (t2.problems||[]).forEach(p=>addProbRow('t2-prob-container',p.problem,p.suggestion));
+  clearAndFill('t2-eval-body',()=>{},(t2.evalRows||[]).forEach(e=>addEvalRow(e.gender,e.age,e.score)));
+  {const _ec=document.getElementById('t2-evalSugg-container');if(_ec){_ec.innerHTML='';(t2.evalSuggestions||[]).forEach(s=>addEvalSuggRow(s));}}
+
+  calcBudget1();calcBmonth();calcBudget2();calcEvalAvg();
+
+  // Tab 3
+  const t3=d.tab3||{};
+  const _t3new=!t3.totalParticipants&&!t3.maleCount&&!t3.nextYes;
+  sv('t3-projName',t3.projName||(projectName||'การจัดประชุมเชิงปฏิบัติการ "MedHackathon Asia 2025"'));
+  sv('t3-dateStart',t3.dateStart||(projectStartDate||'2025-02-03'));
+  sv('t3-dateEnd',t3.dateEnd||(projectEndDate||'2025-02-07'));
+  sv('t3-location',t3.location||(projectLocation||'อาคาร ๑๐ ปี เภสัชศาสตร์บูรพา คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา'));
+  const _targetTotal=projectTargets.reduce((s,t)=>s+(parseInt(t.count)||0),0);
+  sv('t3-totalParticipants',t3.totalParticipants||(_targetTotal>0?String(_targetTotal):''));
+  sv('t3-totalRespondents',t3.totalRespondents||(_t3new?'32':''));
+  sv('t3-maleCount',t3.maleCount||(_t3new?'17':''));
+  sv('t3-femaleCount',t3.femaleCount||(_t3new?'15':''));
+  sv('t3-nextYes',t3.nextYes||(_t3new?'26':''));
+  sv('t3-nextMaybe',t3.nextMaybe||(_t3new?'6':''));
+  sv('t3-nextNo',t3.nextNo||(_t3new?'0':''));
+  sv('t3-suggestions',t3.suggestions||'');
+  document.getElementById('t3-survey-body').innerHTML='';surveyN=0;
+  if(t3.surveyItems&&t3.surveyItems.length){
+    t3.surveyItems.forEach(item=>{
+      if(item.type==='header')addSurveyHeader(item.label);
+      else addSurveyItem(item.label,item.c1,item.c2,item.c3,item.c4,item.c5);
+    });
+  } else { _initDefaultSurveyItems(); }
+  updateSurveyStats();updateGenderPct();updateNextPct();
+  _formInitialized=true;
+
+  document.querySelectorAll('textarea.finput').forEach(autoResize);
+}
+function clearAndFill(bodyId,_,actions){
+  const _el=document.getElementById(bodyId);if(_el)_el.innerHTML='';
+  actions;
+}
+
+let _formReady=false;     // ป้องกัน Firebase callback ทับข้อมูลที่ผู้ใช้กรอกไปแล้ว
+let _formInitialized=false; // true หลัง form โหลดเสร็จ — เปิดใช้ auto-save
+let _autoSaveTimer=null;
+
+// Auto-save ลง localStorage ทุกครั้งที่ผู้ใช้แก้ไข (debounce 1.5 วินาที)
+document.addEventListener('input',()=>{
+  if(!_formInitialized)return;
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=setTimeout(()=>{
+    try{
+      _formReady=true;
+      localStorage.setItem(LS_KEY(),JSON.stringify(gatherData()));
+    }catch(e){}
+  },1500);
+});
+
+function loadForm(){
+  const ls=localStorage.getItem(LS_KEY());
+  if(ls){try{fillForm(JSON.parse(ls));_formReady=true;_formInitialized=true;}catch(e){console.error('[loadForm]',e);};return;}
+  if(db){
+    db.ref(FB_PATH()).once('value').then(snap=>{
+      if(_formReady)return; // ผู้ใช้บันทึกไปแล้วก่อน Firebase ตอบกลับ
+      if(snap.exists())fillForm(snap.val());
+      else{
+        sv('t1-projName',projectName);sv('t2-projName',projectName);sv('t1-year',projectPlanYear);
+        sv('t1-signerName',projectCoordinators[0]||'');sv('t2-responsible',projectCoordinators.join('\n'));
+        sv('t2-dept',projectDept);sv('t2-location',projectLocation);sv('t2-workStart',projectStartDate);sv('t2-workEnd',projectEndDate);
+        sv('t2-participants',projectTargets.length?projectTargets.map(t=>t.name+(t.count?' '+t.count+' คน':'')).join(', '):'');
+        addActRow(projectStartDate,projectEndDate,projectLocation,'',projectTargets.length?projectTargets.map(t=>t.name+(t.count?' '+t.count+' คน':'')).join(', '):'',projectCoordinators[0]||'');
+        if(projectBudgetSource){const _t=projectBudget.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);addBudgetRow(projectBudgetSource,_t||'','');}else{addBudgetRow();}
+        (projectKpiQty.length?projectKpiQty:['']).forEach(k=>addKpiRow('t1-kpi-qty-body',k));
+        (projectKpiQual.length?projectKpiQual:['']).forEach(k=>addKpiRow('t1-kpi-ql-body',k));
+        addProbRow('t1-prob-container');
+        {const _strats=projectStrategies.length?projectStrategies:(projectObjectives.length?projectObjectives:null);if(_strats){_strats.forEach(s=>addStrategyRow(s));}else{addStrategyRow();}}
+        addBmonthRow();
+        (projectKpiQty.length?projectKpiQty:['']).forEach(k=>addKpiRow('t2-kpi-qty-body',k));
+        (projectKpiQual.length?projectKpiQual:['']).forEach(k=>addKpiRow('t2-kpi-ql-body',k));
+        if(projectResults.length){projectResults.forEach(b=>addBenefitRow(b));}else{addBenefitRow();}
+        addProbRow('t2-prob-container');addEvalRow();addEvalSuggRow();
+        // Tab 3 defaults
+        sv('t3-projName',projectName||'การจัดประชุมเชิงปฏิบัติการ "MedHackathon Asia 2025"');
+        sv('t3-dateStart',projectStartDate||'2025-02-03');sv('t3-dateEnd',projectEndDate||'2025-02-07');
+        sv('t3-location',projectLocation||'อาคาร ๑๐ ปี เภสัชศาสตร์บูรพา คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา');
+        {const _tt=projectTargets.reduce((s,t)=>s+(parseInt(t.count)||0),0);sv('t3-totalParticipants',_tt>0?String(_tt):'');}sv('t3-totalRespondents','');
+        sv('t3-maleCount','');sv('t3-femaleCount','');
+        sv('t3-nextYes','');sv('t3-nextMaybe','');sv('t3-nextNo','');
+        _initDefaultSurveyItems();
+      }
+      _formInitialized=true;
+    });
+  } else {
+    sv('t1-projName',projectName);sv('t2-projName',projectName);sv('t1-year',projectPlanYear);
+    sv('t1-signerName',projectCoordinators[0]||'');sv('t2-responsible',projectCoordinators.join('\n'));
+    sv('t2-dept',projectDept);sv('t2-location',projectLocation);sv('t2-workStart',projectStartDate);sv('t2-workEnd',projectEndDate);
+    sv('t2-participants',projectTargets.length?projectTargets.map(t=>t.name+(t.count?' '+t.count+' คน':'')).join(', '):'');
+    addActRow(projectStartDate,projectEndDate,projectLocation,'',projectTargets.length?projectTargets.map(t=>t.name+(t.count?' '+t.count+' คน':'')).join(', '):'',projectCoordinators[0]||'');
+    if(projectBudget.length){projectBudget.forEach(b=>addBudgetRow(b.item,b.amount,''));}else{addBudgetRow();}
+    (projectKpiQty.length?projectKpiQty:['']).forEach(k=>addKpiRow('t1-kpi-qty-body',k));
+    (projectKpiQual.length?projectKpiQual:['']).forEach(k=>addKpiRow('t1-kpi-ql-body',k));
+    addProbRow('t1-prob-container');
+    if(projectObjectives.length){projectObjectives.forEach(s=>addStrategyRow(s));}else{addStrategyRow();}
+    addBmonthRow();
+    (projectKpiQty.length?projectKpiQty:['']).forEach(k=>addKpiRow('t2-kpi-qty-body',k));
+    (projectKpiQual.length?projectKpiQual:['']).forEach(k=>addKpiRow('t2-kpi-ql-body',k));
+    if(projectResults.length){projectResults.forEach(b=>addBenefitRow(b));}else{addBenefitRow();}
+    addProbRow('t2-prob-container');addEvalRow();addEvalSuggRow();
+    // Tab 3 defaults
+    sv('t3-projName',projectName||'การจัดประชุมเชิงปฏิบัติการ "MedHackathon Asia 2025"');
+    sv('t3-dateStart',projectStartDate||'2025-02-03');sv('t3-dateEnd',projectEndDate||'2025-02-07');
+    sv('t3-location',projectLocation||'อาคาร ๑๐ ปี เภสัชศาสตร์บูรพา คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา');
+    {const _tt=projectTargets.reduce((s,t)=>s+(parseInt(t.count)||0),0);sv('t3-totalParticipants',_tt>0?String(_tt):'');}sv('t3-totalRespondents','');
+    sv('t3-maleCount','');sv('t3-femaleCount','');
+    sv('t3-nextYes','');sv('t3-nextMaybe','');sv('t3-nextNo','');
+    _initDefaultSurveyItems();
+    _formInitialized=true;
+  }
+}
+
+function saveForm(){
+  _formReady=true; // ผู้ใช้บันทึกแล้ว ป้องกัน Firebase ทับ
+  const d=gatherData();
+  localStorage.setItem(LS_KEY(),JSON.stringify(d));
+  if(db){db.ref(FB_PATH()).set(d).then(()=>toast('บันทึกสำเร็จ ✓','ok')).catch(()=>toast('บันทึกล้มเหลว','err'));}
+  else toast('บันทึก (local) ✓','ok');
+}
+
+// ══════════════════════════════════════════
+// EXPORT PDF — บทสรุปผู้บริหาร
+// ══════════════════════════════════════════
+function exportPDF1(){
+  saveForm();
+  const d=gatherData().tab1;
+  const actRows=(d.activities||[]).map((a,i)=>{
+    const from=a.dateFrom||a.date||'';
+    const to=a.dateTo||'';
+    const dateDisplay=from?(to?`${fmtDate(from)} –<br>${fmtDate(to)}`:fmtDate(from)):'-';
+    return`<tr>
+      <td style="text-align:center;vertical-align:top">${dateDisplay}</td>
+      <td style="vertical-align:top">${a.loc||'-'}</td>
+      <td style="vertical-align:top">${(a.act||'-').replace(/\n/g,'<br>')}</td>
+      <td style="vertical-align:top">${(a.target||'-').replace(/\n/g,'<br>')}</td>
+      <td style="vertical-align:top">${a.resp||'-'}</td>
+    </tr>`;
+  }).join('');
+
+  let totalAlloc=0,totalUsed=0;
+  const budRows=(d.budgets||[]).map((b,i)=>{
+    const al=parseFloat(b.alloc)||0,us=parseFloat(b.used)||0;
+    totalAlloc+=al;totalUsed+=us;
+    return `<tr>
+      <td>${b.src||'-'}</td>
+      <td style="text-align:right">${al.toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+      <td style="text-align:right">${us.toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+      <td style="text-align:center">${al>0?((us/al)*100).toFixed(2):'-'}</td>
+    </tr>`;
+  }).join('');
+
+  const kpiSection=(rows,label)=>{
+    if(!rows||!rows.length)return'';
+    const trs=rows.map((k,i)=>`
+      <tr>
+        <td>${k.kpi||'-'}</td>
+        <td>${(k.result||'-').replace(/\n/g,'<br>')}</td>
+        <td style="text-align:center">${k.achieved==='บรรลุ'?'บรรลุ':'ไม่บรรลุ'}</td>
+      </tr>`).join('');
+    return`<tr><td colspan="3" class="kpi-type-row">${label}</td></tr>${trs}`;
+  };
+
+  const probHtml=(d.problems||[]).map((p,i)=>`
+    <div class="prob-item">
+      <div class="prob-head">ปัญหา/อุปสรรค</div>
+      <div class="prob-text">${(p.problem||'-').replace(/\n/g,'<br>')}</div>
+      <div class="prob-head" style="margin-top:6pt">ข้อเสนอแนะ</div>
+      <div class="prob-text">${(p.suggestion||'-').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+<title>บทสรุปผู้บริหาร</title>
+<style>
+  @font-face{font-family:'THsarabunIT๙';src:local('THsarabunIT๙'),local('THSarabunIT๙'),local('TH SarabunIT9'),local('TH Sarabun IT9')}
+  @page{size:A4;margin:2.2cm 1.2cm 2.5cm 1.2cm}
+  body{font-family:'THsarabunIT๙',sans-serif;font-size:16pt;line-height:1.0;color:#000}
+  h1{font-size:16pt;font-weight:bold;text-align:center;margin:0 0 2pt}
+  .sub{font-size:16pt;text-align:center;color:#333;margin-bottom:8pt}
+  .sec{font-size:16pt;font-weight:bold;margin:16pt 0 4pt}
+  p{margin:0 0 4pt;padding-left:2em}
+  table{width:100%;border-collapse:collapse;margin:4pt 0 10pt;font-size:16pt}
+  th{background:#fef3c7;padding:6pt 8pt;border:1pt solid #ccc;font-weight:bold;text-align:center}
+  td{padding:5pt 8pt;border:1pt solid #ddd;vertical-align:top}
+  .total-row td{background:#fef3c7;font-weight:bold}
+  .kpi-type-row{background:#f0f0f0;font-weight:bold;padding:5pt 8pt;font-size:16pt;color:#555}
+  .prob-item{padding:2pt 0;margin-bottom:4pt;padding-left:2em}
+  .prob-head{font-weight:bold;color:#000;font-size:16pt}
+  .prob-text{margin-top:2pt;font-size:16pt}
+  .sign-line{border-top:1pt solid #000;margin:36pt 20pt 4pt}
+  .sign-name{text-align:center;font-size:16pt}
+</style></head><body>
+<h1>บทสรุปผู้บริหาร</h1>
+<div class="sub">โครงการประจำปีงบประมาณ พ.ศ. ${d.year||'.....'}</div>
+
+<table style="width:100%;border:none;border-collapse:collapse;margin:14pt 0 6pt;border-left:4pt solid #ea580c;font-size:16pt"><tr>
+  <td style="border:none;white-space:nowrap;vertical-align:top;font-weight:bold;padding:0 0.6em 0 8pt;width:1%">1. ชื่อโครงการ</td>
+  <td style="border:none;vertical-align:top;text-align:left;padding:0">${(d.projName||'-').replace(/\n/g,'<br>')}</td>
+</tr></table>
+
+<div class="sec">ข้อมูลกิจกรรม</div>
+<table>
+  <colgroup>
+    <col style="width:16%"><col style="width:16%"><col style="width:28%">
+    <col style="width:22%"><col style="width:18%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th style="text-align:center">วัน เดือน ปี<br>เวลา</th>
+      <th style="text-align:center">สถานที่</th>
+      <th style="text-align:center">กิจกรรมที่ดำเนินงาน</th>
+      <th style="text-align:center">กลุ่มเป้าหมาย</th>
+      <th style="text-align:center">ผู้รับผิดชอบ</th>
+    </tr>
+  </thead>
+  <tbody>${actRows||'<tr><td colspan="5" style="text-align:center">-</td></tr>'}</tbody>
+</table>
+
+<div class="sec">2. งบประมาณ</div>
+<table>
+  <thead><tr><th>แหล่งงบประมาณ</th><th>วงเงินที่ได้รับจัดสรร</th><th>วงเงินที่ใช้จ่ายจริง</th><th>คิดเป็นร้อยละ</th></tr></thead>
+  <tbody>${budRows||'<tr><td colspan="4" style="text-align:center">-</td></tr>'}</tbody>
+  <tfoot><tr class="total-row"><td>รวม</td>
+    <td style="text-align:right">${totalAlloc.toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+    <td style="text-align:right">${totalUsed.toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+    <td style="text-align:center">${totalAlloc>0?((totalUsed/totalAlloc)*100).toFixed(2):'-'}</td>
+  </tr></tfoot>
+</table>
+
+<div class="sec">3. ผลสำเร็จของการดำเนินงานตามตัวชี้วัด</div>
+<table>
+  <thead><tr><th>ตัวชี้วัด</th><th>ผลของการดำเนินงาน</th><th style="width:90pt">บรรลุ/ไม่บรรลุ</th></tr></thead>
+  <tbody>${kpiSection(d.kpiQty,'ตัวชี้วัดเชิงปริมาณ')}${kpiSection(d.kpiQl,'ตัวชี้วัดเชิงคุณภาพ')}</tbody>
+</table>
+
+<div class="sec">4. ปัญหา อุปสรรค และข้อเสนอแนะ</div>
+${probHtml||'<p>-</p>'}
+
+<div style="margin-top:30pt">
+  <div style="width:50%;margin-left:50%;text-align:center">
+    <div style="height:96pt"></div>
+    <div style="font-size:16pt">(${d.signerName||'....................................'})</div>
+    <div style="font-size:16pt">ผู้รับผิดชอบโครงการ</div>
+    <div style="font-size:16pt">วันที่ ${fmtDate(d.signDate)}</div>
+  </div>
+</div>
+</body></html>`;
+  const w=window.open('','_blank','width=900,height=800');
+  w.document.write(html);w.document.close();w.onload=()=>{w.focus();w.print();};
+}
+
+// ══════════════════════════════════════════
+// EXPORT PDF — แบบรายงานผลการดำเนินงาน
+// ══════════════════════════════════════════
+function exportPDF2(){
+  saveForm();
+  const d=gatherData().tab2;
+  const stratHtml=(d.strategies||[]).map((s,i)=>{
+    const m=(s||'').match(/^(ยุทธศาสตร์\s*\S+)\s+([\s\S]*)$/);
+    if(m)return`<table style="width:100%;border:none;border-collapse:collapse;margin:2pt 0;margin-left:2em;width:calc(100% - 2em)"><tr><td style="border:none;white-space:nowrap;vertical-align:top;padding:0 0.5em 0 0;width:1%">${m[1]}</td><td style="border:none;vertical-align:top;text-align:left;padding:0">${m[2].replace(/\n/g,'<br>')}</td></tr></table>`;
+    return`<p style="margin:2pt 0">${(s||'-').replace(/\n/g,'<br>')}</p>`;
+  }).join('');
+
+  const bmonRows=(d.bmonths||[]).map((b,i)=>`
+    <tr><td>${b.month||'-'}</td><td style="text-align:right">${b.hrs||0}</td><td style="text-align:right">${parseFloat(b.amt||0).toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr>`).join('');
+  const totalHrs=(d.bmonths||[]).reduce((s,b)=>s+(parseFloat(b.hrs)||0),0);
+  const totalAmt=(d.bmonths||[]).reduce((s,b)=>s+(parseFloat(b.amt)||0),0);
+  const comp=parseFloat(d.totalComp)||totalAmt;
+  const rate=(parseFloat(d.feeRate)||12)/100;
+  const fee=Math.round(comp*rate/10)*10;
+  const grand=comp+fee;
+
+  const bpersonRows=(d.bpersons||[]).map((b,i)=>`
+    <tr><td>${b.month||'-'}</td><td>${b.name||'-'}</td><td style="text-align:right">${b.sessions||0}</td><td style="text-align:right">${b.hrs||0}</td><td style="text-align:right">${parseFloat(b.amt||0).toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr>`).join('');
+
+  const kpiSection=(rows,label)=>{
+    if(!rows||!rows.length)return'';
+    return`<tr><td colspan="3" class="kpi-type-row">${label}</td></tr>`+
+      rows.map(k=>`<tr><td>${k.kpi||'-'}</td><td>${(k.result||'-').replace(/\n/g,'<br>')}</td><td style="text-align:center">${k.achieved==='บรรลุ'?'บรรลุ':'ไม่บรรลุ'}</td></tr>`).join('');
+  };
+  const benefitHtml=(d.benefits||[]).map((b,i)=>`<p>${i+1}. ${b||'-'}</p>`).join('');
+  const probHtml=(d.problems||[]).map((p,i)=>`
+    <p><strong>${i+1}. ปัญหา:</strong> ${(p.problem||'-').replace(/\n/g,'<br>')}</p>
+    <p><strong>ข้อเสนอแนะ:</strong> ${(p.suggestion||'-').replace(/\n/g,'<br>')}</p>`).join('<hr style="border:none;border-top:1pt dashed #ddd;margin:8pt 0">');
+
+  const evalRows=(d.evalRows||[]).map((e,i)=>`
+    <tr><td style="text-align:center">${i+1}</td><td style="text-align:center">${e.gender||'-'}</td><td style="text-align:center">${e.age||'-'}</td><td style="text-align:center">${e.score||'-'}</td></tr>`).join('');
+  const scores=(d.evalRows||[]).map(e=>parseFloat(e.score)||0).filter(s=>s>0);
+  const avg=scores.length?(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2):'-';
+  const evalSuggHtml=(d.evalSuggestions||[]).map((s,i)=>`<p>${i+1}. ${s||'-'}</p>`).join('');
+
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+<title>แบบรายงานผลการดำเนินงาน</title>
+<style>
+  @font-face{font-family:'THsarabunIT๙';src:local('THsarabunIT๙'),local('THSarabunIT๙'),local('TH SarabunIT9'),local('TH Sarabun IT9')}
+  @page{size:A4;margin:2.2cm 1.2cm 2.5cm 1.2cm}
+  body{font-family:'THsarabunIT๙',sans-serif;font-size:16pt;line-height:1.0;color:#000}
+  h1{font-size:16pt;font-weight:bold;text-align:center;margin:0 0 2pt}
+  h2{font-size:16pt;font-weight:bold;text-align:center;margin:0 0 8pt}
+  .sub{font-size:16pt;text-align:center;color:#333;margin-bottom:4pt}
+  .sec{font-size:16pt;font-weight:bold;margin:16pt 0 4pt}
+  .field{margin-bottom:4pt}
+  .field .lbl{font-weight:bold;color:#1d4ed8}
+  p{margin:0 0 4pt;padding-left:2em}
+  table{width:100%;border-collapse:collapse;margin:4pt 0 10pt;font-size:16pt}
+  th{background:#eff6ff;padding:6pt 8pt;border:1pt solid #bcd;font-weight:bold;text-align:center}
+  td{padding:5pt 8pt;border:1pt solid #ddd;vertical-align:top}
+  .total-row td{background:#eff6ff;font-weight:bold}
+  .kpi-type-row{background:#f0f0f0;font-weight:bold;font-size:16pt;color:#555}
+  .sum-box{background:#eff6ff;border:1pt solid #bcd;border-radius:6pt;padding:10pt;margin:4pt 0 10pt}
+  .sum-box table{margin:0;border:none}
+  .sum-box table td{border:none;padding:3pt 8pt}
+  .eval-avg td{background:#dcfce7;font-weight:bold;color:#166534}
+</style></head><body>
+<h1>แบบรายงานผลการดำเนินงาน</h1>
+<h2>${d.projName||'-'}</h2>
+<div class="sub">คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>
+
+<table style="width:100%;border:none;border-collapse:collapse;margin:14pt 0 6pt;border-left:4pt solid #1d4ed8;font-size:16pt"><tr>
+  <td style="border:none;white-space:nowrap;vertical-align:top;font-weight:bold;padding:0 0.6em 0 8pt;width:1%">๑. ชื่อโครงการ</td>
+  <td style="border:none;vertical-align:top;text-align:left;padding:0">${(d.projName||'-').replace(/\n/g,'<br>')}</td>
+</tr></table>
+
+<div class="sec">๒. ตอบสนองต่อยุทธศาสตร์ คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>
+${stratHtml||'<p>-</p>'}
+
+<div class="sec">๓. หน่วยงานที่รับผิดชอบ</div>
+<p>${d.dept||'-'}</p>
+
+<div class="sec">๔. ผู้รับผิดชอบโครงการ</div>
+<p>${d.responsible||'-'}</p>
+
+<div class="sec">๕. ระยะเวลาการดำเนินโครงการ</div>
+<p>ระยะเวลาเตรียมงาน: ${fmtDate(d.prepStart)} – ${fmtDate(d.prepEnd)}</p>
+<p>ระยะเวลาดำเนินงานจริง: ${fmtDate(d.workStart)} – ${fmtDate(d.workEnd)}</p>
+<p>ระยะเวลาสรุปงาน: ${fmtDate(d.summaryDate)}</p>
+
+<div class="sec">๖. สถานที่จัดโครงการ</div>
+<p>${d.location||'-'}</p>
+
+<div class="sec">๗. ผู้เข้าร่วมโครงการ</div>
+<p>${d.participants||'-'}</p>
+
+<div class="sec">๘. งบประมาณที่ใช้ในการดำเนินโครงการ</div>
+<table>
+  <thead><tr><th>เดือน/ปี</th><th>จำนวนชั่วโมงรวม</th><th>ค่าตอบแทน (บาท)</th></tr></thead>
+  <tbody>${bmonRows||'<tr><td colspan="3" style="text-align:center">-</td></tr>'}</tbody>
+  <tfoot><tr class="total-row"><td>รวม</td><td style="text-align:right">${totalHrs}</td><td style="text-align:right">${totalAmt.toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr></tfoot>
+</table>
+<div class="sum-box">
+  <table><tbody>
+    <tr><td>ค่าตอบแทนรวม</td><td style="text-align:right;font-weight:bold">${comp.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท</td></tr>
+    <tr><td>อัตราค่าธรรมเนียม ${d.feeRate||12}% (ปัดเศษเป็นหลักสิบ)</td><td style="text-align:right">${fee.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท</td></tr>
+    <tr><td style="font-weight:bold;color:#1d4ed8">ยอดรวมทั้งหมด</td><td style="text-align:right;font-weight:bold;color:#1d4ed8">${grand.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท</td></tr>
+  </tbody></table>
+</div>
+${bpersonRows?`<table>
+  <thead><tr><th>เดือน</th><th>ชื่อ</th><th>จำนวนคาบ</th><th>จำนวนชั่วโมง</th><th>จำนวนเงิน (บาท)</th></tr></thead>
+  <tbody>${bpersonRows}</tbody>
+</table>`:''}
+
+<div class="sec">๙. ผลสำเร็จของการดำเนินงานตามตัวชี้วัด</div>
+<table>
+  <thead><tr><th>ตัวชี้วัด</th><th>ผลของการดำเนินงาน</th><th style="width:90pt">บรรลุ/ไม่บรรลุ</th></tr></thead>
+  <tbody>${kpiSection(d.kpiQty,'ตัวชี้วัดเชิงปริมาณ')}${kpiSection(d.kpiQl,'ตัวชี้วัดเชิงคุณภาพ')}</tbody>
+</table>
+
+<div class="sec">๑๐. ประโยชน์ที่ได้รับจากการจัดโครงการฯ</div>
+${benefitHtml||'<p>-</p>'}
+
+<div class="sec">๑๑. ปัญหา อุปสรรค และข้อเสนอแนะ</div>
+${probHtml||'<p>-</p>'}
+
+</body></html>`;
+  const w=window.open('','_blank','width=900,height=800');
+  w.document.write(html);w.document.close();w.onload=()=>{w.focus();w.print();};
+}
+
+// ══════════════════════════════════════════
+function exportPDF3(){
+  saveForm();
+  const d=gatherData().tab3;
+  const total=parseInt(d.totalParticipants)||0;
+  const resp=parseInt(d.totalRespondents)||0;
+  const respPct=total>0&&resp>0?(resp/total*100).toFixed(2):'0';
+  const male=parseInt(d.maleCount)||0;
+  const female=parseInt(d.femaleCount)||0;
+  const malePct=resp>0?(male/resp*100).toFixed(2):'–';
+  const femalePct=resp>0?(female/resp*100).toFixed(2):'–';
+
+  // Build survey table rows grouped by section — each section in its own <tbody> to prevent mid-section page breaks
+  const allAvgs=[];
+  let itemNum=0;
+  // Group items into sections [{header, items[]}]
+  const _sections=[];let _cur=null;
+  (d.surveyItems||[]).forEach(row=>{
+    if(row.type==='header'){if(_cur)_sections.push(_cur);_cur={header:row,items:[]};}
+    else{if(!_cur)_cur={header:null,items:[]};_cur.items.push(row);}
+  });
+  if(_cur)_sections.push(_cur);
+  // Render each section as a separate <tbody page-break-inside:avoid>
+  const surveyBodies=_sections.map(sec=>{
+    let rows='';
+    if(sec.header)rows+=`<tr><td colspan="7" style="font-weight:bold;padding:5pt 8pt;text-align:left;background:#f0f4ff">${sec.header.label||''}</td></tr>`;
+    sec.items.forEach(row=>{
+      itemNum++;
+      const c=[parseInt(row.c1)||0,parseInt(row.c2)||0,parseInt(row.c3)||0,parseInt(row.c4)||0,parseInt(row.c5)||0];
+      const tot=c.reduce((a,b)=>a+b,0);
+      const wavg=tot>0?((c[0]*1+c[1]*2+c[2]*3+c[3]*4+c[4]*5)/tot).toFixed(2):'-';
+      if(tot>0)allAvgs.push(parseFloat(wavg));
+      rows+=`<tr><td>${itemNum}. ${row.label||''}</td>${c.map(v=>`<td style="text-align:center">${v}</td>`).join('')}<td style="text-align:center">${wavg}</td></tr>`;
+    });
+    return`<tbody style="page-break-inside:avoid">${rows}</tbody>`;
+  }).join('');
+  const overallAvg=allAvgs.length?(allAvgs.reduce((a,b)=>a+b,0)/allAvgs.length).toFixed(2):'-';
+  const avgBody=`<tbody><tr class="avg-row"><td colspan="6" style="text-align:right;font-weight:bold;background:#e8f5e9">ความพึงพอใจโดยเฉลี่ย</td><td class="avg-val" style="text-align:center;font-weight:bold;background:#e8f5e9">${overallAvg}</td></tr></tbody>`;
+
+  // Next interest
+  const nYes=parseInt(d.nextYes)||0;
+  const nMaybe=parseInt(d.nextMaybe)||0;
+  const nNo=parseInt(d.nextNo)||0;
+  const nTotal=nYes+nMaybe+nNo;
+  const pctFmt=(n)=>nTotal>0&&n>0?`ร้อยละ ${(n/nTotal*100).toFixed(2)} (${n} คน)`:'–';
+
+  // Suggestions
+  const suggHtml=(d.suggestions||'').split('\n').filter(s=>s.trim())
+    .map(s=>`<p style="margin:1pt 0">${s.startsWith('-')?s:'- '+s}</p>`).join('')||'<p>     -</p>';
+
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+<title>แบบสรุปผลการประเมินโครงการ</title>
+<style>
+  @font-face{font-family:'THsarabunIT๙';src:local('THsarabunIT๙'),local('THSarabunIT๙'),local('TH SarabunIT9'),local('TH Sarabun IT9'),url('fonts/THsarabunIT9.ttf')}
+  @page{size:A4;margin:2.2cm 1.5cm 2.5cm 1.5cm}
+  body{font-family:'THsarabunIT๙',sans-serif;font-size:16pt;line-height:1.4;color:#000}
+  h1{font-size:16pt;font-weight:bold;text-align:center;margin:0 0 2pt;line-height:1.4}
+  .center{text-align:center;margin:0 0 2pt}
+  .sec{font-size:16pt;font-weight:bold;margin:10pt 0 4pt}
+  p{margin:0 0 3pt;font-size:16pt}
+  .intro{text-indent:4em;margin:8pt 0 4pt}
+  table{width:100%;border-collapse:collapse;margin:4pt 0 8pt;font-size:16pt}
+  th{background:#f0f4ff;padding:4pt 6pt;border:1pt solid #aaa;font-weight:bold;text-align:center}
+  td{padding:3pt 6pt;border:1pt solid #ccc;vertical-align:middle}
+  .avg-row td{background:#e8f5e9;font-weight:bold;text-align:right}
+  .avg-val{text-align:center!important}
+</style></head><body>
+<h1>แบบสรุปผลการประเมินโครงการ${d.projName?'<br>'+d.projName:''}</h1>
+<p class="center">คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>
+<p class="center">วันที่ ${fmtDate(d.dateStart)}${d.dateEnd?' – '+fmtDate(d.dateEnd):''}</p>
+<p class="center">สถานที่ ${d.location||'-'}</p>
+
+<p class="intro">แบบประเมินนี้จัดทำขึ้นเพื่อสำรวจความคิดเห็นของผู้เข้าร่วมโครงการ${d.projName?' '+d.projName:''} คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ในการเก็บข้อมูลได้แจกแบบสอบถามแก่ผู้เข้าร่วมโครงการ จำนวน ${total} คน มีผู้ตอบแบบสอบถาม จำนวน ${resp} คน คิดเป็นร้อยละ ${respPct} ของผู้เข้าร่วมโครงการทั้งหมด</p>
+
+<div class="sec">ส่วนที่ ๑ ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม</div>
+<p style="padding-left:2em">เพศ &nbsp;&nbsp;&nbsp;&nbsp; ชาย &nbsp; ร้อยละ &nbsp; ${malePct} &nbsp;&nbsp; (${male} คน) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; หญิง &nbsp; ร้อยละ &nbsp; ${femalePct} &nbsp;&nbsp; (${female} คน)</p>
+
+<div class="sec">ส่วนที่ ๒ ความคิดเห็นของผู้เข้าร่วมโครงการ</div>
+<p style="padding-left:2em">เกณฑ์สำหรับประเมินความพึงพอใจ</p>
+<table style="width:100%;border:none;border-collapse:collapse;margin:2pt 0 4pt;font-size:16pt">
+  <colgroup><col style="width:36%"><col style="width:32%"><col style="width:32%"></colgroup>
+  <tr>
+    <td style="border:none;padding:0 1em 0 2em">น้อยที่สุด ๑.๐๐ – ๑.๘๐</td>
+    <td style="border:none;padding:0 1em 0 0">น้อย ๑.๘๑ – ๒.๖๐</td>
+    <td style="border:none;padding:0">ปานกลาง ๒.๖๑ – ๓.๔๐</td>
+  </tr>
+  <tr>
+    <td style="border:none;padding:0 1em 0 2em">มาก ๓.๔๑ – ๔.๒๐</td>
+    <td style="border:none;padding:0 1em 0 0">มากที่สุด ๔.๒๑ – ๕.๐๐</td>
+    <td style="border:none;padding:0"></td>
+  </tr>
+</table>
+<table>
+  <thead><tr>
+    <th style="text-align:left;width:52%">รายละเอียด</th>
+    <th style="width:7%">๑</th><th style="width:7%">๒</th><th style="width:7%">๓</th><th style="width:7%">๔</th><th style="width:7%">๕</th>
+    <th style="width:13%">ค่าเฉลี่ย</th>
+  </tr></thead>
+  ${surveyBodies||'<tbody><tr><td colspan="7" style="text-align:center">-</td></tr></tbody>'}${avgBody}
+</table>
+
+<div style="page-break-inside:avoid">
+<div class="sec">หากมีโครงการในครั้งถัดไป ท่านสนใจจะเข้าร่วมอีกหรือไม่</div>
+<p style="padding-left:2em">- สนใจเข้าร่วม ${pctFmt(nYes)}</p>
+<p style="padding-left:2em">- ไม่แน่ใจ ${pctFmt(nMaybe)}</p>
+<p style="padding-left:2em">- ไม่เข้าร่วม ${pctFmt(nNo)}</p>
+</div>
+
+<div style="page-break-inside:avoid">
+<div class="sec">ข้อคิดเห็น หรือข้อเสนอแนะ เพื่อใช้ในการพัฒนาการจัดโครงการ ในครั้งถัดไป</div>
+<div style="padding-left:2em">${suggHtml}</div>
+</div>
+
+</body></html>`;
+  const w=window.open('','_blank','width=900,height=800');
+  w.document.write(html);w.document.close();w.onload=()=>{w.focus();w.print();};
+}
+
+// ══════════════════════════════════════════
+// TAB 3 — แบบสรุปผลการประเมินโครงการ
+// ══════════════════════════════════════════
+let surveyN=0;
+
+function addSurveyHeader(label=''){
+  surveyN++;const n=surveyN;
+  const tr=document.createElement('tr');
+  tr.id=`survey-row-${n}`;tr.dataset.type='header';tr.className='svy-hdr';
+  tr.innerHTML=`<td colspan="7" style="padding:5px 8px;text-align:left">
+      <div style="display:flex;align-items:center;gap:6px">
+        <input class="finput" id="survey-lbl-${n}" value="${esc(label)}" placeholder="ชื่อหมวด" style="flex:1;font-weight:700;border:none;background:transparent;padding:2px 0;text-align:left">
+        <span style="font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;background:rgba(251,146,60,.25);color:#ea580c">หมวด</span>
+      </div>
+    </td>
+    <td class="td-action"><span class="drag-handle" title="ลากเพื่อย้าย">⠿</span><button class="btn-del-row" onclick="document.getElementById('survey-row-${n}').remove();calcSurveyOverallAvg()">✕</button></td>`;
+  document.getElementById('t3-survey-body').appendChild(tr);
+}
+
+function addSurveyItem(label='',c1='',c2='',c3='',c4='',c5=''){
+  surveyN++;const n=surveyN;
+  const tr=document.createElement('tr');
+  tr.id=`survey-row-${n}`;tr.dataset.type='item';
+  tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:4px"><span class="svy-num"></span><input class="finput" id="survey-lbl-${n}" value="${esc(label)}" placeholder="รายการประเมิน" style="flex:1;min-width:0"></div></td>
+    ${[c1,c2,c3,c4,c5].map((val,i)=>`<td><input class="finput" id="survey-c${i+1}-${n}" type="number" value="${val!=null&&val!==''?val:''}" min="0" style="width:100%;text-align:center;padding:4px 2px" oninput="calcSurveyAvg(${n})"></td>`).join('')}
+    <td class="svy-avg" id="survey-avg-${n}">-</td>
+    <td class="td-action"><span class="drag-handle" title="ลากเพื่อย้าย">⠿</span><button class="btn-del-row" onclick="document.getElementById('survey-row-${n}').remove();calcSurveyOverallAvg()">✕</button></td>`;
+  document.getElementById('t3-survey-body').appendChild(tr);
+  calcSurveyAvg(n);
+}
+
+function calcSurveyAvg(n){
+  const counts=[1,2,3,4,5].map(i=>parseInt(document.getElementById(`survey-c${i}-${n}`)?.value)||0);
+  const total=counts.reduce((a,b)=>a+b,0);
+  const sum=counts.reduce((s,c,i)=>s+c*(i+1),0);
+  const el=document.getElementById(`survey-avg-${n}`);
+  if(el)el.textContent=total>0?(sum/total).toFixed(2):'-';
+  calcSurveyOverallAvg();
+}
+
+function calcSurveyOverallAvg(){
+  const avgs=[...document.querySelectorAll('[id^="survey-row-"]')]
+    .filter(r=>r.dataset.type==='item')
+    .map(r=>{const n=r.id.replace('survey-row-','');return parseFloat(document.getElementById(`survey-avg-${n}`)?.textContent)||null;})
+    .filter(v=>v!==null);
+  const el=document.getElementById('t3-overall-avg');
+  if(el)el.textContent=avgs.length?(avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(2):'-';
+}
+
+// ── Survey Drag-and-Drop ──────────────────────────────────────────────────────
+(function(){
+  let dragRow=null,handleDown=null;
+  function surveyTr(el){return el?.closest('#t3-survey-body tr')||null;}
+
+  // เปิด draggable เฉพาะเมื่อกด drag handle — ป้องกันขัดแย้งกับ input
+  document.addEventListener('mousedown',e=>{
+    const handle=e.target.closest('.drag-handle');
+    if(handle){
+      const tr=surveyTr(handle);
+      if(tr){tr.draggable=true;handleDown=tr;}
+    }
+  },true);
+  document.addEventListener('mouseup',()=>{
+    if(handleDown){handleDown.draggable=false;handleDown=null;}
+  },true);
+
+  document.addEventListener('dragstart',e=>{
+    const tr=surveyTr(e.target);
+    if(!tr||!tr.draggable)return;
+    dragRow=tr;
+    setTimeout(()=>tr.classList.add('svy-dragging'),0);
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',tr.id);
+  },true);
+
+  document.addEventListener('dragover',e=>{
+    const tr=surveyTr(e.target);
+    if(!tr||!dragRow)return;
+    e.preventDefault();e.dataTransfer.dropEffect='move';
+    const tbody=document.getElementById('t3-survey-body');
+    tbody.querySelectorAll('.svy-drag-over').forEach(r=>r.classList.remove('svy-drag-over'));
+    if(tr===dragRow)return;
+    const rect=tr.getBoundingClientRect();
+    tr.classList.add('svy-drag-over');
+    if(e.clientY<rect.top+rect.height/2)tbody.insertBefore(dragRow,tr);
+    else tbody.insertBefore(dragRow,tr.nextSibling);
+  },true);
+
+  document.addEventListener('dragend',()=>{
+    if(dragRow){dragRow.classList.remove('svy-dragging');dragRow.draggable=false;dragRow=null;}
+    handleDown=null;
+    document.getElementById('t3-survey-body')?.querySelectorAll('.svy-drag-over').forEach(r=>r.classList.remove('svy-drag-over'));
+    calcSurveyOverallAvg();
+  },true);
+})();
+
+function gatherSurveyItems(){
+  return[...document.querySelectorAll('[id^="survey-row-"]')].map(r=>{
+    const n=r.id.replace('survey-row-','');
+    const type=r.dataset.type;
+    const label=document.getElementById(`survey-lbl-${n}`)?.value||'';
+    if(type==='header')return{type:'header',label};
+    return{type:'item',label,
+      c1:document.getElementById(`survey-c1-${n}`)?.value||'0',
+      c2:document.getElementById(`survey-c2-${n}`)?.value||'0',
+      c3:document.getElementById(`survey-c3-${n}`)?.value||'0',
+      c4:document.getElementById(`survey-c4-${n}`)?.value||'0',
+      c5:document.getElementById(`survey-c5-${n}`)?.value||'0'};
+  });
+}
+
+function resetSurveyToDefault(){
+  if(!confirm('รีเซ็ตตารางความพึงพอใจกลับเป็นค่าเริ่มต้น?\nข้อมูลที่กรอกไว้ในตารางจะถูกแทนที่'))return;
+  document.getElementById('t3-survey-body').innerHTML='';surveyN=0;
+  _initDefaultSurveyItems();
+  calcSurveyOverallAvg();
+}
+function _initDefaultSurveyItems(){
+  addSurveyHeader('ด้านวิทยากร');
+  addSurveyItem('การถ่ายทอดความรู้และการอธิบายเนื้อหาของวิทยากรมีความชัดเจน',0,0,0,0,0);
+  addSurveyItem('การเชื่อมโยงเนื้อหาในการฝึกอบรม',0,0,0,0,0);
+  addSurveyItem('ใช้เวลาตามที่กำหนดไว้',0,0,0,0,0);
+  addSurveyItem('การตอบข้อซักถามในการฝึกอบรม',0,0,0,0,0);
+  addSurveyItem('การยกตัวอย่างประกอบการบรรยาย',0,0,0,0,0);
+  addSurveyHeader('ด้านสถานที่ / ระยะเวลา');
+  addSurveyItem('ความพึงพอใจต่อสถานที่และสภาพแวดล้อมในการประชุมเชิงปฏิบัติการ',0,0,0,0,0);
+  addSurveyItem('ความเหมาะสมของอุปกรณ์ในการประชุมเชิงปฏิบัติการ',0,0,0,0,0);
+  addSurveyItem('ระยะเวลาในการประชุมเชิงปฏิบัติการมีความเหมาะสม',0,0,0,0,0);
+  addSurveyHeader('ประโยชน์ที่ได้รับจากการประชุมเชิงปฏิบัติการ');
+  addSurveyItem('สามารถส่งเสริมการพัฒนาและการใช้เทคโนโลยีสารสนเทศในชีววิทยาและการแพทย์ ผ่านความร่วมมือระหว่างนักวิจัย นักวิชาการ และผู้เชี่ยวชาญในสาขาต่าง ๆ ทั้งในและนอกประเทศ',0,0,0,0,0);
+  addSurveyItem('สามารถแลกเปลี่ยนความรู้ทางด้านการใช้เทคโนโลยีสารสนเทศในทางชีววิทยาและการแพทย์ ระหว่างนักวิจัย นักวิชาการ และผู้เชี่ยวชาญในสาขาต่าง ๆ ทั้งในและนอกประเทศ',0,0,0,0,0);
+  addSurveyItem('สามารถสร้างเครือข่ายความร่วมมือทางด้านเทคโนโลยีสารสนเทศในทางชีววิทยาและการแพทย์ ระหว่างนักวิจัย นักวิชาการ และผู้เชี่ยวชาญในสาขาต่าง ๆ ทั้งในและนอกประเทศ',0,0,0,0,0);
+}
+
+function updateSurveyStats(){
+  const total=parseInt(document.getElementById('t3-totalParticipants')?.value)||0;
+  const resp=parseInt(document.getElementById('t3-totalRespondents')?.value)||0;
+  sv('t3-responsePct',total>0&&resp>0?`${(resp/total*100).toFixed(2)}%`:'');
+  updateGenderPct();updateNextPct();
+}
+function updateGenderPct(){
+  const resp=parseInt(document.getElementById('t3-totalRespondents')?.value)||0;
+  const male=parseInt(document.getElementById('t3-maleCount')?.value)||0;
+  const female=parseInt(document.getElementById('t3-femaleCount')?.value)||0;
+  sv('t3-malePct',resp>0?`${(male/resp*100).toFixed(2)}%`:'');
+  sv('t3-femalePct',resp>0?`${(female/resp*100).toFixed(2)}%`:'');
+}
+function updateNextPct(){
+  const yes=parseInt(document.getElementById('t3-nextYes')?.value)||0;
+  const maybe=parseInt(document.getElementById('t3-nextMaybe')?.value)||0;
+  const no=parseInt(document.getElementById('t3-nextNo')?.value)||0;
+  const total=yes+maybe+no;
+  const pct=(n)=>total>0?`ร้อยละ ${(n/total*100).toFixed(2)}`:'';
+  const elY=document.getElementById('t3-nextYesPct');if(elY)elY.textContent=pct(yes);
+  const elM=document.getElementById('t3-nextMaybePct');if(elM)elM.textContent=pct(maybe);
+  const elN=document.getElementById('t3-nextNoPct');if(elN)elN.textContent=pct(no);
+}
+
+// ══════════════════════════════════════════
+// GOOGLE FORM / SHEET IMPORT
+// ══════════════════════════════════════════
+function _sheetUrlToCsv(rawUrl){
+  const m1=rawUrl.match(/\/spreadsheets\/d\/([^/]+)/);
+  if(m1){
+    const sid=m1[1];
+    const gidM=rawUrl.match(/[?&#]gid=(\d+)/);
+    const gid=gidM?gidM[1]:'0';
+    return`https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${gid}`;
+  }
+  return rawUrl;
+}
+
+function addSheetUrlRow(){
+  const list=document.getElementById('gsheet-url-list');
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:8px;align-items:center';
+  row.innerHTML=`<input class="finput gsheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/…/edit" style="flex:1;min-width:200px">
+    <button onclick="this.closest('div').remove()" title="ลบ" style="padding:8px 14px;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.84rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:var(--tr)">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+function mergeGFormData(results){
+  if(!results||!results.length)return{totalRespondents:0,maleCount:0,femaleCount:0,nextYes:0,nextMaybe:0,nextNo:0,ratingData:[],suggestions:''};
+  if(results.length===1)return results[0];
+  const merged={totalRespondents:0,maleCount:0,femaleCount:0,nextYes:0,nextMaybe:0,nextNo:0,ratingData:[],suggestions:''};
+  const suggParts=[];
+  results.forEach(r=>{
+    merged.totalRespondents+=(r.totalRespondents||0);
+    merged.maleCount+=(r.maleCount||0);
+    merged.femaleCount+=(r.femaleCount||0);
+    merged.nextYes+=(r.nextYes||0);
+    merged.nextMaybe+=(r.nextMaybe||0);
+    merged.nextNo+=(r.nextNo||0);
+    if(r.suggestions)suggParts.push(r.suggestions);
+    (r.ratingData||[]).forEach((rd,i)=>{
+      if(!merged.ratingData[i])merged.ratingData[i]={label:rd.label,counts:[0,0,0,0,0]};
+      rd.counts.forEach((c,j)=>{merged.ratingData[i].counts[j]+=c;});
+    });
+  });
+  merged.suggestions=suggParts.join('\n');
+  return merged;
+}
+
+function importFromGoogleSheet(){
+  const urls=[...document.querySelectorAll('.gsheet-url-input')]
+    .map(el=>(el.value||'').trim()).filter(u=>u);
+  if(!urls.length){toast('กรุณาระบุ URL ของ Google Sheet','err');return;}
+  const statusEl=document.getElementById('gsheet-status');
+  const btn=document.getElementById('btn-import-gsheet');
+  btn.disabled=true;
+  btn.textContent=urls.length>1?`⏳ กำลังโหลด ${urls.length} Sheet...`:'⏳ กำลังโหลด...';
+  statusEl.textContent='';statusEl.style.color='var(--sub)';
+
+  Promise.all(urls.map((u,idx)=>
+    fetch(_sheetUrlToCsv(u))
+      .then(r=>{if(!r.ok)throw new Error(`Sheet ${idx+1}: HTTP ${r.status} – ตรวจสอบว่า Share เป็น "Anyone with the link" แล้ว`);return r.text();})
+      .then(csv=>parseGFormCSV(csv))
+  ))
+  .then(results=>{
+    const merged=mergeGFormData(results);
+    applyGFormData(merged);
+    const src=urls.length>1?`${urls.length} Sheet รวมกัน`:'1 Sheet';
+    statusEl.textContent=`✓ นำเข้าสำเร็จ (${src}): ${merged.totalRespondents} คำตอบ · ชาย ${merged.maleCount} หญิง ${merged.femaleCount} · ความพึงพอใจ ${merged.ratingData.length} ข้อ`;
+    statusEl.style.color='#16a34a';
+    toast(`นำเข้า ${merged.totalRespondents} คำตอบจาก ${src} สำเร็จ ✓`,'ok');
+  })
+  .catch(err=>{
+    statusEl.textContent=`⚠ ${err.message}`;statusEl.style.color='#dc2626';
+    toast('นำเข้าล้มเหลว — ดูรายละเอียดด้านล่าง','err');
+  })
+  .finally(()=>{btn.disabled=false;btn.textContent='🔗 นำเข้าข้อมูล';});
+}
+
+function _parseCSVLine(line){
+  const res=[];let cur='';let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){res.push(cur);cur='';}
+    else cur+=c;
+  }
+  res.push(cur);return res;
+}
+
+function parseGFormCSV(csvText){
+  const lines=csvText.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  const nonEmpty=lines.filter(l=>l.trim());
+  if(nonEmpty.length<2)return{totalRespondents:0,maleCount:0,femaleCount:0,nextYes:0,nextMaybe:0,nextNo:0,ratingData:[],suggestions:''};
+
+  const headers=_parseCSVLine(nonEmpty[0]);
+  const rows=nonEmpty.slice(1).map(l=>_parseCSVLine(l));
+  const n=rows.length;
+
+  let genderCol=-1,nextCol=-1,suggCols=[];
+  const ratingCols=[];
+
+  headers.forEach((h,i)=>{
+    const hl=(h||'').toLowerCase();
+    if(hl.includes('ประทับเวลา')||hl.includes('timestamp')||hl==='')return;
+    if(hl.includes('เพศ')||hl==='gender'||hl==='sex'){genderCol=i;return;}
+    if(hl.includes('เสนอแนะ')||hl.includes('คิดเห็น')||hl.includes('comment')||hl.includes('suggestion')){suggCols.push(i);return;}
+    if((hl.includes('ครั้งถัด')||hl.includes('สนใจเข้าร่วมอีก')||hl.includes('สนใจจะเข้าร่วมอีก')||hl.includes('next'))&&!hl.includes('เสนอแนะ')){nextCol=i;return;}
+    // rating column: values are mostly 1-5
+    const vals=rows.map(r=>(r[i]||'').trim()).filter(v=>v);
+    if(vals.length&&vals.every(v=>/^[1-5]$/.test(v))){ratingCols.push({idx:i,label:h});return;}
+    // fallback rating: numeric column with avg in 1-5 range
+    const nums=vals.map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+    if(nums.length&&nums.every(v=>v>=1&&v<=5)){ratingCols.push({idx:i,label:h});}
+  });
+
+  // Count gender
+  let maleCount=0,femaleCount=0;
+  if(genderCol>=0){
+    rows.forEach(r=>{
+      const g=(r[genderCol]||'').trim().toLowerCase();
+      if(g==='ชาย'||g==='male'||g==='m'||g==='1')maleCount++;
+      else if(g==='หญิง'||g==='female'||g==='f'||g==='2')femaleCount++;
+    });
+  }
+
+  // Count next interest
+  let nextYes=0,nextMaybe=0,nextNo=0;
+  if(nextCol>=0){
+    rows.forEach(r=>{
+      const val=(r[nextCol]||'').trim().toLowerCase();
+      if(val.includes('สนใจ')||val.includes('yes')||val==='สนใจเข้าร่วม')nextYes++;
+      else if(val.includes('ไม่แน่ใจ')||val.includes('maybe')||val.includes('perhaps'))nextMaybe++;
+      else if(val.includes('ไม่')||val.includes('no'))nextNo++;
+      else if(val)nextYes++; // default non-empty = yes
+    });
+  }
+
+  // Rating counts
+  const ratingData=ratingCols.map(col=>{
+    const counts=[0,0,0,0,0];
+    rows.forEach(r=>{
+      const v=parseInt((r[col.idx]||'').trim());
+      if(v>=1&&v<=5)counts[v-1]++;
+    });
+    return{label:col.label,counts};
+  });
+
+  // Suggestions
+  const suggLines=[];
+  suggCols.forEach(ci=>{
+    rows.forEach(r=>{
+      const s=(r[ci]||'').trim();
+      if(s)suggLines.push(s);
+    });
+  });
+  const suggestions=suggLines.map(s=>s.startsWith('-')?s:`- ${s}`).join('\n');
+
+  return{totalRespondents:n,maleCount,femaleCount,nextYes,nextMaybe,nextNo,ratingData,suggestions};
+}
+
+function _labelSim(a,b){
+  const norm=s=>(s||'').replace(/\s+/g,'').replace(/[๐-๙0-9๑-๙]/g,'').slice(0,15);
+  const na=norm(a),nb=norm(b);
+  if(!na||!nb)return 0;
+  if(na===nb)return 1;
+  let m=0;const len=Math.min(na.length,nb.length);
+  for(let i=0;i<len;i++)if(na[i]===nb[i])m++;
+  const bonus=(na.includes(nb.slice(0,8))||nb.includes(na.slice(0,8)))?3:0;
+  return(m+bonus)/(len+bonus||1);
+}
+
+function _matchRatingToRows(ratingData){
+  // Get current survey item rows
+  const rows=[...document.querySelectorAll('[id^="survey-row-"]')]
+    .filter(r=>r.dataset.type==='item')
+    .map(r=>{const n=r.id.replace('survey-row-','');return{n,label:document.getElementById('survey-lbl-'+n)?.value||''};});
+  if(!rows.length||!ratingData.length)return[];
+  // For each ratingData entry, find best matching row by label similarity
+  const used=new Set();
+  return ratingData.map((rd,rdIdx)=>{
+    // Try fuzzy match first
+    let bestRow=null,bestScore=0;
+    rows.forEach((row,ri)=>{
+      if(used.has(ri))return;
+      const score=_labelSim(rd.label,row.label);
+      if(score>bestScore){bestScore=score;bestRow={row,ri};}
+    });
+    // Use fuzzy match if score decent, else fall back to order
+    if(bestRow&&bestScore>0.3){used.add(bestRow.ri);return{row:bestRow.row,counts:rd.counts};}
+    // Fallback: sequential
+    const fallback=rows.find((_,ri)=>!used.has(ri));
+    if(fallback){const ri=rows.indexOf(fallback);used.add(ri);return{row:fallback,counts:rd.counts};}
+    return null;
+  }).filter(Boolean);
+}
+
+function applyGFormData(data){
+  if(!data)return;
+  sv('t3-totalRespondents',String(data.totalRespondents||0));
+  sv('t3-maleCount',String(data.maleCount||0));
+  sv('t3-femaleCount',String(data.femaleCount||0));
+  sv('t3-nextYes',String(data.nextYes||0));
+  sv('t3-nextMaybe',String(data.nextMaybe||0));
+  sv('t3-nextNo',String(data.nextNo||0));
+  if(data.suggestions){
+    const ta=document.getElementById('t3-suggestions');
+    if(ta){ta.value=data.suggestions;autoResize(ta);}
+  }
+  updateSurveyStats();
+  // Apply rating data to survey rows
+  if(data.ratingData&&data.ratingData.length){
+    const matches=_matchRatingToRows(data.ratingData);
+    matches.forEach(({row,counts})=>{
+      const n=row.n;
+      [1,2,3,4,5].forEach((c,j)=>{
+        const el=document.getElementById(`survey-c${c}-${n}`);
+        if(el){el.value=counts[j]||0;}
+      });
+      calcSurveyAvg(n);
+    });
+  }
+}
+
+function showGFormGuide(){
+  const msg='แนวทางสร้าง Google Form:\n\n'
+    +'1. ตั้งคำถามเพศ (ตัวเลือก: ชาย / หญิง)\n'
+    +'2. ตั้งคำถามความพึงพอใจแต่ละข้อ (ระดับคะแนน Linear Scale 1–5)\n'
+    +'3. ตั้งคำถามความสนใจครั้งถัดไป (ตัวเลือก: สนใจเข้าร่วม / ไม่แน่ใจ / ไม่เข้าร่วม)\n'
+    +'4. ตั้งคำถามข้อเสนอแนะ (Paragraph)\n\n'
+    +'จากนั้น Link Google Sheet → เปิด Share เป็น "Anyone with the link can view" → วาง URL ในช่องด้านบน';
+  alert(msg);
+}
+
+</script>
+</html>

@@ -174,7 +174,8 @@ footer{text-align:center;padding:20px;color:rgba(74,77,87,.28);font-size:.66rem;
 
 <nav>
   <div class="nav-brand">
-    <img src="mainlogo2.gif" alt="คณะเภสัชศาสตร์" style="height:36px;width:auto;object-fit:contain">
+    <div class="au-dot"></div>
+    <span class="brand-name">คณะเภสัชศาสตร์</span>
   </div>
   <div class="nav-mid">
     <span class="nav-page-ico">🚀</span>
@@ -337,7 +338,7 @@ function openPV(url,name,ext,isDrive){
   const body=document.getElementById('pv-body');body.innerHTML='';
   if(isDrive||ext==='.pdf'){const ifr=document.createElement('iframe');ifr.src=url;body.appendChild(ifr);}
   else if(!isDrive&&IMG_EXT.has(ext)){const img=document.createElement('img');img.src=url;img.alt=name;body.appendChild(img);}
-  else if(ext==='.txt'||ext==='.md'){body.innerHTML='<div style="padding:24px;width:100%;height:100%;overflow:auto"><pre id="pv-txt" style="color:#16181f;font-family:\'Prompt\',sans-serif;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-word">กำลังโหลด…</pre></div>';fetch(url).then(r=>r.text()).then(t=>{const p=document.getElementById('pv-txt');if(p)p.textContent=t;}).catch(()=>{const p=document.getElementById('pv-txt');if(p)p.textContent='ไม่สามารถโหลดได้';});}
+  else if(ext==='.txt'||ext==='.md'){body.innerHTML='<div style="padding:24px;width:100%;height:100%;overflow:auto"><pre id="pv-txt" style="color:#16181f;font-family:\'Kanit\',sans-serif;font-size:.85rem;line-height:1.7;white-space:pre-wrap;word-break:break-word">กำลังโหลด…</pre></div>';fetch(url).then(r=>r.text()).then(t=>{const p=document.getElementById('pv-txt');if(p)p.textContent=t;}).catch(()=>{const p=document.getElementById('pv-txt');if(p)p.textContent='ไม่สามารถโหลดได้';});}
   else{body.innerHTML=`<div class="pv-unsupported"><div class="pv-ext">${ICO_MAP[ext]||'📁'}</div><p>ไม่รองรับการแสดงตัวอย่างไฟล์ .${ext.replace('.','').toUpperCase()}<br><span style="font-size:.72rem;opacity:.5">กรุณาดาวน์โหลดเพื่อเปิดดู</span></p></div>`;}
   document.getElementById('pv-modal').classList.add('open');document.body.style.overflow='hidden';
 }

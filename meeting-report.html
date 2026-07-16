@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>รายงานการประชุม · คณะเภสัชศาสตร์</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="auth.js?v=2"></script>
+<script>if(!getUser()){location.replace('login.html');}</script>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030014;--card:#0d0d22;--brd:rgba(139,92,246,.2);--brdw:rgba(255,255,255,.07);
+  --txt:#e8e8ff;--sub:#888aaa;--accent:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--green:#34d399;
+  --font:'Prompt',sans-serif;--radius:14px;--tr:.25s ease;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;position:relative;overflow-x:hidden;font-size:16px;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 55% at 8% 50%,rgba(6,182,212,.16) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 55% at 92% 40%,rgba(139,92,246,.18) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 50% 60%,rgba(219,39,119,.1) 0%,transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,#0a061a 0%,#06040f 100%);
+  animation:nebulaBreath 18s ease-in-out infinite alternate}
+@keyframes nebulaBreath{0%{opacity:1}50%{opacity:.88}100%{opacity:1}}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%,rgba(255,255,255,.32) 0%,transparent 100%),
+    radial-gradient(1px 1px at 35% 9%,rgba(255,255,255,.22) 0%,transparent 100%),
+    radial-gradient(2px 2px at 68% 15%,rgba(255,255,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 6%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 94% 42%,rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 3% 68%,rgba(255,255,255,.18) 0%,transparent 100%),
+    radial-gradient(2px 2px at 76% 75%,rgba(200,180,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 88%,rgba(255,255,255,.18) 0%,transparent 100%)}
+#mouse-nebula{position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse 40% 35% at 50% 50%,rgba(139,92,246,.2) 0%,transparent 70%)}
+
+/* NAVBAR */
+.navbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;gap:14px;padding:12px 24px;
+  background:rgba(3,0,20,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd)}
+.navbar-icon{width:36px;height:36px;background:linear-gradient(135deg,#a78bfa,#22d3ee);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.navbar-info{flex:1;min-width:0}
+.navbar-info h1{font-size:.9rem;font-weight:700;letter-spacing:.04em;color:#c4b5fd;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navbar-info p{font-size:.66rem;color:var(--sub)}
+.btn-home{background:none;border:1px solid var(--brd);color:var(--sub);font-family:var(--font);
+  font-size:.78rem;padding:.35rem .9rem;border-radius:20px;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.btn-home:hover{border-color:#a78bfa;color:#a78bfa}
+
+/* PROJECT BANNER */
+.proj-banner{margin:20px 24px 0;padding:14px 20px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(6,182,212,.06));
+  border:1px solid rgba(139,92,246,.22);position:relative;z-index:2}
+.proj-banner-label{font-size:.68rem;color:var(--sub);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.proj-banner-name{font-size:.95rem;font-weight:700;color:#f0efff;line-height:1.45}
+
+/* CONTAINER */
+.container{max-width:860px;margin:0 auto;padding:20px 20px 60px;position:relative;z-index:2}
+
+/* FORM SECTIONS */
+.fsec{background:rgba(255,255,255,.03);border:1px solid var(--brdw);border-radius:var(--radius);
+  padding:22px;margin-bottom:16px;transition:border-color .3s}
+.fsec:hover{border-color:rgba(139,92,246,.2)}
+.fsec-title{font-size:.95rem;font-weight:700;color:#c4b5fd;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px}
+.fsec-title::before{content:'';width:3px;height:18px;
+  background:linear-gradient(180deg,#a78bfa,#22d3ee);border-radius:2px}
+
+/* FORM INPUTS */
+.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:170px}
+.form-group.full{flex:100%;min-width:0}
+.form-group.w2{flex:2}
+.form-group label{font-size:.78rem;font-weight:600;color:var(--sub);letter-spacing:.04em}
+.finput{background:rgba(255,255,255,.05);border:1px solid var(--brdw);border-radius:9px;
+  color:var(--txt);font-family:var(--font);font-size:.93rem;padding:8px 12px;
+  outline:none;transition:var(--tr);width:100%}
+.finput:focus{border-color:rgba(139,92,246,.55);box-shadow:0 0 0 3px rgba(139,92,246,.1);background:rgba(255,255,255,.07)}
+textarea.finput{resize:none;overflow:hidden;min-height:64px}
+
+/* DYNAMIC ROWS */
+.dyn-container{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.dyn-row{display:flex;align-items:flex-start;gap:8px;background:rgba(255,255,255,.02);
+  border:1px solid var(--brdw);border-radius:10px;padding:10px 12px;position:relative}
+.dyn-row:hover{border-color:rgba(139,92,246,.18)}
+.row-num{font-size:.78rem;color:var(--accent);font-weight:700;min-width:1.6em;
+  text-align:center;padding-top:9px;flex-shrink:0}
+.dyn-fields{flex:1;display:flex;gap:8px;flex-wrap:wrap;min-width:0}
+.dyn-fields input,.dyn-fields textarea{flex:1;min-width:140px}
+.btn-del-row{background:none;border:1px solid rgba(239,68,68,.2);color:#f87171;
+  border-radius:6px;cursor:pointer;font-size:.72rem;padding:4px 8px;flex-shrink:0;
+  transition:var(--tr);white-space:nowrap;margin-top:5px}
+.btn-del-row:hover{background:rgba(239,68,68,.15)}
+.btn-add{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;
+  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);
+  border-radius:8px;color:#c4b5fd;font-size:.8rem;font-family:var(--font);
+  cursor:pointer;transition:var(--tr)}
+.btn-add:hover{background:rgba(139,92,246,.22);border-color:#a78bfa}
+
+/* AGENDA ITEM */
+.agenda-block{background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.15);
+  border-radius:12px;padding:16px;margin-bottom:12px;position:relative}
+.agenda-block:hover{border-color:rgba(139,92,246,.3)}
+.agenda-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.agenda-num-badge{background:rgba(139,92,246,.2);color:#c4b5fd;font-weight:700;
+  font-size:.82rem;padding:4px 12px;border-radius:20px;white-space:nowrap}
+.agenda-title-input{flex:1}
+.btn-del-agenda{background:none;border:1px solid rgba(239,68,68,.2);color:#f87171;
+  border-radius:8px;cursor:pointer;font-size:.8rem;padding:4px 10px;transition:var(--tr)}
+.btn-del-agenda:hover{background:rgba(239,68,68,.15)}
+.agenda-label{font-size:.76rem;color:var(--sub);letter-spacing:.04em;margin-bottom:4px;font-weight:600}
+
+/* FORM ACTIONS */
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;
+  padding:20px 0 10px;border-top:1px solid var(--brdw);margin-top:8px}
+.btn-save{padding:10px 26px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;
+  border:none;border-radius:10px;font-family:var(--font);font-size:.92rem;font-weight:700;
+  cursor:pointer;transition:var(--tr);box-shadow:0 4px 20px rgba(124,58,237,.35)}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,.5)}
+.btn-export-pdf{padding:10px 22px;background:rgba(219,39,119,.12);color:#f472b6;
+  border:1px solid rgba(219,39,119,.25);border-radius:10px;font-family:var(--font);
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:var(--tr)}
+.btn-export-pdf:hover{background:rgba(219,39,119,.25);box-shadow:0 0 20px rgba(219,39,119,.2)}
+.btn-export-word{padding:10px 22px;background:rgba(6,182,212,.12);color:#22d3ee;
+  border:1px solid rgba(6,182,212,.28);border-radius:10px;font-family:var(--font);
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:var(--tr)}
+.btn-export-word:hover{background:rgba(6,182,212,.25);box-shadow:0 0 20px rgba(6,182,212,.2)}
+
+/* DIVIDER */
+.sec-divider{height:1px;background:rgba(139,92,246,.15);margin:4px 0 16px}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;z-index:9999;padding:12px 22px;
+  border-radius:12px;font-size:.88rem;font-weight:600;opacity:0;transform:translateY(12px);
+  transition:.3s;pointer-events:none;backdrop-filter:blur(20px)}
+.toast.show{opacity:1;transform:none}
+.toast.ok{background:rgba(52,211,153,.2);border:1px solid rgba(52,211,153,.4);color:#6ee7b7}
+.toast.err{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5}
+
+/* USER BADGE */
+.user-badge{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:20px;
+  background:rgba(255,255,255,.05);border:1px solid var(--brdw);font-size:.76rem;color:var(--sub);white-space:nowrap}
+.user-badge .ub-name{color:var(--txt);font-weight:600}
+.ub-role{font-size:.68rem;padding:2px 7px;border-radius:10px;font-weight:700}
+.ub-role.admin{background:rgba(204,255,0,.15);color:#CCFF00;border:1px solid rgba(204,255,0,.3)}
+.ub-role.user{background:rgba(34,211,238,.1);color:#22d3ee;border:1px solid rgba(34,211,238,.25)}
+
+@media(max-width:640px){
+  .navbar{padding:10px 14px}.proj-banner{margin:14px 14px 0}.container{padding:16px 14px 48px}
+  .form-row{gap:8px}.form-group{min-width:100%}
+}
+</style>
+</head>
+<body>
+
+<div id="mouse-nebula"></div>
+
+<nav class="navbar">
+  <div class="navbar-icon">📋</div>
+  <div class="navbar-info">
+    <h1>รายงานการประชุม</h1>
+    <p id="nav-proj-name">กำลังโหลด...</p>
+  </div>
+  <div id="user-badge-container"></div>
+  <button class="btn-home" onclick="goBack()">← ย้อนกลับ</button>
+</nav>
+
+<div class="proj-banner" id="proj-banner">
+  <div class="proj-banner-label">โครงการ</div>
+  <div class="proj-banner-name" id="banner-proj-name">กำลังโหลด...</div>
+</div>
+
+<div class="container">
+
+  <!-- ═══ Section 1: ข้อมูลการประชุม ═══ -->
+  <div class="fsec">
+    <div class="fsec-title">ข้อมูลการประชุม</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ครั้งที่</label>
+        <input class="finput" id="f-meetingNo" placeholder="เช่น 1/2568">
+      </div>
+      <div class="form-group">
+        <label>วันที่ประชุม</label>
+        <input class="finput" type="date" id="f-meetingDate">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>เวลาเริ่ม</label>
+        <input class="finput" type="time" id="f-timeStart">
+      </div>
+      <div class="form-group">
+        <label>เวลาสิ้นสุด</label>
+        <input class="finput" type="time" id="f-timeEnd">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>สถานที่ประชุม</label>
+        <input class="finput" id="f-venue" placeholder="เช่น ห้องประชุม 1 อาคารคณะเภสัชศาสตร์">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>ชื่อโครงการ</label>
+        <input class="finput" id="f-projName" placeholder="ชื่อโครงการบริการวิชาการ">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group w2">
+        <label>ประธานที่ประชุม (ชื่อ-สกุล)</label>
+        <input class="finput" id="f-chairName" placeholder="ชื่อประธาน">
+      </div>
+      <div class="form-group">
+        <label>ตำแหน่ง</label>
+        <input class="finput" id="f-chairPos" placeholder="เช่น คณบดีคณะเภสัชศาสตร์">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Section 2: ผู้เข้าร่วมประชุม ═══ -->
+  <div class="fsec">
+    <div class="fsec-title">ผู้เข้าร่วมประชุม</div>
+    <div class="dyn-container" id="attendees-container"></div>
+    <button class="btn-add" onclick="addAttendee()">＋ เพิ่มผู้เข้าร่วม</button>
+  </div>
+
+  <!-- ═══ Section 3: ผู้ไม่มาประชุม ═══ -->
+  <div class="fsec">
+    <div class="fsec-title">ผู้ไม่มาประชุม <span style="font-size:.72rem;font-weight:400;color:var(--sub);margin-left:6px">(ถ้ามี)</span></div>
+    <div class="dyn-container" id="absent-container"></div>
+    <button class="btn-add" onclick="addAbsent()">＋ เพิ่มผู้ไม่มาประชุม</button>
+  </div>
+
+  <!-- ═══ Section 4: ระเบียบวาระ ═══ -->
+  <div class="fsec">
+    <div class="fsec-title">ระเบียบวาระการประชุม</div>
+    <div id="agenda-container"></div>
+    <button class="btn-add" onclick="addAgenda()">＋ เพิ่มวาระ</button>
+  </div>
+
+  <!-- ═══ Section 5: ปิดประชุม + ผู้บันทึก ═══ -->
+  <div class="fsec">
+    <div class="fsec-title">ปิดประชุมและผู้บันทึก</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>เวลาปิดประชุม</label>
+        <input class="finput" type="time" id="f-closeTime">
+      </div>
+      <div class="form-group"></div>
+    </div>
+    <div class="sec-divider"></div>
+    <div class="form-row">
+      <div class="form-group w2">
+        <label>ผู้บันทึกรายงาน (ชื่อ-สกุล)</label>
+        <input class="finput" id="f-recorderName" placeholder="ชื่อผู้บันทึก">
+      </div>
+      <div class="form-group">
+        <label>ตำแหน่ง</label>
+        <input class="finput" id="f-recorderPos" placeholder="ตำแหน่งผู้บันทึก">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group w2">
+        <label>ผู้ตรวจรายงาน (ชื่อ-สกุล)</label>
+        <input class="finput" id="f-approverName" placeholder="ชื่อผู้ตรวจ (ถ้ามี)">
+      </div>
+      <div class="form-group">
+        <label>ตำแหน่ง</label>
+        <input class="finput" id="f-approverPos" placeholder="ตำแหน่งผู้ตรวจ">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-save" onclick="saveForm()">💾 บันทึก</button>
+    <button class="btn-export-pdf" onclick="exportPDF()">📄 Export PDF</button>
+    <button class="btn-export-word" id="btn-export-word" style="display:none" onclick="exportWord()">📝 Export Word</button>
+  </div>
+
+</div><!-- /container -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+const currentUser = getUser();
+const params      = new URLSearchParams(location.search);
+const projectId   = params.get('id') || 'default';
+let   projectName = params.get('name') || '';
+
+// Render user badge
+if(currentUser) renderUserBadge('user-badge-container', currentUser);
+
+// Show Word export for admin only
+if(isAdmin(currentUser)) document.getElementById('btn-export-word').style.display='';
+
+// ══════════════════════════════════
+// STORAGE
+// ══════════════════════════════════
+function storageKey(){ return 'pharma_meeting_' + projectId; }
+
+function loadData(){
+  const raw = localStorage.getItem(storageKey());
+  if(raw){ try{ return JSON.parse(raw); }catch{} }
+  return null;
+}
+function saveToStorage(data){
+  data.updatedAt = new Date().toISOString();
+  localStorage.setItem(storageKey(), JSON.stringify(data));
+}
+
+// Firebase sync
+function fbRef(){
+  try{
+    initFirebase();
+    if(typeof firebase==='undefined') return null;
+    return firebase.database().ref('pharma-form/'+emailToFbKey(currentUser.email)+'/meetings/'+projectId);
+  }catch{ return null; }
+}
+async function fbSync(){
+  try{
+    const ref = fbRef(); if(!ref) return;
+    const snap = await ref.once('value');
+    const cloud = snap.val(), local = loadData();
+    if(!cloud && !local) return;
+    if(!cloud){ ref.set(local).catch(()=>{}); return; }
+    if(!local){ localStorage.setItem(storageKey(), JSON.stringify(cloud)); return; }
+    const ct = new Date(cloud.updatedAt||0).getTime(), lt = new Date(local.updatedAt||0).getTime();
+    if(ct > lt) localStorage.setItem(storageKey(), JSON.stringify(cloud));
+    else ref.set(local).catch(()=>{});
+  }catch(e){ console.warn('[FB] meeting sync:', e); }
+}
+function fbWrite(data){ const r=fbRef(); if(r) r.set(data).catch(()=>{}); }
+
+// ══════════════════════════════════
+// PROJECT NAME
+// ══════════════════════════════════
+function setProjectName(name){
+  projectName = name || projectName || '—';
+  document.getElementById('nav-proj-name').textContent = projectName;
+  document.getElementById('banner-proj-name').textContent = projectName;
+  const pf = document.getElementById('f-projName');
+  if(pf && !pf.value) pf.value = projectName;
+}
+
+function loadProjectName(){
+  // Try localStorage from academic-form-system
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('pharma_projects_'));
+  for(const key of keys){
+    try{
+      const projects = JSON.parse(localStorage.getItem(key)) || [];
+      const proj = projects.find(p => p.id === projectId);
+      if(proj){ setProjectName(proj.projectName || proj.name || ''); return; }
+    }catch{}
+  }
+  // Fallback: URL param name
+  setProjectName(projectName || projectId);
+}
+
+// ══════════════════════════════════
+// DYNAMIC HELPERS
+// ══════════════════════════════════
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=el.scrollHeight+'px';
+}
+document.addEventListener('input', e=>{
+  if(e.target.tagName==='TEXTAREA') autoResize(e.target);
+});
+
+// Attendees
+function addAttendee(data){
+  const c = document.getElementById('attendees-container');
+  const idx = c.children.length + 1;
+  const row = document.createElement('div');
+  row.className='dyn-row';
+  row.innerHTML=`
+    <span class="row-num">${idx}</span>
+    <div class="dyn-fields">
+      <input class="finput" placeholder="ชื่อ-สกุล" value="${esc(data?.name||'')}">
+      <input class="finput" placeholder="ตำแหน่ง/หน่วยงาน" value="${esc(data?.pos||'')}">
+    </div>
+    <button class="btn-del-row" onclick="delRow(this,'attendees-container')">✕</button>`;
+  c.appendChild(row);
+}
+function addAbsent(data){
+  const c = document.getElementById('absent-container');
+  const idx = c.children.length + 1;
+  const row = document.createElement('div');
+  row.className='dyn-row';
+  row.innerHTML=`
+    <span class="row-num">${idx}</span>
+    <div class="dyn-fields">
+      <input class="finput" placeholder="ชื่อ-สกุล" value="${esc(data?.name||'')}">
+      <input class="finput" placeholder="ตำแหน่ง/หน่วยงาน" value="${esc(data?.pos||'')}">
+      <input class="finput" placeholder="เหตุผล (ไม่บังคับ)" value="${esc(data?.reason||'')}">
+    </div>
+    <button class="btn-del-row" onclick="delRow(this,'absent-container')">✕</button>`;
+  c.appendChild(row);
+}
+function delRow(btn, containerId){
+  btn.closest('.dyn-row').remove();
+  renumberRows(containerId);
+}
+function renumberRows(containerId){
+  document.querySelectorAll('#'+containerId+' .row-num').forEach((el,i)=>el.textContent=i+1);
+}
+
+// Agenda
+let agendaCount = 0;
+function addAgenda(data){
+  agendaCount++;
+  const num = agendaCount;
+  const c = document.getElementById('agenda-container');
+  const block = document.createElement('div');
+  block.className='agenda-block';
+  block.dataset.num = num;
+  block.innerHTML=`
+    <div class="agenda-header">
+      <span class="agenda-num-badge">วาระที่ ${num}</span>
+      <input class="finput agenda-title-input" placeholder="หัวข้อวาระ เช่น เปิดประชุม / รับรองรายงานการประชุม" value="${esc(data?.title||'')}">
+      <button class="btn-del-agenda" onclick="this.closest('.agenda-block').remove();renumberAgenda()">✕ ลบ</button>
+    </div>
+    <div class="agenda-label">เนื้อหา / สรุปการประชุม</div>
+    <textarea class="finput" style="min-height:80px;margin-bottom:10px" placeholder="รายละเอียดการประชุม การอภิปราย...">${esc(data?.content||'')}</textarea>
+    <div class="agenda-label">มติที่ประชุม</div>
+    <textarea class="finput" style="min-height:56px" placeholder="มติที่ประชุม / ข้อสรุป...">${esc(data?.resolution||'')}</textarea>`;
+  c.appendChild(block);
+  block.querySelectorAll('textarea').forEach(ta=>{setTimeout(()=>autoResize(ta),0);});
+}
+function renumberAgenda(){
+  agendaCount = 0;
+  document.querySelectorAll('.agenda-block').forEach(b=>{
+    agendaCount++;
+    b.dataset.num = agendaCount;
+    b.querySelector('.agenda-num-badge').textContent = 'วาระที่ ' + agendaCount;
+  });
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ══════════════════════════════════
+// GET / SET FORM DATA
+// ══════════════════════════════════
+function getFormData(){
+  const attendees=[], absent=[], agenda=[];
+  document.querySelectorAll('#attendees-container .dyn-row').forEach(r=>{
+    const ins=[...r.querySelectorAll('input')];
+    attendees.push({name:ins[0]?.value||'', pos:ins[1]?.value||''});
+  });
+  document.querySelectorAll('#absent-container .dyn-row').forEach(r=>{
+    const ins=[...r.querySelectorAll('input')];
+    absent.push({name:ins[0]?.value||'', pos:ins[1]?.value||'', reason:ins[2]?.value||''});
+  });
+  document.querySelectorAll('.agenda-block').forEach(b=>{
+    const tas=[...b.querySelectorAll('textarea')];
+    agenda.push({
+      title: b.querySelector('.agenda-title-input')?.value||'',
+      content: tas[0]?.value||'',
+      resolution: tas[1]?.value||''
+    });
+  });
+  return {
+    meetingNo:    v('f-meetingNo'),
+    meetingDate:  v('f-meetingDate'),
+    timeStart:    v('f-timeStart'),
+    timeEnd:      v('f-timeEnd'),
+    venue:        v('f-venue'),
+    projName:     v('f-projName'),
+    chairName:    v('f-chairName'),
+    chairPos:     v('f-chairPos'),
+    attendees, absent, agenda,
+    closeTime:    v('f-closeTime'),
+    recorderName: v('f-recorderName'),
+    recorderPos:  v('f-recorderPos'),
+    approverName: v('f-approverName'),
+    approverPos:  v('f-approverPos'),
+  };
+}
+function v(id){ const el=document.getElementById(id); return el?el.value:''; }
+function sv(id, val){ const el=document.getElementById(id); if(el) el.value=val||''; }
+
+function fillForm(d){
+  if(!d) return;
+  sv('f-meetingNo', d.meetingNo);
+  sv('f-meetingDate', d.meetingDate);
+  sv('f-timeStart', d.timeStart);
+  sv('f-timeEnd', d.timeEnd);
+  sv('f-venue', d.venue);
+  sv('f-projName', d.projName || projectName);
+  sv('f-chairName', d.chairName);
+  sv('f-chairPos', d.chairPos);
+  sv('f-closeTime', d.closeTime);
+  sv('f-recorderName', d.recorderName);
+  sv('f-recorderPos', d.recorderPos);
+  sv('f-approverName', d.approverName);
+  sv('f-approverPos', d.approverPos);
+  document.getElementById('attendees-container').innerHTML='';
+  (d.attendees||[]).forEach(a=>addAttendee(a));
+  document.getElementById('absent-container').innerHTML='';
+  (d.absent||[]).forEach(a=>addAbsent(a));
+  document.getElementById('agenda-container').innerHTML='';
+  agendaCount=0;
+  (d.agenda||[]).forEach(a=>addAgenda(a));
+}
+
+// ══════════════════════════════════
+// SAVE
+// ══════════════════════════════════
+function saveForm(){
+  const data = getFormData();
+  saveToStorage(data);
+  fbWrite(data);
+  showToast('บันทึกเรียบร้อย ✓', 'ok');
+}
+
+// ══════════════════════════════════
+// UTILS
+// ══════════════════════════════════
+const THAI_MONTHS=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function fmtDate(s){
+  if(!s) return '..................';
+  const [y,m,d]=s.split('-');
+  return `${+d} ${THAI_MONTHS[+m]} พ.ศ. ${+y+543}`;
+}
+function fmtTime(t){ return t?t+' น.':'..................'; }
+function toThai(n){ return String(n).replace(/\d/g,d=>'๐๑๒๓๔๕๖๗๘๙'[d]); }
+
+function showToast(msg, type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function goBack(){ history.length>1?history.back():location.replace('academic-form-system.html'); }
+
+// ══════════════════════════════════
+// EXPORT PDF
+// ══════════════════════════════════
+function exportPDF(){
+  const d = getFormData();
+  const projName = d.projName || projectName || '—';
+
+  const attendeeRows = (d.attendees||[]).map((a,i)=>
+    `<tr><td>${i+1}</td><td>${a.name||''}</td><td>${a.pos||''}</td></tr>`).join('');
+  const absentRows = (d.absent||[]).map((a,i)=>
+    `<tr><td>${i+1}</td><td>${a.name||''}</td><td>${a.pos||''}</td><td>${a.reason||''}</td></tr>`).join('');
+  const agendaHTML = (d.agenda||[]).map((a,i)=>`
+    <div class="agenda-item">
+      <div class="agenda-heading">ระเบียบวาระที่ ${toThai(i+1)} ${a.title||''}</div>
+      ${a.content?`<div class="agenda-content">${nl2br(a.content)}</div>`:''}
+      ${a.resolution?`<div class="agenda-resolution"><span class="res-label">มติที่ประชุม :</span> ${nl2br(a.resolution)}</div>`:''}
+    </div>`).join('');
+
+  const html=`<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8">
+<title>รายงานการประชุม</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',serif;font-size:16pt;line-height:1.8;color:#000;background:#fff;
+    padding:2cm 2.5cm 2cm 3cm}
+  @page{size:A4;margin:2cm 2.5cm 2cm 3cm}
+  h1{font-size:18pt;font-weight:700;text-align:center;margin-bottom:4pt}
+  .subtitle{font-size:16pt;text-align:center;margin-bottom:4pt}
+  .center{text-align:center}
+  .header-block{text-align:center;margin-bottom:18pt}
+  .info-table{width:100%;margin:10pt 0;font-size:16pt}
+  .info-table td{padding:1pt 0}
+  .info-table td:first-child{width:10em;font-weight:600}
+  .section-heading{font-size:16pt;font-weight:700;text-decoration:underline;margin:12pt 0 4pt}
+  table.attendee-table{width:100%;border-collapse:collapse;margin:6pt 0;font-size:15pt}
+  table.attendee-table th{background:#f2f2f2;padding:5pt 8pt;text-align:left;border:1px solid #bbb;font-weight:700}
+  table.attendee-table td{padding:4pt 8pt;border:1px solid #ddd;vertical-align:top}
+  .agenda-item{margin:12pt 0}
+  .agenda-heading{font-weight:700;font-size:16pt;margin-bottom:6pt}
+  .agenda-content{text-indent:2em;margin-bottom:6pt;text-align:justify}
+  .agenda-resolution{background:#f9f9f9;border-left:3pt solid #555;padding:6pt 10pt;margin-top:4pt;font-size:15pt}
+  .res-label{font-weight:700}
+  .divider{border:none;border-top:1px solid #ccc;margin:12pt 0}
+  .sig-section{margin-top:48pt;display:flex;justify-content:space-around;gap:24pt}
+  .sig-block{text-align:center;min-width:180pt}
+  .sig-line{border-top:1px solid #333;width:80%;margin:0 auto 4pt}
+  .sig-name{font-size:15pt}
+  .sig-pos{font-size:14pt;color:#444}
+  .no-print{display:none}
+  @media screen{
+    body{background:#f0f0f0;padding:0}
+    .page{background:#fff;max-width:210mm;margin:20px auto;padding:2cm 2.5cm 2cm 3cm;
+      box-shadow:0 4px 24px rgba(0,0,0,.15);min-height:297mm}
+    .print-btn{position:fixed;top:16px;right:16px;padding:10px 22px;
+      background:#7c3aed;color:#fff;border:none;border-radius:10px;
+      font-family:'Sarabun',serif;font-size:14pt;font-weight:700;cursor:pointer;
+      box-shadow:0 4px 16px rgba(124,58,237,.4);z-index:100;display:flex!important}
+    .print-btn:hover{background:#6d28d9}
+  }
+</style>
+</head><body>
+<button class="print-btn no-print" onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button>
+<div class="page">
+  <div class="header-block">
+    <h1>รายงานการประชุม</h1>
+    <div class="subtitle">${projName}</div>
+    <div class="subtitle">ครั้งที่ ${d.meetingNo||'.......'}</div>
+  </div>
+
+  <table class="info-table">
+    <tr><td>วันที่ประชุม</td><td>${fmtDate(d.meetingDate)}</td></tr>
+    <tr><td>เวลา</td><td>${fmtTime(d.timeStart)} – ${fmtTime(d.timeEnd)}</td></tr>
+    <tr><td>สถานที่</td><td>${d.venue||'..................'}</td></tr>
+    <tr><td>ประธานที่ประชุม</td><td>${d.chairName||'..................'}${d.chairPos?` (${d.chairPos})`:''}  </td></tr>
+  </table>
+
+  <hr class="divider">
+
+  ${attendeeRows?`
+  <div class="section-heading">ผู้เข้าร่วมประชุม</div>
+  <table class="attendee-table">
+    <tr><th style="width:3em">ที่</th><th>ชื่อ-สกุล</th><th>ตำแหน่ง / หน่วยงาน</th></tr>
+    ${attendeeRows}
+  </table>`:''}
+
+  ${absentRows?`
+  <div class="section-heading">ผู้ไม่มาประชุม</div>
+  <table class="attendee-table">
+    <tr><th style="width:3em">ที่</th><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>เหตุผล</th></tr>
+    ${absentRows}
+  </table>`:''}
+
+  <hr class="divider">
+
+  <div class="section-heading">ระเบียบวาระการประชุม</div>
+  ${agendaHTML}
+
+  ${d.closeTime?`<div style="margin-top:16pt;font-weight:700">ปิดประชุม เวลา ${fmtTime(d.closeTime)}</div>`:''}
+
+  <div class="sig-section">
+    <div class="sig-block">
+      <div style="margin-bottom:48pt">&nbsp;</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(${d.recorderName||'................................'})</div>
+      <div class="sig-pos">${d.recorderPos||'ผู้บันทึกรายงาน'}</div>
+    </div>
+    ${d.approverName?`<div class="sig-block">
+      <div style="margin-bottom:48pt">&nbsp;</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(${d.approverName})</div>
+      <div class="sig-pos">${d.approverPos||'ผู้ตรวจรายงาน'}</div>
+    </div>`:''}
+  </div>
+</div>
+<script>window.addEventListener('load',function(){window.print();});<\/script>
+</body></html>`;
+
+  const w = window.open('','_blank','width=900,height=700');
+  w.document.write(html);
+  w.document.close();
+}
+function nl2br(s){ return String(s).replace(/\n/g,'<br>'); }
+
+// ══════════════════════════════════
+// EXPORT WORD (admin only)
+// ══════════════════════════════════
+async function exportWord(){
+  if(!isAdmin(currentUser)){ showToast('เฉพาะ Admin เท่านั้น','err'); return; }
+  showToast('กำลังสร้างไฟล์ Word…','ok');
+  try{
+    const { Document, Paragraph, TextRun, AlignmentType, HeadingLevel, Table, TableRow, TableCell,
+            WidthType, BorderStyle, Packer } =
+      await import('https://esm.sh/docx@8');
+
+    const d = getFormData();
+    const projName = d.projName || projectName || '—';
+
+    const run=(txt,opt={})=>new TextRun({text:txt,font:'TH Sarabun New',size:32,...opt});
+    const para=(txt,opt={})=>new Paragraph({
+      alignment: opt.center?AlignmentType.CENTER:AlignmentType.THAI_DISTRIBUTE,
+      spacing:{before:opt.before||0,after:opt.after||0,line:360,lineRule:'auto'},
+      indent: opt.indent,
+      children:[run(txt, opt.run||{})]
+    });
+    const sp=(b=0,a=0)=>({before:b,after:a,line:360,lineRule:'auto'});
+    const bold=(txt,opt={})=>run(txt,{bold:true,...opt});
+    const EM=213; // 1em @ 16pt in twips (approx)
+
+    const paragraphs=[];
+    // Header
+    paragraphs.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:sp(0,0),
+      children:[run('รายงานการประชุม',{bold:true,size:36})]}));
+    paragraphs.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:sp(0,0),
+      children:[run(projName,{bold:true,size:32})]}));
+    paragraphs.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:sp(0,160),
+      children:[run(`ครั้งที่ ${d.meetingNo||'.......'} `,{size:32})]}));
+
+    // Info
+    const infoRows=[
+      ['วันที่ประชุม', fmtDate(d.meetingDate)],
+      ['เวลา', `${fmtTime(d.timeStart)} – ${fmtTime(d.timeEnd)}`],
+      ['สถานที่', d.venue||'..................'],
+      ['ประธานที่ประชุม', `${d.chairName||'..................'}${d.chairPos?' ('+d.chairPos+')':''}  `],
+    ];
+    for(const [label,val] of infoRows){
+      paragraphs.push(new Paragraph({
+        spacing:sp(0,40),
+        children:[bold(label+'  '),run(val)]
+      }));
+    }
+    paragraphs.push(para('',{before:160}));
+
+    // Attendees
+    if(d.attendees?.length){
+      paragraphs.push(new Paragraph({spacing:sp(160,80),
+        children:[bold('ผู้เข้าร่วมประชุม',{underline:{type:'single'}})]}));
+      d.attendees.forEach((a,i)=>{
+        paragraphs.push(new Paragraph({
+          spacing:sp(0,40),
+          indent:{left:320},
+          children:[run(`${i+1}. ${a.name||''}  ${a.pos||''}`)]
+        }));
+      });
+    }
+    // Absent
+    if(d.absent?.filter(a=>a.name).length){
+      paragraphs.push(new Paragraph({spacing:sp(120,80),
+        children:[bold('ผู้ไม่มาประชุม',{underline:{type:'single'}})]}));
+      d.absent.filter(a=>a.name).forEach((a,i)=>{
+        paragraphs.push(new Paragraph({
+          spacing:sp(0,40),indent:{left:320},
+          children:[run(`${i+1}. ${a.name||''}  ${a.pos||''}${a.reason?' – '+a.reason:''}`)]
+        }));
+      });
+    }
+    paragraphs.push(para('',{before:80}));
+
+    // Agenda
+    paragraphs.push(new Paragraph({spacing:sp(160,80),
+      children:[bold('ระเบียบวาระการประชุม',{underline:{type:'single'}})]}));
+    (d.agenda||[]).forEach((a,i)=>{
+      paragraphs.push(new Paragraph({spacing:sp(120,40),
+        children:[bold(`ระเบียบวาระที่ ${toThai(i+1)} ${a.title||''}`)]}));
+      if(a.content){
+        a.content.split('\n').filter(l=>l).forEach(line=>{
+          paragraphs.push(new Paragraph({
+            alignment:AlignmentType.THAI_DISTRIBUTE,
+            spacing:sp(0,40),indent:{firstLine:Math.round(2*EM)},
+            children:[run(line)]
+          }));
+        });
+      }
+      if(a.resolution){
+        paragraphs.push(new Paragraph({spacing:sp(40,40),
+          children:[bold('มติที่ประชุม :  '),run(a.resolution.replace(/\n/g,' '))]}));
+      }
+    });
+
+    if(d.closeTime){
+      paragraphs.push(new Paragraph({spacing:sp(160,0),
+        children:[bold(`ปิดประชุม เวลา ${fmtTime(d.closeTime)}`),]}));
+    }
+
+    // Signature
+    paragraphs.push(para('',{before:320}));
+    const sigTabs=`\t\t\t\t\t`;
+    paragraphs.push(new Paragraph({spacing:sp(0,0),
+      children:[run(`ลงชื่อ  .....................................  ${sigTabs}  ลงชื่อ  ....................................`),]}));
+    paragraphs.push(new Paragraph({spacing:sp(0,0),
+      children:[run(`\t(${d.recorderName||'................................'})  ${sigTabs}  \t(${d.approverName||'................................'})`),]}));
+    paragraphs.push(new Paragraph({spacing:sp(0,0),
+      children:[run(`\t${d.recorderPos||'ผู้บันทึกรายงาน'}  ${sigTabs}  \t${d.approverPos||'ผู้ตรวจรายงาน'}`),]}));
+
+    const doc = new Document({
+      styles:{default:{document:{run:{font:'TH Sarabun New',size:32}}}},
+      sections:[{
+        properties:{page:{margin:{top:1134,right:1134,bottom:1134,left:1701},size:{width:11906,height:16838}}},
+        children:paragraphs
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href=url; a.download=`รายงานประชุม_${(d.meetingNo||'').replace(/\//g,'-') || projectId}.docx`;
+    a.click(); URL.revokeObjectURL(url);
+    showToast('ดาวน์โหลดเรียบร้อย ✓','ok');
+  }catch(e){
+    console.error(e);
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+  }
+}
+
+// ══════════════════════════════════
+// MOUSE NEBULA
+// ══════════════════════════════════
+(function(){
+  const neb=document.getElementById('mouse-nebula');
+  document.addEventListener('mousemove',e=>{
+    neb.style.background=`radial-gradient(ellipse 40% 35% at ${(e.clientX/innerWidth*100).toFixed(1)}% ${(e.clientY/innerHeight*100).toFixed(1)}%,rgba(139,92,246,.18) 0%,transparent 70%)`;
+  });
+})();
+
+// ══════════════════════════════════
+// BOOT
+// ══════════════════════════════════
+document.addEventListener('DOMContentLoaded', async ()=>{
+  loadProjectName();
+  await fbSync().catch(()=>{});
+  const saved = loadData();
+  if(saved){
+    fillForm(saved);
+  } else {
+    // Default: 1 attendee, 3 standard agenda items
+    addAttendee();
+    addAgenda({title:'เปิดประชุม'});
+    addAgenda({title:'รับรองรายงานการประชุมครั้งที่แล้ว'});
+    addAgenda({title:'วาระเพื่อพิจารณา'});
+    addAgenda({title:'เรื่องอื่นๆ'});
+    const pf=document.getElementById('f-projName');
+    if(pf && projectName) pf.value=projectName;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — โครงการบริการวิชาการ BUU</title>
+
+<!-- Firebase 8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Chart.js Date Adapter -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-date-fns/3.0.0/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg0: #0a0f1e;
+  --bg1: #111827;
+  --bg2: #1e293b;
+  --bg3: #273449;
+  --acc: #6366f1;
+  --acc2: #22d3ee;
+  --grn: #34d399;
+  --yel: #fbbf24;
+  --red: #f87171;
+  --t1: #f1f5f9;
+  --t2: #94a3b8;
+  --t3: #475569;
+  --border: rgba(255,255,255,.07);
+  --radius: 12px;
+}
+body { background: var(--bg0); color: var(--t1); font-family: 'Segoe UI', 'Prompt', sans-serif; min-height: 100vh; }
+
+/* ── Header ── */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.header h1 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.logo { font-size: 1.4rem; }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .75rem; color: var(--grn);
+  background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.25);
+  border-radius: 20px; padding: 4px 12px;
+}
+.status-pill.loading { color: var(--yel); background: rgba(251,191,36,.1); border-color: rgba(251,191,36,.25); }
+.status-pill.err { color: var(--red); background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.25); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ── Layout ── */
+.dash { padding: 20px 24px; display: grid; gap: 16px; max-width: 1200px; margin: 0 auto; }
+
+/* ── KPI row ── */
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.kpi {
+  background: var(--bg2); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 16px 18px;
+  transition: transform .15s;
+}
+.kpi:hover { transform: translateY(-2px); }
+.kpi-icon { font-size: 1.5rem; margin-bottom: 8px; }
+.kpi-val { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+.kpi-lbl { font-size: .75rem; color: var(--t2); margin-top: 4px; }
+.kpi-delta { font-size: .72rem; margin-top: 6px; display: flex; align-items: center; gap: 3px; }
+.kpi-delta.up { color: var(--grn); }
+.kpi-delta.dn { color: var(--red); }
+.kpi-delta.neu { color: var(--t3); }
+
+/* ── Chart row ── */
+.chart-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+.chart-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* ── Card ── */
+.card {
+  background: var(--bg2); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 18px 20px;
+}
+.card-full { grid-column: 1/-1; }
+.card-hd {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.card-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--t2); }
+.card-badge {
+  font-size: .7rem; background: rgba(99,102,241,.15);
+  color: var(--acc); border: 1px solid rgba(99,102,241,.3);
+  border-radius: 20px; padding: 2px 9px;
+}
+.chart-wrap { position: relative; }
+
+/* ── Table ── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+thead th {
+  text-align: left; padding: 8px 12px; font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--t3);
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .1s; }
+tbody tr:hover { background: rgba(255,255,255,.03); }
+td { padding: 9px 12px; vertical-align: middle; }
+.badge {
+  display: inline-block; padding: 3px 8px; border-radius: 8px;
+  font-size: .7rem; font-weight: 600;
+}
+.badge-grn { background: rgba(52,211,153,.12); color: var(--grn); }
+.badge-yel { background: rgba(251,191,36,.12); color: var(--yel); }
+.badge-blu { background: rgba(34,211,238,.12); color: var(--acc2); }
+.truncate { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.email-chip {
+  display: inline-block; background: rgba(99,102,241,.12);
+  color: var(--acc); border-radius: 6px; padding: 2px 7px; font-size: .7rem;
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ── Skeleton ── */
+.skeleton { background: linear-gradient(90deg,var(--bg2),var(--bg3),var(--bg2));
+  background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; height: 100%; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── Last updated ── */
+.last-upd { font-size: .72rem; color: var(--t3); text-align: right; padding: 4px 0 12px; }
+
+@media (max-width: 768px) {
+  .kpi-row { grid-template-columns: repeat(2,1fr); }
+  .chart-row, .chart-row-3 { grid-template-columns: 1fr; }
+  .dash { padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="logo">📊</span> Dashboard โครงการบริการวิชาการ BUU</h1>
+  <div class="status-pill loading" id="statusPill"><div class="dot"></div><span id="statusTxt">กำลังเชื่อมต่อ...</span></div>
+</div>
+
+<div class="dash">
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-icon">📁</div>
+      <div class="kpi-val" id="kProjects">—</div>
+      <div class="kpi-lbl">โครงการทั้งหมด</div>
+      <div class="kpi-delta neu" id="dProjects">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-val" id="kBudget">—</div>
+      <div class="kpi-lbl">งบประมาณรวม (บาท)</div>
+      <div class="kpi-delta neu" id="dBudget">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-val" id="kUsers">—</div>
+      <div class="kpi-lbl">ผู้ใช้งาน</div>
+      <div class="kpi-delta neu" id="dUsers">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">📄</div>
+      <div class="kpi-val" id="kDocs">—</div>
+      <div class="kpi-lbl">เอกสารที่อนุมัติแล้ว</div>
+      <div class="kpi-delta neu" id="dDocs">—</div>
+    </div>
+  </div>
+
+  <!-- Line + Donut -->
+  <div class="chart-row">
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">โครงการรายเดือน (6 เดือนล่าสุด)</span>
+        <span class="card-badge" id="lineTotal">0 โครงการ</span>
+      </div>
+      <div class="chart-wrap"><canvas id="lineChart" height="180"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">งบประมาณรายผู้ใช้</span>
+        <span class="card-badge" id="donutTotal">฿0</span>
+      </div>
+      <div class="chart-wrap"><canvas id="donutChart" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Bar -->
+  <div class="card card-full">
+    <div class="card-hd">
+      <span class="card-title">จำนวนโครงการต่อผู้ใช้</span>
+      <span class="card-badge" id="barTotal">0 user</span>
+    </div>
+    <div class="chart-wrap"><canvas id="barChart" height="110"></canvas></div>
+  </div>
+
+  <!-- Table -->
+  <div class="card card-full">
+    <div class="card-hd">
+      <span class="card-title">โครงการล่าสุด</span>
+      <span class="card-badge" id="tblBadge">—</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ชื่อโครงการ</th>
+            <th>ผู้รับผิดชอบ</th>
+            <th>งบประมาณ (บาท)</th>
+            <th>รายรับ (บาท)</th>
+            <th>อัปเดตล่าสุด</th>
+            <th>เอกสาร</th>
+          </tr>
+        </thead>
+        <tbody id="tBody">
+          <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--t3)">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="last-upd" id="lastUpd"></div>
+</div>
+
+<script>
+// ══════════════════════════════
+// Firebase init
+// ══════════════════════════════
+const FB_CFG = {
+  apiKey:'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',
+  databaseURL:'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId:'pharmacy-buu',
+  appId:'1:15077505324:web:e5fcb9d23cd888ec9bd489'
+};
+if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
+const db = firebase.database();
+
+// ══════════════════════════════
+// Helpers
+// ══════════════════════════════
+function emailToFbKey(e){ return (e||'').toLowerCase().replace(/\./g,'_').replace(/@/g,'__').replace(/[#$\[\]\/]/g,'_'); }
+function fmt(n){ return (n||0).toLocaleString('th-TH'); }
+function fmtShort(n){
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return fmt(n);
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d=new Date(iso);
+  return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+}
+function getProjectBudget(p){
+  return (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+}
+function shortEmail(e){ return (e||'').split('@')[0]; }
+
+const COLORS = ['#6366f1','#22d3ee','#34d399','#f59e0b','#f87171','#a78bfa','#38bdf8','#4ade80'];
+const GRAY_BORDER = 'rgba(255,255,255,.06)';
+
+// ══════════════════════════════
+// Chart setup
+// ══════════════════════════════
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = GRAY_BORDER;
+Chart.defaults.font.family = "'Segoe UI', 'Prompt', sans-serif";
+Chart.defaults.font.size = 11;
+
+// LINE CHART
+const lineCtx = document.getElementById('lineChart').getContext('2d');
+const lineGrad = lineCtx.createLinearGradient(0,0,0,200);
+lineGrad.addColorStop(0,'rgba(99,102,241,.4)');
+lineGrad.addColorStop(1,'rgba(99,102,241,0)');
+
+const lineChart = new Chart(lineCtx, {
+  type:'line',
+  data:{ labels:[], datasets:[{
+    label:'โครงการ',data:[],
+    borderColor:'#6366f1',backgroundColor:lineGrad,
+    borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#6366f1',
+    tension:.35,fill:true
+  }]},
+  options:{
+    responsive:true, animation:{duration:500},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:GRAY_BORDER},ticks:{maxTicksLimit:6}},
+      y:{grid:{color:GRAY_BORDER},ticks:{stepSize:1,precision:0},beginAtZero:true}
+    }
+  }
+});
+
+// DONUT CHART
+const donutChart = new Chart(document.getElementById('donutChart').getContext('2d'),{
+  type:'doughnut',
+  data:{ labels:[], datasets:[{data:[],backgroundColor:COLORS,borderWidth:2,borderColor:'#1e293b',hoverOffset:8}]},
+  options:{
+    responsive:true,animation:{duration:500},cutout:'62%',
+    plugins:{
+      legend:{position:'right',labels:{padding:10,boxWidth:10,font:{size:10}}},
+      tooltip:{callbacks:{label:ctx=>' '+fmtShort(ctx.parsed)+' บาท'}}
+    }
+  }
+});
+
+// BAR CHART
+const barChart = new Chart(document.getElementById('barChart').getContext('2d'),{
+  type:'bar',
+  data:{ labels:[], datasets:[{
+    label:'จำนวนโครงการ',data:[],
+    backgroundColor: COLORS,
+    borderRadius:6,borderSkipped:false
+  }]},
+  options:{
+    responsive:true,animation:{duration:500},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:GRAY_BORDER}},
+      y:{grid:{color:GRAY_BORDER},ticks:{stepSize:1,precision:0},beginAtZero:true}
+    }
+  }
+});
+
+// ══════════════════════════════
+// Process & render
+// ══════════════════════════════
+let prevCounts = { projects:0, budget:0, users:0, docs:0 };
+
+function processData(rawData){
+  const data = rawData || {};
+
+  // ── Users ──────────────────────
+  const userEmails = Object.values(data['_users'] || {}).filter(Boolean);
+
+  // ── Projects ───────────────────
+  const allProjects = [];
+  const projsByUser = {};
+  const budgetByUser = {};
+
+  // collect from known users
+  userEmails.forEach(email => {
+    const key = emailToFbKey(email);
+    const projs = Array.isArray(data[key]?.projects) ? data[key].projects : [];
+    projsByUser[email] = projs.length;
+    budgetByUser[email] = projs.reduce((s,p)=>s+getProjectBudget(p),0);
+    projs.forEach(p => allProjects.push({...p, _ownerEmail:email}));
+  });
+
+  // also pick up any keys not in _users (safety net)
+  Object.keys(data).filter(k=>!['_users','_approved_','_settings','_aliases'].includes(k)).forEach(key=>{
+    if(!userEmails.some(e=>emailToFbKey(e)===key)){
+      const projs = Array.isArray(data[key]?.projects) ? data[key].projects : [];
+      if(projs.length){
+        projsByUser['unknown:'+key] = projs.length;
+        budgetByUser['unknown:'+key] = projs.reduce((s,p)=>s+getProjectBudget(p),0);
+        projs.forEach(p=>allProjects.push({...p,_ownerEmail:'unknown:'+key}));
+      }
+    }
+  });
+
+  // ── Approved docs ──────────────
+  const approvedRoot = data['_approved_']?.['approved-docs'] || {};
+  let totalDocs = 0;
+  const docsByPid = {};
+  Object.entries(approvedRoot).forEach(([pid, docs]) => {
+    const n = Object.keys(docs||{}).length;
+    docsByPid[pid] = n;
+    totalDocs += n;
+  });
+
+  // ── KPIs ───────────────────────
+  const totalProjects = allProjects.length;
+  const totalBudget = Object.values(budgetByUser).reduce((s,v)=>s+v,0);
+  const totalUsers = userEmails.length;
+
+  setKPI('kProjects', totalProjects, prevCounts.projects, '');
+  setKPI('kBudget', fmtShort(totalBudget), null, '');
+  setKPI('kUsers', totalUsers, prevCounts.users, '');
+  setKPI('kDocs', totalDocs, prevCounts.docs, '');
+
+  document.getElementById('dProjects').textContent = totalProjects + ' โครงการ';
+  document.getElementById('dBudget').textContent = fmt(totalBudget) + ' บาท';
+  document.getElementById('dUsers').textContent = totalUsers + ' บัญชี';
+  document.getElementById('dDocs').textContent = totalDocs + ' ไฟล์';
+
+  prevCounts = { projects:totalProjects, budget:totalBudget, users:totalUsers, docs:totalDocs };
+
+  // ── Line chart (last 6 months) ─
+  const monthlyCounts = {};
+  const now = new Date();
+  for(let i=5;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    monthlyCounts[key] = 0;
+  }
+  allProjects.forEach(p => {
+    if(!p.updatedAt) return;
+    const d = new Date(p.updatedAt);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(key in monthlyCounts) monthlyCounts[key]++;
+  });
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  lineChart.data.labels = Object.keys(monthlyCounts).map(k=>{
+    const [y,m] = k.split('-'); return months[+m-1]+' '+(+y+543-2500);
+  });
+  lineChart.data.datasets[0].data = Object.values(monthlyCounts);
+  lineChart.update();
+  document.getElementById('lineTotal').textContent = totalProjects + ' โครงการ';
+
+  // ── Donut chart (budget by user) ─
+  const donutLabels = [], donutVals = [];
+  Object.entries(budgetByUser).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).slice(0,7).forEach(([email,budget])=>{
+    donutLabels.push(shortEmail(email));
+    donutVals.push(budget);
+  });
+  donutChart.data.labels = donutLabels;
+  donutChart.data.datasets[0].data = donutVals;
+  donutChart.update();
+  document.getElementById('donutTotal').textContent = '฿'+fmtShort(totalBudget);
+
+  // ── Bar chart (projects per user) ─
+  const barEntries = Object.entries(projsByUser).sort(([,a],[,b])=>b-a).slice(0,10);
+  barChart.data.labels = barEntries.map(([e])=>shortEmail(e));
+  barChart.data.datasets[0].data = barEntries.map(([,v])=>v);
+  barChart.data.datasets[0].backgroundColor = barEntries.map((_,i)=>COLORS[i%COLORS.length]);
+  barChart.update();
+  document.getElementById('barTotal').textContent = Object.keys(projsByUser).length + ' user';
+
+  // ── Table (latest 10) ──────────
+  const sorted = [...allProjects].sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0)).slice(0,10);
+  document.getElementById('tblBadge').textContent = '10 ล่าสุด';
+  document.getElementById('tBody').innerHTML = sorted.length ? sorted.map((p,i)=>{
+    const budget = getProjectBudget(p);
+    const income = parseFloat(p.incomeRegTotal)||0;
+    const docsN = docsByPid[p.id] || 0;
+    return `<tr>
+      <td style="color:var(--t3)">${i+1}</td>
+      <td><div class="truncate" title="${p.projectName||''}">${p.projectName||'(ไม่มีชื่อ)'}</div></td>
+      <td><span class="email-chip">${shortEmail(p._ownerEmail)}</span></td>
+      <td class="amt">${budget>0?fmt(budget):'—'}</td>
+      <td class="amt" style="color:var(--grn)">${income>0?fmt(income):'—'}</td>
+      <td style="color:var(--t2)">${fmtDate(p.updatedAt)}</td>
+      <td>${docsN>0?`<span class="badge badge-grn">${docsN} ไฟล์</span>`:'<span class="badge badge-yel">ยังไม่มี</span>'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--t3)">ยังไม่มีโครงการ</td></tr>';
+
+  // ── Status & timestamp ─────────
+  document.getElementById('statusPill').className = 'status-pill';
+  document.getElementById('statusTxt').textContent = 'Real-time';
+  document.getElementById('lastUpd').textContent = 'อัปเดตล่าสุด: ' + new Date().toLocaleTimeString('th-TH');
+}
+
+function setKPI(id, val, prev, suffix){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = (val||'0') + suffix;
+}
+
+// ══════════════════════════════
+// Firebase real-time listener
+// ══════════════════════════════
+db.ref('pharma-form').on('value', snap => {
+  try { processData(snap.val()); }
+  catch(e){
+    console.error(e);
+    document.getElementById('statusPill').className='status-pill err';
+    document.getElementById('statusTxt').textContent='เกิดข้อผิดพลาด';
+  }
+}, err => {
+  document.getElementById('statusPill').className='status-pill err';
+  document.getElementById('statusTxt').textContent='เชื่อมต่อไม่ได้: '+err.code;
+});
+</script>
+</body>
+</html>

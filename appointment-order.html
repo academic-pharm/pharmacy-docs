@@ -14,7 +14,7 @@
 :root{
   --bg:#030014;--card:#0d0d22;--brd:rgba(139,92,246,.2);--brdw:rgba(255,255,255,.07);
   --txt:#e8e8ff;--sub:#888aaa;--accent:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--green:#34d399;
-  --font:'Kanit',sans-serif;--mono:'Kanit',sans-serif;
+  --font:'Prompt',sans-serif;--mono:'Prompt',sans-serif;
   --radius:14px;--tr:.25s ease;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;font-size:16px;line-height:1.7}
@@ -66,7 +66,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   color:var(--txt);font-family:var(--font);font-size:.92rem;padding:9px 12px;border-radius:9px;
   transition:var(--tr);outline:none}
 .finput:focus{border-color:var(--accent);background:rgba(139,92,246,.08)}
-textarea.finput{resize:vertical;min-height:72px}
+textarea.finput{resize:none;min-height:72px;overflow:hidden}
 select.finput{cursor:pointer}
 /* SECTION inside card */
 .fsec-label{font-size:.75rem;font-weight:700;color:var(--cyan);letter-spacing:.06em;
@@ -109,6 +109,22 @@ select.finput option{background:#12122a;color:#e8e8ff}
   border-radius:10px;padding:8px 18px;font-size:.85rem;cursor:pointer;font-family:var(--font);transition:var(--tr);
   display:block;width:100%;text-align:center;margin-top:6px}
 .btn-add-committee:hover{background:rgba(167,139,250,.2)}
+/* DRAG ROWS */
+.drag-handle-cell{width:22px;text-align:center;cursor:grab;color:#bbb;user-select:none;font-size:1rem;padding:0 4px !important}
+.drag-handle-cell:active{cursor:grabbing}
+.member-row.dragging{opacity:.3;background:rgba(90,123,255,.08)}
+.member-row.drag-over{box-shadow:inset 0 -2px 0 #5a7bff}
+/* AUTOCOMPLETE */
+.ac-wrapper{position:relative;width:100%}
+.ac-dropdown{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:9999;
+  background:#fff;border:1px solid rgba(90,123,255,.35);border-radius:10px;
+  box-shadow:0 6px 24px rgba(0,0,0,.14);max-height:240px;overflow-y:auto;display:none}
+.ac-dropdown.open{display:block}
+.ac-item{padding:8px 12px;cursor:pointer;font-size:.84rem;color:#16181f;
+  border-bottom:1px solid rgba(0,0,0,.05);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.active{background:rgba(90,123,255,.1)}
+.ac-hl{font-weight:700;color:#5a7bff}
 /* ACTIONS */
 .form-actions{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px}
 .btn-save{padding:11px 28px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;
@@ -138,7 +154,7 @@ select.finput option{background:#12122a;color:#e8e8ff}
 </style>
 
 <!-- ══════ AURA LIGHT THEME OVERRIDE ══════ -->
-<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eceff5 !important;
@@ -152,7 +168,7 @@ select.finput option{background:#12122a;color:#e8e8ff}
   --pink:#db2777 !important;
   --green:#059669 !important;
 }
-body{background:#eceff5 !important;color:#16181f !important;font-family:'Kanit',sans-serif!important}
+body{background:#eceff5 !important;color:#16181f !important;font-family:'Prompt',sans-serif!important}
 body::before{display:none !important}
 
 /* ── AURA Orbs ── */
@@ -171,12 +187,12 @@ body::before{display:none !important}
   border-bottom:1px solid rgba(200,210,230,.5) !important;
 }
 .navbar-icon{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;box-shadow:none !important}
-.navbar-info h1{color:#16181f !important;font-family:'Kanit',sans-serif!important;font-size:.9rem !important}
-.navbar-info p{color:#6a6d77 !important;font-family:'Kanit',sans-serif !important}
-.btn-back{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#16181f !important;font-family:'Kanit',sans-serif !important;font-size:.76rem !important;font-weight:600 !important;backdrop-filter:blur(10px) !important;border-radius:20px !important}
+.navbar-info h1{color:#16181f !important;font-family:'Prompt',sans-serif!important;font-size:.9rem !important}
+.navbar-info p{color:#6a6d77 !important;font-family:'Prompt',sans-serif !important}
+.btn-back{background:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.82) !important;color:#16181f !important;font-family:'Prompt',sans-serif !important;font-size:.76rem !important;font-weight:600 !important;backdrop-filter:blur(10px) !important;border-radius:20px !important}
 .btn-back:hover{background:rgba(255,255,255,.72) !important;color:#16181f !important}
 .au-nav-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;background:conic-gradient(from 0deg,#7cc6ff,#c9a6ff,#ff9ecf,#8ef0c4,#7cc6ff);animation:auSpinAO 8s linear infinite;filter:hue-rotate(calc(var(--hue,0)*1deg))}
-.au-brand{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#16181f;letter-spacing:.04em;white-space:nowrap}
+.au-brand{font-family:'Prompt',sans-serif;font-weight:700;font-size:15px;color:#16181f;letter-spacing:.04em;white-space:nowrap}
 
 /* ── Cards ── */
 .main-wrap{position:relative;z-index:10}
@@ -187,7 +203,7 @@ body::before{display:none !important}
 .proj-banner-sub{color:#6a6d77 !important}
 
 /* ── Inputs ── */
-.flabel{color:#6a6d77 !important;font-family:'Kanit',sans-serif !important}
+.flabel{color:#6a6d77 !important;font-family:'Prompt',sans-serif !important}
 .finput{background:rgba(255,255,255,.72) !important;border:1px solid rgba(200,210,230,.6) !important;color:#16181f !important}
 .finput:focus{border-color:rgba(90,123,255,.5) !important;background:rgba(255,255,255,.9) !important;box-shadow:0 0 0 3px rgba(90,123,255,.1) !important}
 .finput::placeholder{color:rgba(74,77,87,.35) !important}
@@ -195,6 +211,10 @@ select.finput option{background:#fff !important;color:#16181f !important}
 select.finput{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a6d77' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 10px center !important;background-size:12px 8px !important}
 .fsec-label{color:#5a7bff !important;border-bottom-color:rgba(90,123,255,.2) !important}
 
+/* ── Autocomplete ── */
+.ac-dropdown{background:rgba(255,255,255,.97) !important;border-color:rgba(90,123,255,.3) !important;box-shadow:0 6px 24px rgba(90,123,255,.12) !important}
+.ac-item{color:#16181f !important;border-bottom-color:rgba(90,123,255,.08) !important}
+.ac-item:hover,.ac-item.active{background:rgba(90,123,255,.09) !important}
 /* ── Committee / Advisor blocks ── */
 .committee-block{background:rgba(90,123,255,.06) !important;border:1px solid rgba(90,123,255,.2) !important}
 .committee-num{background:linear-gradient(135deg,rgba(90,123,255,.2),rgba(168,85,247,.15)) !important;color:#16181f !important}
@@ -240,9 +260,7 @@ select.finput{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.
 <div id="au-cursor"         aria-hidden="true"></div>
 
 <nav class="navbar">
-  <div class="au-nav-dot" style="flex-shrink:0"></div>
-  <span class="au-brand">คณะเภสัชศาสตร์</span>
-  <div class="navbar-icon" style="margin-left:4px">📋</div>
+  <img src="mainlogo2.gif" alt="คณะเภสัชศาสตร์" style="height:34px;width:auto;object-fit:contain;flex-shrink:0">
   <div class="navbar-info">
     <h1>คำสั่งแต่งตั้ง · คณะเภสัชศาสตร์</h1>
     <p id="nav-proj-name">กำลังโหลด...</p>
@@ -498,12 +516,207 @@ function fillForm(d){
   const container = document.getElementById('committees-container');
   container.innerHTML = '';
   (d.committees||[]).forEach(c => addCommittee(c));
+  // Auto-resize all textareas (including f-preamble) after content is restored
+  setTimeout(()=>document.querySelectorAll('textarea.finput').forEach(autoResize), 0);
 }
 
 // ══════════════════════════════════════════
-// DYNAMIC COMMITTEES
+// TEXTAREA AUTO-RESIZE (prevents เด้ง / scroll-jump on backspace)
 // ══════════════════════════════════════════
-const ROLES = ['ที่ปรึกษา','ประธานโครงการ','ประธานกรรมการ','กรรมการ','กรรมการและเลขานุการ','เลขานุการ'];
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+document.addEventListener('input', function(e){
+  if(e.target.tagName === 'TEXTAREA') autoResize(e.target);
+});
+
+// ══════════════════════════════════════════
+// FACULTY AUTOCOMPLETE
+// ══════════════════════════════════════════
+const FACULTY_LIST = [
+  'ผศ.ดร.ภญ.ณัฎฐิณี ธีรกุลกิตติพงศ์',
+  'อ.ดร.ทศพล จิระสมประเสริฐ',
+  'ผศ.ดร.สุนันต์ ใจสมุทร',
+  'ผศ.ดร.ฐิติมา เกษมสุข',
+  'รศ.ดร.ภก.ณัฐวุฒิ ลีลากนก',
+  'รศ.ดร.ภก.บุญดิศย์ วงศ์ศักดิ์',
+  'ผศ.ดร.ภก.อนุสรณ์ ธรรมพิทักษ์',
+  'ผศ.ดร.ภก.ณัฐธัญ เจริญศรีวิไลวัฒน์',
+  'รศ.ดร.ภก.ยศนันท์ วีระพล',
+  'รศ.ดร.ภก.ถิรพิทย์ สุบงกช',
+  'รศ.ดร.ภญ.อาภา เพชรสัมฤทธิ์',
+  'ผศ.ดร.ภญ.ภัทรวดี ศรีคุณ',
+  'อ.ภก.ภาสกร อ่อนนิ่ม',
+  'อ.ดร.ภญ.ชฎาพร พรมปัญญา',
+  'รศ.ดร.ภก.กฤตภาส กังวานรัตนกุล',
+  'ผศ.ดร.ภญ.สุพรรณิการ์ พรวัฒนกวี',
+  'ผศ.ดร.ภญ.นปภัช รัตนะชิตธวัช',
+  'ผศ.ดร.ภก.พงศ์พันธุ์ สุริยงค์',
+  'ผศ.ดร.ภญ.ชามิภา ภาณุดุลกิตติ',
+  'อ.ทอแสง วีระกุล',
+  'ผศ.ดร.ภญ.ณัฏฐณิชชา กุลธนชัยโรจน์',
+  'ผศ.ดร.ภก.วัชรพงษ์ แจ่มสว่าง',
+  'ผศ.ดร.ภญ.พุทธิพร คงแก้ว',
+  'รศ.ดร.ภญ.สมาวดี เปลี่ยนวงษ์',
+  'อ.ภญ.สุธาบดี ม่วงมี',
+  'ผศ.ดร.ภญ.ณัฐธยาน์ เชาว์ธนาพัฒน์',
+  'ผศ.ภักดี สุขพรสวรรค์',
+  'รศ.ดร.ภญ.สุกรรณิการ์ ทับทิมศรี',
+  'อ.ภก.ศิริพงศ์ ธนาพัฒน์ภาคิน',
+  'อ.ภญ.ฐิยาภา วีรยาชาญกุล',
+  'ผศ.ดร.ภญ.พรทิพย์ พามนตรี',
+  'รศ.ดร.ภญ.ธันย์ชนก ศิริรักษ์',
+  'ผศ.ดร.ภญ.วิภาวรรณ ศิริกุลพาณิชย์',
+  'ผศ.ดร.ภญ.ธนิกานต์ แสงนิ่ม',
+  'รศ.สุวิศิษฎิ์ แม้นเหมือน',
+  'ผศ.ดร.ภญ.นภัสสร ฉันทธำรงศิริ',
+  'ผศ.ดร.ภญ.เนตรชนก เจียงสืบชาติวีระ',
+  'อ.ภญ.วรรณวรัชญ์ อารีย์',
+  'อ.ดร.ภญ.มาริสา เสนงาม',
+  'อ.ภญ.อัมพิกา เกษรสิทธิ์',
+  'อ.ภกศุภกิต ปิ่นทอง',
+  'อ.ภก.กันต์ศักดิ์ บุญภัทรฐิติ',
+  'อ.ภญ.สมณัฐทัย แย้มเม่น',
+  'อ.ภก.กันตวัฒน์ ฤทธิ์เต็ม',
+  'อ.ภญ.เบญจวรรณ คุระสุข',
+  'อ.ภก.ธาราธีร์ ศรีจันทร์',
+  'ผศ.ดร.อนุพงษ์ จูมแพง',
+  'อ.ดร.กุลธิดา เหลืองประดิษฐ์กุล',
+  'อ.ดร.กาญจนา สุขศรี',
+  'อ.ภก.ภูมิพัฒน์ ทองน้อย',
+  'อ.ภญ.อัญชนา พงศ์พันธ์',
+  'อ.ดร.ภญ.ณัฐ พิพัฒน์ปัญญานุกูล',
+  'อ.ดร.เดชา คำหล้า',
+  'อ.ดร.ภญ.ถิรนิติ ชื่นบาล',
+  'อ.ภก.ธีรรัตน์ ทศรฐ',
+  'อ.ดร.ภก.ฤทธิณรงค์ มีพงษ์',
+  'อ.ดร.ทนพ.วรโชติ บุญศรีวงศ์',
+  'อ.ดร.ภญ.เบญจพร วีระพล',
+  'อ.ดร.ลุดมิล่า ยาโรวาย่า',
+  'อ.ดร.สุชีวา ปานอ่อน',
+  'อ.ดร.ภญ.ภรณ์ผกา เอื้อพรพาณิช',
+  'อ.เกศระวี ปานทับ',
+  'ผศ.ดร.พนิดา สิทธิโพธิ์',
+  'อ.ดร.แสนชัย นารี',
+  'อ.ดร.ภก.ณัฐดนัย เลิศสุโภชวณิชย์',
+  'อ.ภก.กิตติภัฎ สุวรรณพิทักษ์',
+  'อ.ดร.ภก.ยุทธภูมิ มีประดิษฐ์',
+  'อ.ดร.ภก.กิตติพจน์ สิริชัยเวชกุล',
+  'อ.ดร.ภญ.จิณห์นิภา ประจวบพงศ์',
+  'อ.ดร.ศิรประภา ชาญสถิตโกศล',
+  'อ.ดร.ภญ.มธุรดา สะสะรมย์',
+  'ผศ.ดร. พท.ป.งามรยุ งามดอกไม้',
+  'อ.ภก.อรุณกรณ์ ปรารภ',
+  'อ.ภก.ภัทรวิชญ์ ฉัตรตระกูลไพศาล',
+  'อ.ภก.พัชรพล แก้วเขียว',
+  'อ.ภญ.ณิชมน เกรียงไกรสุข',
+  'อ.ภญ.จิดาภา ศรีจันทร์ฉาย',
+  'นางสาวพลอยนิศา สกุลคุณสนอง',
+  'นางสาวสริลรัชญ์ สำราญทรัพย์',
+  'นางพชรวรรณ คัชมาตย์',
+  'นางจตุพร กิ่งแก้ว',
+  'นายสุบัณฑิต พุ่มเจริญ',
+  'นางสาวจุฑามาศ อินตรา',
+  'นางวราภรณ์ ชวนะ',
+  'นางสาวเบ็ญจพร สีสัน',
+  'นางสาวกัญณัฐฎ์ คงเกษม',
+  'นางสาวจิรภรณ์ คูหะมณี',
+  'นายสมเกียรติ ทองอ่วมใหญ่',
+  'นางสาวณัฐสุดา อินสอน',
+  'นางสาวอลิษา กุลจันทะ',
+  'นางสาวจิตรา ชามาดา',
+  'นางสาวพุทธชา สอนจันทร์',
+  'นางสาวอรอนงค์ สิงห์แอด',
+  'นายอนุรักษ์ จันทร์แก้ว',
+  'นางสาวศศิธร จิ๋วประเสริฐ',
+  'นายจาตุรนต์ ยังให้ผล',
+  'นายบัญชา พุทธมิลินประทีป',
+  'นายสุทธิพงษ์ ประเสริฐดี',
+  'นายวิศรุจ พวงแก้ว',
+  'นายสดใส แก่นจันทร์',
+  'นางสาวจิติมา วรวัตร',
+  'นางสาววิษณีย์ เวรุตัง',
+  'นายทรงวุฒิ สุมาลี',
+  'นายอนิรุทธ์ เนินฉาย',
+  'นางสาวพัฐพศิญา อัมพวานนท์',
+  'นางสาวรัชนก สุขพรรณ์',
+  'นายธีรพงศ์ เกิดทรง',
+  'นางสาวสุวิมล เตระนะกาโย',
+  'นางสาวกาญจนา ศิวะวงษ์',
+  'นางสาววารุณี เกตุวัตถา',
+  'นางสาวกนกพร ก้อนทรัพย์',
+  'นายดนัยกฤต ศรีสว่าง',
+  'นางสาวพิมพ์ภัทรา คงเกษม',
+  'นายสัมพันธ์ เนตรสงคราม',
+  'นางสาวปวิตรา จีนากำเนิด',
+  'นางสาวสุวิชาดา เบ้าคำ',
+  'นายปิ่นเพชร ภัทรเดชหิรัญ',
+  'นางสาววริศรา นวลดอกรักษ์',
+  'นางสาวพัชรินทร์ สิมมา',
+  'นางสาวกิตติมา งาสาร',
+  'นางสาวฟ้ารุ่ง คำแสน',
+  'นางสาววริษา หาญณรงค์',
+  'นายศกรรจ์ อาภาสัตย์',
+  'นางสาวชุติกาญจน์ ปิตานุวัฒน์'
+];
+
+function acInput(input){
+  const q=(input.value||'').trim();
+  const dd=input.nextElementSibling;
+  if(!q){dd.classList.remove('open');dd.innerHTML='';return;}
+  const ql=q.toLowerCase();
+  const matches=FACULTY_LIST.filter(f=>f.toLowerCase().includes(ql));
+  if(!matches.length){dd.classList.remove('open');dd.innerHTML='';return;}
+  const qs=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  dd.innerHTML=matches.map(f=>{
+    const hi=f.replace(new RegExp(`(${qs})`, 'gi'),'<span class="ac-hl">$1</span>');
+    return `<div class="ac-item" data-val="${f}" onmousedown="acSelect(event,this)">${hi}</div>`;
+  }).join('');
+  dd.classList.add('open');
+}
+function acSelect(e,el){
+  e.preventDefault();
+  el.closest('.ac-wrapper').querySelector('input').value=el.dataset.val;
+  el.closest('.ac-dropdown').classList.remove('open');
+}
+function acClose(input){
+  setTimeout(()=>input.nextElementSibling.classList.remove('open'),150);
+}
+
+// ══════════════════════════════════════════
+// DRAG-TO-REORDER ROWS
+// ══════════════════════════════════════════
+let _dragRow=null;
+function dragRowStart(e,td){
+  _dragRow=td.closest('tr');
+  _dragRow.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain','');
+}
+function dragRowEnd(){
+  if(!_dragRow)return;
+  _dragRow.classList.remove('dragging');
+  document.querySelectorAll('.member-row.drag-over').forEach(r=>r.classList.remove('drag-over'));
+  _dragRow=null;
+}
+function dragRowOver(e,row){
+  if(!_dragRow||row===_dragRow)return;
+  e.preventDefault();
+  document.querySelectorAll('.member-row.drag-over').forEach(r=>r.classList.remove('drag-over'));
+  row.classList.add('drag-over');
+}
+function dragRowDrop(e,row){
+  e.preventDefault();
+  if(!_dragRow||row===_dragRow)return;
+  const tbody=row.closest('tbody');
+  const all=[...tbody.querySelectorAll('.member-row')];
+  if(all.indexOf(_dragRow)<all.indexOf(row))tbody.insertBefore(_dragRow,row.nextSibling);
+  else tbody.insertBefore(_dragRow,row);
+  document.querySelectorAll('.member-row.drag-over').forEach(r=>r.classList.remove('drag-over'));
+}
+
+const ROLES = ['ที่ปรึกษา','ประธานโครงการ','ประธานกรรมการ','รองประธานกรรมการ','กรรมการ','กรรมการและเลขานุการ','เลขานุการ'];
 
 function toThai(n){
   return String(n).replace(/\d/g, d=>'๐๑๒๓๔๕๖๗๘๙'[d]);
@@ -536,7 +749,7 @@ function addCommittee(data){
       <button class="btn-remove" onclick="this.closest('.committee-block').remove()">✕ ลบ</button>
     </div>
     <table class="members-table">
-      <thead><tr><th style="width:55%">ชื่อ-สกุล</th><th>ตำแหน่งในคณะกรรมการ</th><th style="width:40px"></th></tr></thead>
+      <thead><tr><th style="width:22px"></th><th style="width:55%">ชื่อ-สกุล</th><th>ตำแหน่งในคณะกรรมการ</th><th style="width:40px"></th></tr></thead>
       <tbody class="members-body"></tbody>
     </table>
     <button class="btn-add" onclick="addMember(this)">＋ เพิ่มสมาชิก</button>
@@ -551,14 +764,20 @@ function addCommittee(data){
   } else {
     addMember(div.querySelector('.btn-add'));
   }
+  // Auto-resize the duties textarea now that content is set
+  const dt = div.querySelector('.comm-duties');
+  if(dt) setTimeout(()=>autoResize(dt), 0);
 }
 function addMember(btn, data){
   const tbody = btn.closest('.committee-block').querySelector('.members-body');
   const roleOpts = ROLES.map(r=>`<option value="${r}" ${(data&&data.role===r)?'selected':''}>${r}</option>`).join('');
   const tr = document.createElement('tr');
   tr.className = 'member-row';
+  tr.setAttribute('ondragover','dragRowOver(event,this)');
+  tr.setAttribute('ondrop','dragRowDrop(event,this)');
   tr.innerHTML = `
-    <td><input class="finput" style="width:100%" placeholder="ชื่อ-สกุล" value="${(data&&data.name)||''}"></td>
+    <td class="drag-handle-cell" draggable="true" ondragstart="dragRowStart(event,this)" ondragend="dragRowEnd()" title="ลากเพื่อเรียงลำดับ">⠿</td>
+    <td style="position:relative"><div class="ac-wrapper"><input class="finput" style="width:100%" placeholder="ชื่อ-สกุล (พิมพ์ชื่อเพื่อค้นหา)" value="${(data&&data.name)||''}" oninput="acInput(this)" onblur="acClose(this)"><div class="ac-dropdown"></div></div></td>
     <td><select class="finput" style="width:100%">${roleOpts}</select></td>
     <td style="text-align:center"><button class="btn-remove" style="padding:4px 8px;font-size:.7rem" onclick="this.closest('tr').remove()">✕</button></td>`;
   tbody.appendChild(tr);
@@ -640,7 +859,7 @@ function buildPrintHTML(d, previewMode=false){
       <div class="committee">
         <div class="comm-title">${toThai(num)}. ${c.name||''}</div>
         ${membersHTML}
-        ${c.duties ? `<div class="comm-title" style="margin-top:14pt">หน้าที่และความรับผิดชอบ</div><div class="duties-text">${(c.duties||'').replace(/\n/g,'<br>')}</div>` : ''}
+        ${c.duties ? `<div class="comm-title" style="margin-top:14pt;padding-left:0;text-indent:5em">หน้าที่และความรับผิดชอบ</div>${(c.duties||'').split('\n').map(l=>l.trim()?`<div class="duties-text">${l}</div>`:'').join('')}` : ''}
       </div>`);
   });
   const committeesHTML = commBlocks.join('');
@@ -653,8 +872,8 @@ function buildPrintHTML(d, previewMode=false){
   //   previewMode=false → screen CSS for new-window display, @media print for actual PDF
   // ──────────────────────────────────────────────────────────────
   const _bodyCss = previewMode
-    ? `body{font-family:'TH SarabunIT๙',sans-serif;font-size:16pt;line-height:1.8;color:#000;width:794px}`
-    : `body{font-family:'TH SarabunIT๙',sans-serif;font-size:16pt;line-height:1.8;color:#000}`;
+    ? `body{font-family:'TH SarabunIT๙',sans-serif;font-size:16pt;line-height:1.0;color:#000;width:794px}`
+    : `body{font-family:'TH SarabunIT๙',sans-serif;font-size:16pt;line-height:1.0;color:#000}`;
   const _pageCss = previewMode
     ? `.page{width:100%;box-sizing:border-box;padding:2cm 2.54cm 0.75cm 2.54cm;background:#fff}`
     : `.page{width:794px;box-sizing:border-box;padding:2cm 2.54cm 0.75cm 2.54cm;background:#fff}`;
@@ -670,25 +889,25 @@ html,body{margin:0;padding:0;background:#fff}
 ${_bodyCss}
 *{font-family:inherit}
 ${_pageCss}
-.header-title{font-size:16pt;font-weight:700;text-align:center;line-height:1.9}
+.header-title{font-size:16pt;font-weight:700;text-align:center;line-height:1.0}
 .divider{text-align:center;margin:4pt 0}
-.preamble{text-indent:2.5em;margin:8pt 0 8pt;text-align:justify}
+.preamble{text-indent:5em;margin:8pt 0 8pt;text-align:justify}
 .committee{break-inside:avoid;margin-top:16pt}
-.comm-title{font-weight:700;padding-left:2.5em;text-indent:-1.25em;margin-bottom:2pt}
-.member-row{display:table;width:100%;padding-left:4em;box-sizing:border-box;margin-bottom:1pt}
+.comm-title{font-weight:700;padding-left:6.25em;text-indent:-1.25em;margin-bottom:2pt}
+.member-row{display:table;width:100%;padding-left:6.5em;box-sizing:border-box;margin-bottom:1pt}
 .member-name{display:table-cell;padding-right:0.5em}
 .member-role{display:table-cell;width:8em;white-space:nowrap}
-.duties-text{padding-left:0;text-align:justify;text-align-last:justify;margin-bottom:4pt;text-indent:4em}
-.closing{margin-top:16pt;padding-left:2.5em}
-.sig-section{margin-top:14pt;line-height:1.9;padding-left:50%}
+.duties-text{padding-left:0;text-indent:6.5em;text-align:left;margin-bottom:2pt}
+.closing{margin-top:16pt;text-indent:5em}
+.sig-section{margin-top:14pt;line-height:1.0;text-align:center;padding-left:10em}
 .copy-section{margin-top:24pt;border-top:1px solid #000;padding-top:6pt}
 .copy-right{text-align:right;margin-top:4pt}
 ${_printCss}
 </style></head><body><div class="page">
-${LOGO_B64?`<div style="text-align:center;margin-bottom:6pt"><img src="${LOGO_B64}" style="width:3.5cm;height:3.5cm;object-fit:contain"></div>`:''}
+${LOGO_B64?`<div style="text-align:center;margin-bottom:6pt"><img src="${LOGO_B64}" style="width:3cm;height:3cm;object-fit:contain"></div>`:''}
 <div class="header-title">คำสั่งคณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>
 <div class="header-title">ที่ ${d.orderNumber||'........./.........'}</div>
-<div class="header-title">เรื่อง  แต่งตั้ง${commTitle}${projName}</div>
+<div class="header-title" id="reuang-line">เรื่อง  แต่งตั้ง${commTitle}${projName}</div>
 <div class="header-title">ประจำปีการศึกษา ${d.academicYear||'.........'}</div>
 <div class="divider">--------------------------------------------------------------------------------</div>
 <div class="preamble">${preamble}</div>
@@ -696,19 +915,44 @@ ${committeesHTML}
 <div class="closing">ทั้งนี้  ตั้งแต่บัดนี้เป็นต้นไปจนกว่าจะมีคำสั่งเปลี่ยนแปลงเป็นอย่างอื่น</div>
 <div class="sig-section">
   <div>สั่ง  ณ วันที่ ${fmtDateTH(d.orderDate)||'........................................'}</div>
-  <div style="margin-top:20pt">(ลงชื่อ) ${d.signerName||'........................................'}</div>
+  <div style="margin-top:68pt">(ลงชื่อ) ${d.signerName||'........................................'}</div>
   <div>(${d.signerTitle||'...........................................................................'})</div>
   ${d.signerPos1?`<div>${d.signerPos1}</div>`:''}
   ${d.signerPos2?`<div>${d.signerPos2}</div>`:''}
   ${d.signerPos3?`<div>${d.signerPos3}</div>`:''}
 </div>
-${isAdmin(currentUser)?`<div class="copy-section">
-  <div style="font-weight:700">- สำเนา -</div>
-  <div class="copy-right">สำเนาถูกต้อง</div>
-  <div class="copy-right">(${d.copyName||'....................................'})</div>
-  <div class="copy-right">${d.copyPos||''}</div>
-</div>`:''}
-</div></body></html>`;
+</div>
+<script>
+window.addEventListener('load',function(){
+  var el=document.getElementById('reuang-line');
+  if(!el) return;
+  var fs=parseFloat(getComputedStyle(el).fontSize);
+  if(el.offsetHeight<=fs*1.5) return;
+
+  // Count chars on line 2 via Range API
+  var tn=null, nd=el.firstChild;
+  while(nd){if(nd.nodeType===3&&nd.length>0){tn=nd;break;}nd=nd.nextSibling;}
+  if(!tn) return;
+
+  var range=document.createRange(), firstY=null, line2=0;
+  for(var i=0;i<tn.length;i++){
+    range.setStart(tn,i); range.setEnd(tn,i+1);
+    var y=range.getBoundingClientRect().top;
+    if(firstY===null) firstY=y;
+    if(y>firstY+5){ line2=tn.length-i; break; }
+  }
+
+  // Pull up only when < 5 chars on line 2 — reduce letter-spacing (font size unchanged)
+  if(line2<1||line2>=5) return;
+
+  var ls=0, threshold=fs*1.5;
+  while(el.offsetHeight>threshold && ls>-3){
+    ls-=0.05;
+    el.style.letterSpacing=ls+'px';
+  }
+});
+<\/script>
+</body></html>`;
 }
 
 // ══════════════════════════════════════════
@@ -723,51 +967,232 @@ async function exportWord(){
 }
 
 async function buildWordDoc(d){
-  const {Document,Packer,Paragraph,TextRun,AlignmentType,WidthType,BorderStyle,ImageRun,TabStopType} = docx;
+  const {Document,Packer,Paragraph,TextRun,AlignmentType,ImageRun,TabStopType} = docx;
   const FONT = 'TH SarabunIT๙';
-  const SZ = 32; // 16pt
-  // Page: A4, margins from original doc
-  // Left/Right: 2.54cm = 1440 twips | Top: 2cm = 1134t | Bottom: 0.75cm = 426t
-  // Committee heading indent: left=1133t, hanging=567t (from doc: 720090/914400*1440 & 360045/914400*1440)
-  // Member row indent: left=1440t (1 inch), role tab at 7200t from left margin
-  // Duties/closing indent: left=1440t, firstLine=720t (double-tab effect)
+  const SZ   = 32;   // 16pt
+  // Measurements — mirror PDF CSS exactly
+  // 1em @ 16pt = 320 twips | A4 text width = 11907-2880 = 9027 twips
+  const EM   = 320;
+  const TW   = 9027; // text-area width in twips
 
   function run(text, opts={}){
-    return new TextRun({text:String(text||''),font:FONT,size:opts.size||SZ,
+    return new TextRun({text:String(text||''),font:FONT,size:SZ,
       bold:!!opts.bold,language:{value:'th-TH'}});
   }
-  function tab(){ return new TextRun({text:'\t',font:FONT,size:SZ}); }
+  function sp(before=0, after=0){
+    return {before, after, line:240, lineRule:'auto'};
+  }
+  // Generic centered/right/left paragraph
   function para(txt, opts={}){
-    const children = Array.isArray(txt) ? txt : [run(txt,opts)];
+    const children = Array.isArray(txt) ? txt : [run(txt,{bold:!!opts.bold})];
     return new Paragraph({
-      alignment: opts.center ? AlignmentType.CENTER : opts.right ? AlignmentType.RIGHT :
-                 opts.justify ? AlignmentType.THAI_DISTRIBUTE : AlignmentType.LEFT,
-      indent: opts.indent || undefined,
-      spacing: {before: opts.before||0, after:0, line:276, lineRule:'auto'},
-      tabStops: opts.tabStops || undefined,
+      alignment: opts.center ? AlignmentType.CENTER
+               : opts.right  ? AlignmentType.RIGHT
+               : opts.justify? AlignmentType.THAI_DISTRIBUTE
+               : AlignmentType.LEFT,
+      indent:  opts.indent || undefined,
+      spacing: sp(opts.before||0, opts.after||0),
       children
     });
   }
   function blank(){ return para(''); }
-  // Committee heading style: bold, hanging indent matching original doc
-  function commHeading(txt, isFirst){
+
+  // ── Committee heading: number at 5em, text at 6.25em (PDF: padding-left:6.25em;text-indent:-1.25em)
+  function commHeading(txt, before=0){
     return new Paragraph({
-      spacing:{before: isFirst?0:240, after:0, line:276, lineRule:'auto'},
-      indent:{left:1133, hanging:567},
+      spacing: sp(before),
+      indent:  {left: Math.round(6.25*EM), hanging: Math.round(1.25*EM)}, // number at 5em=1600
       children:[run(txt,{bold:true})]
     });
   }
-  // Member row: name (left) + tab + role (right-aligned tab at 7200)
-  function memberRow(num, name, role){
+  // ── Duties heading: text-indent:5em first-line only (PDF: comm-title override padding-left:0;text-indent:5em)
+  function dutiesHeading(){
     return new Paragraph({
-      spacing:{before:0,after:0,line:276,lineRule:'auto'},
-      indent:{left:1440},
-      tabStops:[{type:TabStopType.RIGHT, position:2160}],
-      children:[run(`${num}. ${name}`), tab(), run(role)]
+      spacing: sp(Math.round(14*20)),
+      indent:  {firstLine: Math.round(5*EM)}, // first line at 5em, wrap at 0 — mirrors text-indent:5em
+      children:[run('หน้าที่และความรับผิดชอบ',{bold:true})]
     });
   }
-  // Duties / closing text: indented with first-line tab
+  // ── Member row: indent 6.5em, role right-aligned via tab
+  function memberRow(num, name, role){
+    const leftIndent = Math.round(6.5*EM); // 2080
+    return new Paragraph({
+      spacing: sp(0),
+      indent:  {left: leftIndent},
+      tabStops:[{type:TabStopType.RIGHT, position: TW}],
+      children:[run(`${num}. ${name}`),
+                new TextRun({text:'\t',font:FONT,size:SZ}),
+                run(role)]
+    });
+  }
+  // ── Duties text: text-indent:6.5em first-line only (PDF: duties-text{padding-left:0;text-indent:6.5em})
   function dutyPara(txt){
     return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      spacing:   sp(0),
+      indent:    {firstLine: Math.round(6.5*EM)}, // first line at 6.5em — mirrors text-indent:6.5em
+      children:  [run(txt)]
+    });
+  }
+  // ── Preamble / closing: text-indent:5em first-line only, justified (PDF: .preamble/.closing{text-indent:5em})
+  function indentedJustified(txt, before=0, after=0){
+    return new Paragraph({
       alignment: AlignmentType.THAI_DISTRIBUTE,
-      spacin
+      spacing:   sp(before, after),
+      indent:    {firstLine: Math.round(5*EM)}, // first line at 5em — mirrors text-indent:5em
+      children:  [run(txt)]
+    });
+  }
+  // ── Sig paragraph: padding-left 50% of text width
+  function sigPara(txt, before=0){
+    return new Paragraph({
+      spacing: sp(before),
+      indent:  {left: Math.round(TW/2)}, // ≈4514
+      children:[run(txt)]
+    });
+  }
+
+  // ── Build ─────────────────────────────────────────────────────
+  const paragraphs = [];
+
+  // Logo centered, 3cm×3cm = 113px (PDF: width:3cm;height:3cm;margin-bottom:6pt)
+  if(LOGO_B64){
+    try{
+      const b64 = LOGO_B64.split(',')[1];
+      const bstr = atob(b64);
+      const bytes = new Uint8Array(bstr.length);
+      for(let i=0;i<bstr.length;i++) bytes[i]=bstr.charCodeAt(i);
+      paragraphs.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing:   sp(0, Math.round(6*20)), // after:120 = 6pt — PDF margin-bottom:6pt
+        children:  [new ImageRun({data:bytes.buffer, transformation:{width:113,height:113}, type:'png'})]
+      }));
+    }catch(e){}
+  }
+
+  const commTitle = d.committeeTitle || 'คณะกรรมการ';
+  const projName  = d.projectName   || '';
+
+  // Header lines: centered, bold (PDF: .header-title{font-weight:700;text-align:center;line-height:1.0})
+  paragraphs.push(para('คำสั่งคณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา', {center:true, bold:true}));
+  paragraphs.push(para('ที่ ' + (d.orderNumber||'........./.........'), {center:true, bold:true}));
+  paragraphs.push(para('เรื่อง  แต่งตั้ง' + commTitle + projName, {center:true, bold:true}));
+  paragraphs.push(para('ประจำปีการศึกษา ' + (d.academicYear||'.........'), {center:true, bold:true}));
+
+  // Divider (PDF: .divider{text-align:center;margin:4pt 0})
+  paragraphs.push(para('--------------------------------------------------------------------------------',
+    {center:true, before: Math.round(4*20), after: Math.round(4*20)}));
+
+  // Preamble: text-indent:5em, justified (PDF: .preamble{text-indent:5em;margin:8pt 0 8pt;text-align:justify})
+  const preamble = d.preamble ||
+    `เพื่อให้การดำเนินงานเกี่ยวกับ${projName} เป็นไปด้วยความเรียบร้อยและมีประสิทธิภาพ อาศัยอำนาจตามความในมาตรา ๓๕ แห่งพระราชบัญญัติมหาวิทยาลัยบูรพา พ.ศ.๒๕๕๐ จึงแต่งตั้งให้บุคคลต่อไปนี้ เป็น${commTitle}${projName}`;
+  paragraphs.push(indentedJustified(preamble, Math.round(8*20), Math.round(8*20))); // margin:8pt 0 8pt
+
+  // ── Committees ────────────────────────────────────────────────
+  let secNum = 0;
+  // กรรมการที่ปรึกษา (PDF: margin-top:8pt for first block)
+  if(d.advisors && d.advisors.length){
+    secNum++;
+    paragraphs.push(commHeading(toThai(secNum) + '. กรรมการที่ปรึกษา', Math.round(8*20)));
+    d.advisors.forEach((a,ai) => paragraphs.push(memberRow(toThai(ai+1), a.name||'', '')));
+  }
+  // Regular committees (PDF: .committee{margin-top:16pt} — always 16pt regardless of position)
+  (d.committees||[]).forEach((c) => {
+    secNum++;
+    const before = Math.round(16*20); // always 16pt — PDF .committee{margin-top:16pt}
+    paragraphs.push(commHeading(toThai(secNum) + '. ' + (c.name||''), before));
+    (c.members||[]).forEach((m,mi) => paragraphs.push(memberRow(toThai(mi+1), m.name||'', m.role||'')));
+    if(c.duties && c.duties.trim()){
+      paragraphs.push(dutiesHeading());
+      c.duties.split('\n').forEach(l => { if(l.trim()) paragraphs.push(dutyPara(l)); });
+    }
+  });
+
+  // Closing: text-indent:5em, margin-top:16pt (PDF: .closing{margin-top:16pt;text-indent:5em})
+  paragraphs.push(indentedJustified(
+    'ทั้งนี้  ตั้งแต่บัดนี้เป็นต้นไปจนกว่าจะมีคำสั่งเปลี่ยนแปลงเป็นอย่างอื่น',
+    Math.round(16*20) // 320
+  ));
+
+  // Signature block (PDF: .sig-section{padding-left:50%;margin-top:14pt})
+  paragraphs.push(sigPara('สั่ง  ณ วันที่ ' + (fmtDateTH(d.orderDate)||'........................................'),
+    Math.round(14*20)));
+  // (ลงชื่อ) margin-top:20pt (PDF inline style)
+  paragraphs.push(sigPara('(ลงชื่อ) ' + (d.signerName||'........................................'),
+    Math.round(20*20)));
+  paragraphs.push(sigPara('(' + (d.signerTitle||'...........................................................................') + ')'));
+  if(d.signerPos1) paragraphs.push(sigPara(d.signerPos1));
+  if(d.signerPos2) paragraphs.push(sigPara(d.signerPos2));
+  if(d.signerPos3) paragraphs.push(sigPara(d.signerPos3));
+
+  // ── Assemble & download ───────────────────────────────────────
+  const doc = new Document({
+    sections:[{
+      properties:{page:{margin:{top:1134, bottom:426, left:1440, right:1440}}},
+      children: paragraphs
+    }]
+  });
+  const blob = await Packer.toBlob(doc);
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `คำสั่งแต่งตั้ง_${projName||'document'}.docx`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Export Word สำเร็จ');
+}
+
+// ══════════════════════════════════════════
+// STARTUP
+// ══════════════════════════════════════════
+(function init(){
+  currentUser = requireUser();
+  if(!currentUser) return;
+
+  // Render user badge
+  renderUserBadge('user-badge-container', currentUser);
+
+  // Get projectId from URL
+  const params = new URLSearchParams(location.search);
+  projectId = params.get('id');
+
+  if(!projectId){
+    showToast('ไม่พบ ID โครงการ','err');
+    setTimeout(goBack, 2000);
+    return;
+  }
+
+  // Load project name from academic form data
+  const projKey  = getUserProjKey(currentUser.email);
+  const projects = JSON.parse(localStorage.getItem(projKey)||'[]');
+  const proj     = projects.find(p=>p.id===projectId);
+  projectName    = proj ? (proj.projectName||'') : '';
+
+  // Update UI
+  const bannerName = document.getElementById('banner-proj-name');
+  const navProj    = document.getElementById('nav-proj-name');
+  if(bannerName) bannerName.textContent = projectName || '(ไม่พบชื่อโครงการ)';
+  if(navProj)    navProj.textContent    = projectName || projectId;
+
+  // Show Word export button for admin
+  if(isAdmin(currentUser)){
+    const btnWord = document.getElementById('btn-export-word');
+    if(btnWord) btnWord.style.display = '';
+  }
+
+  // Firebase sync then render
+  _fbApptSync(currentUser.email, projectId).finally(()=>{
+    const data = loadAppt(projectId);
+    if(data){
+      fillForm(data);
+    } else {
+      // Pre-fill project name
+      document.getElementById('f-projName').value = projectName;
+      // Add one empty committee by default
+      addCommittee();
+    }
+  });
+})();
+</script>
+</body>
+</html>                                                  

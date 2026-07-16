@@ -195,9 +195,7 @@ function requireAdmin() {
 /* ── Logout ── */
 function logout() {
   clearUser();
-  sessionStorage.removeItem('_buu_gid');
   try { google.accounts.id.disableAutoSelect(); } catch {}
-  try { if(typeof firebase!=='undefined'&&firebase.auth) firebase.auth().signOut(); } catch {}
   location.replace(AUTH_CONFIG.LOGIN_PAGE);
 }
 
@@ -205,8 +203,6 @@ function logout() {
 function decodeJWT(token) {
   try {
     const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    // Cache raw token so initFirebase() can sign into Firebase Auth
-    sessionStorage.setItem('_buu_gid', token);
     return JSON.parse(atob(b64));
   } catch { return null; }
 }
@@ -234,31 +230,16 @@ function renderUserBadge(containerId, user) {
 
 /* ── Firebase Sync ── */
 const FIREBASE_CONFIG = {
-  apiKey:      'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',
-  authDomain:  'pharmacy-buu.firebaseapp.com',
-  databaseURL: 'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',
-  projectId:   'pharmacy-buu',
-  appId:       '1:15077505324:web:e5fcb9d23cd888ec9bd489'
+  apiKey:            'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',
+  databaseURL:       'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId:         'pharmacy-buu',
+  appId:             '1:15077505324:web:e5fcb9d23cd888ec9bd489'
 };
 
 function initFirebase(){
   try{
     if(typeof firebase!=='undefined' && firebase.apps.length===0)
       firebase.initializeApp(FIREBASE_CONFIG);
-    // Sign into Firebase Auth with the Google ID token cached at login
-    if(typeof firebase!=='undefined' && firebase.auth){
-      if(firebase.auth().currentUser) return; // already signed in
-      const idToken = sessionStorage.getItem('_buu_gid');
-      if(idToken){
-        const cred = firebase.auth.GoogleAuthProvider.credential(idToken);
-        firebase.auth().signInWithCredential(cred).catch(()=>{
-          // Token expired or invalid — fall back to anonymous
-          firebase.auth().signInAnonymously().catch(()=>{});
-        });
-      } else {
-        firebase.auth().signInAnonymously().catch(()=>{});
-      }
-    }
   }catch(e){ console.warn('Firebase init:',e); }
 }
 
