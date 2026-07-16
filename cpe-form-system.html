@@ -1341,10 +1341,10 @@ function uploadRenewFile(type, file, orgKey){
       var ref = storage.ref(path);
       var task = ref.put(file);
       task.on('state_changed', null,
-        function(){ finish('',''); },
-        function(){ ref.getDownloadURL().then(function(url){ finish(url,path); }).catch(function(){ finish('',''); }); }
+        function(err){ console.error('[Storage upload error]',type,err.code,err.message); finish('',''); },
+        function(){ ref.getDownloadURL().then(function(url){ console.log('[Storage upload ok]',type,url); finish(url,path); }).catch(function(e){ console.error('[Storage getURL error]',e); finish('',''); }); }
       );
-    }catch(e){ finish('',''); }
+    }catch(e){ console.error('[Storage exception]',type,e); finish('',''); }
   });
 }
 
