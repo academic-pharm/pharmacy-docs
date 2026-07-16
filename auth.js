@@ -196,6 +196,10 @@ function requireAdmin() {
 function logout() {
   clearUser();
   try { google.accounts.id.disableAutoSelect(); } catch {}
+  try {
+    if(typeof firebase !== 'undefined' && firebase.auth)
+      firebase.auth().signOut().catch(function(){});
+  } catch {}
   location.replace(AUTH_CONFIG.LOGIN_PAGE);
 }
 
@@ -230,10 +234,11 @@ function renderUserBadge(containerId, user) {
 
 /* ── Firebase Sync ── */
 const FIREBASE_CONFIG = {
-  apiKey:            'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',
-  databaseURL:       'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',
-  projectId:         'pharmacy-buu',
-  appId:             '1:15077505324:web:e5fcb9d23cd888ec9bd489'
+  apiKey:      'AIzaSyBmXVqyqms8qG9rPBW0gadoBcV8HTr7O5U',
+  authDomain:  'pharmacy-buu.firebaseapp.com',
+  databaseURL: 'https://pharmacy-buu-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId:   'pharmacy-buu',
+  appId:       '1:15077505324:web:e5fcb9d23cd888ec9bd489'
 };
 
 function initFirebase(){
@@ -241,6 +246,18 @@ function initFirebase(){
     if(typeof firebase!=='undefined' && firebase.apps.length===0)
       firebase.initializeApp(FIREBASE_CONFIG);
   }catch(e){ console.warn('Firebase init:',e); }
+}
+
+/* ── Sync Google login → Firebase Auth (LOCAL persistence) ── */
+function syncFirebaseAuth(googleIdToken){
+  try{
+    initFirebase();
+    if(typeof firebase==='undefined' || !firebase.auth) return;
+    var cred = firebase.auth.GoogleAuthProvider.credential(googleIdToken);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(function(){ return firebase.auth().signInWithCredential(cred); })
+      .catch(function(e){ console.warn('Firebase Auth sync:', e.message); });
+  }catch(e){ console.warn('Firebase Auth sync error:', e); }
 }
 
 // Convert email to a valid Firebase key (no . # $ / [ ])
