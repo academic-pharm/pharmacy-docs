@@ -3020,7 +3020,14 @@ async function buildWordDoc(p){
     new Paragraph({spacing:{after:0,line:240,lineRule:'auto'},indent:{left:1280,hanging:640},children:[chkR(p.sdg17),run('๑๗. เสริมความเข้มแข็งให้แก่กลไกการดำเนินงานและฟื้นฟูหุ้นส่วนความร่วมมือระดับโลกที่ยั่งยืน')]}),
     // 7
     heading('๗. หลักการและเหตุผล'),
-    para(p.rationale||''),
+    new Table({
+      width:{size:100,type:WidthType.PERCENTAGE},
+      borders:tblBorders,
+      rows:[new TableRow({children:[new TableCell({
+        margins:{top:100,bottom:100,left:150,right:150},
+        children:[multilinePara(p.rationale||'')]
+      })]})]
+    }),
 
 
     // 8
