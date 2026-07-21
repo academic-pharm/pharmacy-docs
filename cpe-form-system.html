@@ -1769,8 +1769,11 @@ function loadMyConferences(){
     var section = document.getElementById('my-conf-section');
     var wrap    = document.getElementById('my-conf-wrap');
     if(!section||!wrap) return;
-    if(confs.length === 0){ section.style.display='none'; return; }
     section.style.display = 'block';
+    if(confs.length === 0){
+      wrap.innerHTML = '<div style="font-size:.82rem;color:#9ca3af;padding:12px 0">ยังไม่มีข้อมูลการยื่นขอพิจารณาหน่วยกิต</div>';
+      return;
+    }
 
     function fmtDateC(iso){
       if(!iso) return '-';
