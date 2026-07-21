@@ -359,6 +359,13 @@ body::before,body::after{display:none !important}
 .req-item-name{font-size:.88rem;font-weight:700;color:#16181f;margin-bottom:4px}
 .req-item-meta{font-size:.76rem;color:#6a6d77;margin-bottom:2px}
 .req-item-btns{display:flex;gap:8px;margin-top:8px}
+/* Approve inline form */
+.req-approve-form{display:none;background:rgba(16,185,129,.05);border-top:1px solid rgba(16,185,129,.2);
+  border-radius:0 0 8px 8px;padding:14px 16px;margin-top:10px}
+.req-approve-form label{font-size:.74rem;font-weight:700;color:#059669;display:block;margin-bottom:4px}
+.req-approve-form input{width:100%;padding:6px 10px;border:1px solid rgba(16,185,129,.35);border-radius:6px;
+  font-size:.82rem;background:#fff;color:var(--text);box-sizing:border-box}
+.req-approve-form input:focus{outline:none;border-color:#059669}
 /* Renewal file-attached bar (shows after file selected, replaces zone visually) */
 .rsc-attached-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   background:rgba(5,150,105,.08);border:2px solid rgba(5,150,105,.35);
@@ -1394,20 +1401,59 @@ function renderOrgRequests(data){
   }
   wrap.innerHTML = pending.map(function(e){
     var key=e[0], r=e[1];
-    return '<div class="req-item">'
+    var sk=key.replace(/'/g,"\\'");
+    return '<div class="req-item" id="req-item-'+key+'">'
       +'<div class="req-item-name">🏢 '+r.name+'</div>'
       +'<div class="req-item-meta">📧 '+r.email+' &nbsp;·&nbsp; 📞 '+r.phone+'</div>'
       +(r.address?'<div class="req-item-meta">📍 '+r.address+'</div>':'')
       +(r.website?'<div class="req-item-meta">🌐 '+r.website+'</div>':'')
       +'<div class="req-item-meta">ยื่นเมื่อ: '+fmtDate(r.submittedAt)+(r.submittedBy?' &nbsp;|&nbsp; โดย: '+r.submittedBy:'')+'</div>'
-      +'<div class="req-item-btns">'
-      +'<button class="btn btn-green btn-sm" onclick="approveOrgRequest(\''+key+'\')">✅ อนุมัติ</button>'
-      +'<button class="btn btn-sm" style="background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.25)" onclick="rejectOrgRequest(\''+key+'\')">✕ ปฏิเสธ</button>'
-      +'</div></div>';
+      // ── Action buttons ──
+      +'<div class="req-item-btns" id="req-btns-'+key+'">'
+      +'<button class="btn btn-green btn-sm" onclick="expandApproveForm(\''+sk+'\')">✅ อนุมัติ</button>'
+      +'<button class="btn btn-sm" style="background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.25)" onclick="rejectOrgRequest(\''+sk+'\')">✕ ปฏิเสธ</button>'
+      +'</div>'
+      // ── Inline approve form ──
+      +'<div class="req-approve-form" id="req-form-'+key+'">'
+      +'<div style="font-size:.8rem;font-weight:700;color:#059669;margin-bottom:10px">📝 กรอกข้อมูลเพื่ออนุมัติ</div>'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">'
+        +'<div style="flex:1;min-width:140px"><label>รหัสหน่วยงาน *</label>'
+        +'<input type="text" id="rga-code-'+key+'" placeholder="เช่น CPE-2025-001"></div>'
+        +'<div style="flex:1;min-width:140px"><label>วันที่ผ่านการรับรอง *</label>'
+        +'<input type="date" id="rga-reg-'+key+'"></div>'
+        +'<div style="flex:1;min-width:140px"><label>วันหมดอายุ *</label>'
+        +'<input type="date" id="rga-exp-'+key+'"></div>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-green btn-sm" onclick="approveOrgRequest(\''+sk+'\')">✅ ยืนยันอนุมัติ</button>'
+      +'<button class="btn btn-outline btn-sm" onclick="cancelApproveForm(\''+sk+'\')">ยกเลิก</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
   }).join('');
 }
 
+function expandApproveForm(key){
+  var btns = document.getElementById('req-btns-'+key);
+  var form = document.getElementById('req-form-'+key);
+  if(btns) btns.style.display='none';
+  if(form) form.style.display='block';
+}
+function cancelApproveForm(key){
+  var btns = document.getElementById('req-btns-'+key);
+  var form = document.getElementById('req-form-'+key);
+  if(form) form.style.display='none';
+  if(btns) btns.style.display='flex';
+}
+
 function approveOrgRequest(key){
+  var orgCode = (document.getElementById('rga-code-'+key)||{value:''}).value.trim();
+  var regDate = (document.getElementById('rga-reg-'+key)||{value:''}).value;
+  var expDate = (document.getElementById('rga-exp-'+key)||{value:''}).value;
+  if(!orgCode){ showToast('กรุณากรอกรหัสหน่วยงาน','err'); return; }
+  if(!regDate){ showToast('กรุณาระบุวันที่ผ่านการรับรอง','err'); return; }
+  if(!expDate){ showToast('กรุณาระบุวันหมดอายุ','err'); return; }
+
   db.ref('pharma-form/_org_requests/'+key).once('value',function(snap){
     var req=snap.val(); if(!req) return;
     var orgKey=orgNameToKey(req.name)+'_'+Date.now();
@@ -1415,18 +1461,23 @@ function approveOrgRequest(key){
       name:req.name, address:req.address||'', phone:req.phone||'', fax:req.fax||'',
       email:req.email||'', website:req.website||'',
       headName:req.headName||'', headPosition:req.headPosition||'',
-      registrationDate:new Date().toISOString().slice(0,10),
-      expiryDate:'', addedBy:getCanonicalEmail()||'admin',
+      orgCode:orgCode, registrationDate:regDate, expiryDate:expDate,
+      addedBy:getCanonicalEmail()||'admin',
       createdAt:new Date().toISOString(), fromRequest:key
     };
     db.ref('pharma-form/_cpe_orgs/'+orgKey).set(record)
       .then(function(){
         allOrgs[orgKey]=record;
         return db.ref('pharma-form/_org_requests/'+key).update({
-          status:'อนุมัติแล้ว', approvedAt:new Date().toISOString(), approvedBy:getCanonicalEmail()||''
+          status:'อนุมัติแล้ว',
+          approvedAt:new Date().toISOString(),
+          approvedBy:getCanonicalEmail()||'',
+          orgCode:orgCode,
+          registrationDate:regDate,
+          expiryDate:expDate
         });
       })
-      .then(function(){ showToast('✅ อนุมัติ "'+req.name+'" แล้ว — อย่าลืมกำหนดวันหมดอายุในรายชื่อสถาบัน'); })
+      .then(function(){ showToast('✅ อนุมัติ "'+req.name+'" เรียบร้อย รหัส: '+orgCode); })
       .catch(function(e){ showToast('❌ '+e.message,'err'); });
   });
 }
@@ -1472,9 +1523,36 @@ function loadMyOrgRequests(){
       if(st==='อนุมัติแล้ว'){
         extraHtml = '<div style="font-size:.76rem;color:#059669;margin-top:6px">'+
           '✅ ได้รับการอนุมัติเมื่อ '+fmtDate(req.approvedAt)+
-          (req.approvedBy ? ' โดย '+req.approvedBy : '')+
-          '</div>'+
-          '<div style="font-size:.76rem;color:#059669;margin-top:2px">'+
+          (req.approvedBy?' โดย '+req.approvedBy:'')+
+          '</div>';
+        if(req.orgCode||req.registrationDate||req.expiryDate){
+          extraHtml += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;'+
+            'background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:8px">';
+          if(req.orgCode){
+            extraHtml += '<div style="min-width:120px">'+
+              '<div style="font-size:.7rem;color:#059669;font-weight:700;margin-bottom:2px">รหัสหน่วยงาน</div>'+
+              '<div style="font-size:.9rem;font-weight:700;color:var(--text)">'+req.orgCode+'</div></div>';
+          }
+          if(req.registrationDate){
+            extraHtml += '<div style="min-width:140px">'+
+              '<div style="font-size:.7rem;color:#059669;font-weight:700;margin-bottom:2px">วันที่ผ่านการรับรอง</div>'+
+              '<div style="font-size:.88rem;font-weight:700;color:var(--text)">'+
+              new Date(req.registrationDate).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'})+
+              '</div></div>';
+          }
+          if(req.expiryDate){
+            var nowD=new Date(),expD=new Date(req.expiryDate);
+            var ec=expD<nowD?'#dc2626':(expD-nowD)<90*86400000?'#d97706':'#059669';
+            extraHtml += '<div style="min-width:140px">'+
+              '<div style="font-size:.7rem;color:'+ec+';font-weight:700;margin-bottom:2px">วันหมดอายุ</div>'+
+              '<div style="font-size:.88rem;font-weight:700;color:'+ec+'">'+
+              new Date(req.expiryDate).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'})+
+              (expD<nowD?' (หมดอายุแล้ว)':'')+
+              '</div></div>';
+          }
+          extraHtml += '</div>';
+        }
+        extraHtml += '<div style="font-size:.75rem;color:#059669;margin-top:6px">'+
           'หน่วยงานนี้สามารถยื่นเอกสารต่ออายุ CPE ได้แล้ว</div>';
       } else if(st==='ปฏิเสธ'){
         extraHtml = '<div style="font-size:.76rem;color:#dc2626;margin-top:6px">'+
