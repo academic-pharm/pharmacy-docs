@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPE Dashboard — คณะเภสัชศาสตร์ มบ.</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2ff; display: flex; min-height: 100vh; color: #1e293b; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px; min-height: 100vh; background: #fff;
+      box-shadow: 2px 0 8px rgba(0,0,0,.06);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+    }
+    .sidebar-logo {
+      padding: 20px 24px; font-size: 1.15rem; font-weight: 700; color: #6366f1;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; background: #6366f1; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.05rem;
+    }
+    .nav { flex: 1; padding: 16px 12px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: 10px;
+      font-size: .87rem; font-weight: 500; color: #64748b;
+      cursor: pointer; margin-bottom: 2px; text-decoration: none;
+      transition: all .15s;
+    }
+    .nav-item:hover { background: #f1f5f9; color: #334155; }
+    .nav-item.active { background: #eef2ff; color: #6366f1; font-weight: 600; }
+    .nav-item .ico { font-size: 1rem; width: 20px; text-align: center; }
+    .nav-badge {
+      margin-left: auto; background: #6366f1; color: #fff;
+      border-radius: 99px; padding: 1px 8px; font-size: .69rem; font-weight: 700;
+    }
+    .sidebar-upgrade {
+      margin: 12px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 14px; padding: 18px; color: #fff;
+    }
+    .sidebar-upgrade h4 { font-size: .88rem; margin-bottom: 4px; }
+    .sidebar-upgrade p { font-size: .75rem; opacity: .85; margin-bottom: 12px; line-height: 1.5; }
+    .btn-upgrade {
+      background: #fff; color: #6366f1; border: none; border-radius: 8px;
+      padding: 7px 0; font-size: .8rem; font-weight: 700; cursor: pointer; width: 100%;
+    }
+    .sidebar-logout {
+      padding: 16px 26px; border-top: 1px solid #f1f5f9;
+      font-size: .85rem; color: #94a3b8; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logout:hover { color: #6366f1; }
+
+    /* ── Main ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: #fff; border-bottom: 1px solid #e2e8f0;
+      padding: 13px 28px; display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-menu { font-size: 1.15rem; color: #64748b; cursor: pointer; }
+    .search-bar {
+      flex: 1; max-width: 380px; background: #f8fafc;
+      border: 1px solid #e2e8f0; border-radius: 10px;
+      padding: 8px 16px; font-size: .87rem; color: #94a3b8;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .notif-btn {
+      position: relative; width: 38px; height: 38px; border-radius: 10px;
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1rem; color: #64748b;
+    }
+    .notif-dot {
+      position: absolute; top: 5px; right: 5px;
+      width: 16px; height: 16px; background: #6366f1; border-radius: 99px;
+      border: 2px solid #fff; font-size: .6rem; color: #fff;
+      display: flex; align-items: center; justify-content: center; font-weight: 700;
+    }
+    .user-chip { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .user-avatar {
+      width: 38px; height: 38px; border-radius: 50%; background: #6366f1;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: .95rem;
+    }
+    .user-name { font-size: .87rem; font-weight: 600; color: #1e293b; }
+    .user-role { font-size: .74rem; color: #94a3b8; }
+    .caret { color: #94a3b8; font-size: .8rem; }
+
+    /* ── Content ── */
+    .content { padding: 28px; }
+    .welcome { margin-bottom: 24px; }
+    .welcome h2 { font-size: 1.5rem; font-weight: 700; }
+    .welcome p { font-size: .87rem; color: #64748b; margin-top: 4px; }
+
+    /* ── Stat cards ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin-bottom: 24px; }
+    .stat-card {
+      background: #fff; border-radius: 14px; padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .stat-label { font-size: .78rem; color: #94a3b8; margin-bottom: 6px; }
+    .stat-value { font-size: 1.7rem; font-weight: 700; }
+    .stat-change { font-size: .77rem; margin-top: 6px; display: flex; align-items: center; gap: 3px; }
+    .up { color: #10b981; } .down { color: #ef4444; }
+    .change-sub { color: #94a3b8; font-size: .74rem; margin-left: 2px; }
+    .stat-ico {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+    }
+    .ico-purple { background: #ede9fe; }
+    .ico-green  { background: #d1fae5; }
+    .ico-blue   { background: #dbeafe; }
+    .ico-orange { background: #fef3c7; }
+
+    /* ── Chart row ── */
+    .charts-row { display: grid; grid-template-columns: 1.65fr 1fr; gap: 18px; margin-bottom: 24px; }
+    .card {
+      background: #fff; border-radius: 14px; padding: 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .card-title { font-size: .93rem; font-weight: 700; }
+    .card-pill {
+      font-size: .79rem; color: #64748b; border: 1px solid #e2e8f0;
+      border-radius: 8px; padding: 4px 12px; cursor: pointer;
+    }
+    .donut-wrap { display: flex; justify-content: center; }
+    .legend { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .leg-row { display: flex; align-items: center; gap: 10px; font-size: .82rem; }
+    .leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .leg-lbl { color: #64748b; flex: 1; }
+    .leg-num { font-weight: 700; }
+    .leg-pct { color: #94a3b8; font-size: .76rem; }
+
+    /* ── Bottom row ── */
+    .bottom-row { display: grid; grid-template-columns: 1.65fr 1fr; gap: 18px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: .77rem; color: #94a3b8; font-weight: 600; padding: 8px 0; text-align: left; border-bottom: 1px solid #f1f5f9; }
+    td { font-size: .83rem; color: #334155; padding: 11px 0; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .proj-cell { display: flex; align-items: center; gap: 10px; }
+    .proj-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .88rem; }
+    .prog-bar { height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; width: 76px; }
+    .prog-fill { height: 100%; background: #6366f1; border-radius: 99px; }
+    .prog-pct { font-size: .77rem; color: #64748b; margin-left: 7px; }
+    .pill {
+      display: inline-block; padding: 3px 10px; border-radius: 99px;
+      font-size: .73rem; font-weight: 600;
+    }
+    .pill-blue   { background: #dbeafe; color: #2563eb; }
+    .pill-yellow { background: #fef3c7; color: #d97706; }
+    .pill-green  { background: #d1fae5; color: #059669; }
+    .pill-gray   { background: #f1f5f9; color: #64748b; }
+
+    /* ── Activity ── */
+    .activity-list { display: flex; flex-direction: column; gap: 14px; }
+    .act-item { display: flex; align-items: flex-start; gap: 12px; }
+    .act-ico {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: .88rem;
+    }
+    .act-body { flex: 1; }
+    .act-title { font-size: .83rem; font-weight: 600; color: #1e293b; }
+    .act-sub { font-size: .75rem; color: #94a3b8; margin-top: 2px; }
+    .act-time { font-size: .73rem; color: #cbd5e1; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">💊</div>
+    CPEPharma
+  </div>
+  <nav class="nav">
+    <a class="nav-item active" href="#">
+      <span class="ico">🏠</span> Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">📊</span> Analytics
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">🏢</span> หน่วยงาน
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">📋</span> โครงการ
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">🔄</span> ต่ออายุ CPE
+      <span class="nav-badge">3</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">🎓</span> ประชุมวิชาการ
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">👥</span> Users
+    </a>
+    <a class="nav-item" href="#">
+      <span class="ico">⚙️</span> Settings
+    </a>
+  </nav>
+  <div class="sidebar-upgrade">
+    <div style="font-size:1.4rem;margin-bottom:8px">💎</div>
+    <h4>อัพเกรดเป็น Pro</h4>
+    <p>ปลดล็อคฟีเจอร์เพิ่มเติมและพื้นที่จัดเก็บข้อมูล</p>
+    <button class="btn-upgrade">อัพเกรดเลย</button>
+  </div>
+  <div class="sidebar-logout">
+    <span>🚪</span> ออกจากระบบ
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <span class="topbar-menu">☰</span>
+    <div class="search-bar">🔍&nbsp; ค้นหา...</div>
+    <div class="topbar-right">
+      <div class="notif-btn">🔔<span class="notif-dot">3</span></div>
+      <div class="user-chip">
+        <div class="user-avatar">ธ</div>
+        <div>
+          <div class="user-name">Thiraphong P.</div>
+          <div class="user-role">Admin</div>
+        </div>
+        <span class="caret">▾</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="welcome">
+      <h2>ยินดีต้อนรับ, Thiraphong! 👋</h2>
+      <p>นี่คือสรุปข้อมูลระบบ CPE วันนี้</p>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">หน่วยกิต CPE (ปีนี้)</div>
+          <div class="stat-value">1,248</div>
+          <div class="stat-change up">↑ 12.5% <span class="change-sub">vs เดือนที่แล้ว</span></div>
+        </div>
+        <div class="stat-ico ico-purple">🎓</div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">หน่วยงานที่รับรอง</div>
+          <div class="stat-value">54</div>
+          <div class="stat-change up">↑ 3 <span class="change-sub">หน่วยงานใหม่</span></div>
+        </div>
+        <div class="stat-ico ico-green">🏢</div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">โครงการบริการวิชาการ</div>
+          <div class="stat-value">32</div>
+          <div class="stat-change up">↑ 4 <span class="change-sub">vs เดือนที่แล้ว</span></div>
+        </div>
+        <div class="stat-ico ico-blue">📁</div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">รอดำเนินการ</div>
+          <div class="stat-value">18</div>
+          <div class="stat-change down">↓ 3 <span class="change-sub">vs เมื่อวาน</span></div>
+        </div>
+        <div class="stat-ico ico-orange">📋</div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">กิจกรรม CPE รายเดือน</span>
+          <span class="card-pill">ปีนี้ ▾</span>
+        </div>
+        <canvas id="lineChart" height="108"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">สถานะเอกสาร</span>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="donutChart" width="160" height="160"></canvas>
+        </div>
+        <div class="legend">
+          <div class="leg-row">
+            <div class="leg-dot" style="background:#10b981"></div>
+            <span class="leg-lbl">อนุมัติแล้ว</span>
+            <span class="leg-num">46</span>
+            <span class="leg-pct">(48%)</span>
+          </div>
+          <div class="leg-row">
+            <div class="leg-dot" style="background:#6366f1"></div>
+            <span class="leg-lbl">กำลังดำเนินการ</span>
+            <span class="leg-num">30</span>
+            <span class="leg-pct">(31%)</span>
+          </div>
+          <div class="leg-row">
+            <div class="leg-dot" style="background:#f59e0b"></div>
+            <span class="leg-lbl">รอตรวจสอบ</span>
+            <span class="leg-num">10</span>
+            <span class="leg-pct">(10%)</span>
+          </div>
+          <div class="leg-row">
+            <div class="leg-dot" style="background:#e2e8f0"></div>
+            <span class="leg-lbl">รอดำเนินการ</span>
+            <span class="leg-num">10</span>
+            <span class="leg-pct">(11%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="bottom-row">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">โครงการล่าสุด</span>
+          <span class="card-pill">ดูทั้งหมด</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>โครงการ</th>
+              <th>ความคืบหน้า</th>
+              <th>กำหนดส่ง</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="proj-cell">
+                  <div class="proj-icon" style="background:#ede9fe">🎓</div>
+                  โครงการส่งเสริมสุขภาพ 68
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center">
+                  <div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div>
+                  <span class="prog-pct">75%</span>
+                </div>
+              </td>
+              <td>15 ก.ค. 68</td>
+              <td><span class="pill pill-blue">กำลังดำเนินการ</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="proj-cell">
+                  <div class="proj-icon" style="background:#d1fae5">💊</div>
+                  ต่ออายุ CPE รพ.บึงกาฬ
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center">
+                  <div class="prog-bar"><div class="prog-fill" style="width:40%"></div></div>
+                  <span class="prog-pct">40%</span>
+                </div>
+              </td>
+              <td>22 ก.ค. 68</td>
+              <td><span class="pill pill-blue">กำลังดำเนินการ</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="proj-cell">
+                  <div class="proj-icon" style="background:#dbeafe">📊</div>
+                  ประชุมวิชาการเภสัชกรรม
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center">
+                  <div class="prog-bar"><div class="prog-fill" style="width:90%"></div></div>
+                  <span class="prog-pct">90%</span>
+                </div>
+              </td>
+              <td>10 ก.ค. 68</td>
+              <td><span class="pill pill-yellow">ตรวจสอบ</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="proj-cell">
+                  <div class="proj-icon" style="background:#fef3c7">📋</div>
+                  ลงทะเบียนหน่วยงานใหม่
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center">
+                  <div class="prog-bar"><div class="prog-fill" style="width:20%"></div></div>
+                  <span class="prog-pct">20%</span>
+                </div>
+              </td>
+              <td>5 ส.ค. 68</td>
+              <td><span class="pill pill-blue">กำลังดำเนินการ</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">กิจกรรมล่าสุด</span>
+          <span class="card-pill">ดูทั้งหมด</span>
+        </div>
+        <div class="activity-list">
+          <div class="act-item">
+            <div class="act-ico" style="background:#ede9fe">➕</div>
+            <div class="act-body">
+              <div class="act-title">Thiraphong P. สร้างโครงการใหม่</div>
+              <div class="act-sub">โครงการส่งเสริมสุขภาพ 2568</div>
+            </div>
+            <div class="act-time">2 min ago</div>
+          </div>
+          <div class="act-item">
+            <div class="act-ico" style="background:#d1fae5">✅</div>
+            <div class="act-body">
+              <div class="act-title">อนุมัติคำขอต่ออายุ CPE</div>
+              <div class="act-sub">รพ.ชลบุรี — 50 หน่วยกิต</div>
+            </div>
+            <div class="act-time">1 hr ago</div>
+          </div>
+          <div class="act-item">
+            <div class="act-ico" style="background:#dbeafe">📝</div>
+            <div class="act-body">
+              <div class="act-title">ส่งข้อมูลประชุมวิชาการ</div>
+              <div class="act-sub">Pharmacy Conference 2025</div>
+            </div>
+            <div class="act-time">3 hr ago</div>
+          </div>
+          <div class="act-item">
+            <div class="act-ico" style="background:#fef3c7">📤</div>
+            <div class="act-body">
+              <div class="act-title">ลงทะเบียนหน่วยงานใหม่</div>
+              <div class="act-sub">Project-Brief.pdf อัพโหลดแล้ว</div>
+            </div>
+            <div class="act-time">5 hr ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// Line chart
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],
+    datasets: [{
+      data: [20, 45, 38, 60, 72, 68, 95, 88, 102, 115, 130, 148],
+      borderColor: '#6366f1',
+      backgroundColor: 'rgba(99,102,241,.1)',
+      fill: true, tension: 0.45,
+      pointRadius: 4, pointHoverRadius: 6,
+      pointBackgroundColor: '#6366f1',
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
+      y: { grid: { color: '#f1f5f9', drawBorder: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } }
+    }
+  }
+});
+
+// Donut chart
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['อนุมัติแล้ว','กำลังดำเนินการ','รอตรวจสอบ','รอดำเนินการ'],
+    datasets: [{
+      data: [46, 30, 10, 10],
+      backgroundColor: ['#10b981','#6366f1','#f59e0b','#e2e8f0'],
+      borderWidth: 0, hoverOffset: 6
+    }]
+  },
+  options: {
+    cutout: '70%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: { label: c => ' ' + c.parsed + ' รายการ' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
