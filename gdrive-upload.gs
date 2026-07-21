@@ -267,8 +267,8 @@ function sendExpertEmail(data) {
   var dateRange = data.dateStart || '-';
   if (data.dateEnd && data.dateEnd !== data.dateStart) dateRange += ' – ' + data.dateEnd;
 
-  var todayStr = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy');
-  var subject = '[CPE] ขอเรียนเชิญพิจารณาหน่วยกิต CPE: ' + (data.confName || 'ประชุมวิชาการ') + ' (' + todayStr + ')';
+  var confShortId = (data.confId || Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyyMMddHHmm')).toString().slice(-8);
+  var subject = '[CPE] ขอเรียนเชิญพิจารณาหน่วยกิต CPE: ' + (data.confName || 'ประชุมวิชาการ') + ' [' + confShortId + ']';
 
   var html = '<div style="font-family:\'Sarabun\',sans-serif;max-width:600px;margin:0 auto;color:#1a202c">';
   html += '<div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:24px 28px;border-radius:12px 12px 0 0">';
