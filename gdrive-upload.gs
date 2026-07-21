@@ -297,7 +297,7 @@ function sendExpertEmail(data) {
   if (data.matiUrl) {
     html += '<table style="width:100%;border-collapse:collapse;margin:0 0 20px">';
     html += '<tr><td colspan="2" style="padding:16px 0 8px;font-size:.88rem;font-weight:700;color:#1a202c;border-bottom:2px solid #0891b2">มติผลการพิจารณารับรอง CPE</td></tr>';
-    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">มติผลการพิจารณารับรอง CPE</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.matiUrl + '" style="color:#0891b2;font-weight:700">เปิดเอกสาร</a></td></tr>';
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">มติผลการพิจารณารับรอง CPE</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.matiUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
     html += '</table>';
   }
   html += '</div></div>';
