@@ -1757,10 +1757,14 @@ function loadMyOrgRequests(){
    USER: ประชุมวิชาการของฉัน
 ════════════════════════════════ */
 function loadMyConferences(){
-  var myEmail = (getCanonicalEmail()||'').toLowerCase();
+  var user = currentUser || getUser();
+  if(!user) return;
+  var myEmail = ((user._canonicalEmail || user.email) || '').toLowerCase();
   if(!myEmail) return;
   var key = emailToFbKey(myEmail);
+  console.log('[conf] email='+myEmail+' key='+key);
   db.ref('pharma-form/'+key+'/cpe-conferences').on('value', function(snap){
+    console.log('[conf] snap=', snap.val());
     var data = snap.val()||{};
     var confs = Object.entries(data).sort(function(a,b){
       return (b[1].createdAt||'').localeCompare(a[1].createdAt||'');
