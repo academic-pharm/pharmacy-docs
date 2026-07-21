@@ -2353,6 +2353,20 @@ function loadAllCpeConferences(){
           fileBtn('รายละเอียดโครงการ', c.files&&c.files.project&&c.files.project.url,  '📋')+
           fileBtn('CV วิทยากร',        c.files&&c.files.cvfile&&c.files.cvfile.url,    '👤')+
           fileBtn('กำหนดการ',          c.files&&c.files.schedule&&c.files.schedule.url,'📅')+
+          // ─── มติ CPE (admin upload) ───
+          '<div style="display:inline-flex;align-items:center;gap:4px">'+
+            (c.files&&c.files.resolution&&c.files.resolution.url
+              ? fileBtn('มติ CPE', c.files.resolution.url, '📄')
+              : '<span style="font-size:.72rem;color:#d1d5db">📄 ไม่มีมติ CPE</span>')+
+            '<label for="res-input-'+safeCid+'" '+
+              'style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;'+
+              'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;'+
+              'padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'+
+              (c.files&&c.files.resolution&&c.files.resolution.url ? '🔄 เปลี่ยน' : '⬆ อัพโหลด')+
+            '</label>'+
+            '<input type="file" id="res-input-'+safeCid+'" accept=".pdf,.doc,.docx" style="display:none" '+
+              'onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this)">'+
+          '</div>'+
           '<button onclick="toggleExpertPanel(\''+safeCid+'\')" '+
           'style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:#4f46e5;color:#fff;'+
           'border:none;border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer">'+
@@ -2366,7 +2380,7 @@ function loadAllCpeConferences(){
             '<strong>เอกสารที่จะส่ง:</strong><br>'+
             '📌 '+( c.confName||'-')+'<br>'+
             '📅 '+dateRange+' · 🏢 '+(c.orgName||'-')+'<br>'+
-            '<span style="color:#6b7280">ไฟล์แนบ: รายละเอียดโครงการ / CV วิทยากร / กำหนดการ</span>'+
+            '<span style="color:#6b7280">ไฟล์แนบ: รายละเอียดโครงการ / CV วิทยากร / กำหนดการ'+(c.files&&c.files.resolution&&c.files.resolution.url?' / มติ CPE':'')+'</span>'+
           '</div>'+
           // email inputs
           '<div style="font-size:.77rem;color:#6b7280;margin-bottom:8px;font-weight:600">📮 อีเมลผู้ทรงคุณวุฒิ</div>'+
@@ -2391,6 +2405,55 @@ function loadAllCpeConferences(){
 function toggleExpertPanel(safeCid){
   var p = document.getElementById('ep-'+safeCid);
   if(p) p.style.display = p.style.display==='none'?'block':'none';
+}
+
+async function uploadResolutionFile(safeCid, cid, inputEl){
+  var file = inputEl.files[0];
+  if(!file) return;
+  var maxMB = 20;
+  if(file.size > maxMB*1024*1024){ showToast('ไฟล์ใหญ่เกิน '+maxMB+' MB','err'); inputEl.value=''; return; }
+
+  var c = _adminConfs[cid];
+  if(!c){ showToast('ไม่พบข้อมูลประชุม','err'); return; }
+
+  showToast('⏳ กำลังอัพโหลดมติ CPE...');
+
+  var reader = new FileReader();
+  reader.onload = async function(){
+    var b64 = reader.result.split(',')[1];
+    try{
+      var res = await fetch(APPS_SCRIPT_URL,{
+        method:'POST',
+        body: JSON.stringify({
+          action:     'upload',
+          fileBase64: b64,
+          fileName:   file.name,
+          mimeType:   file.type || 'application/octet-stream',
+          orgName:    c.orgName || 'ประชุมวิชาการ'
+        })
+      });
+      var _t = await res.text();
+      var json;
+      try{ json = JSON.parse(_t); } catch(_){ json={error:'ตอบกลับไม่ถูกต้อง: '+_t.substring(0,100)}; }
+      if(json.success){
+        var resData = { url: json.url, name: file.name, uploadedAt: new Date().toISOString() };
+        // บันทึกใน _all_cpe_conferences
+        await db.ref('pharma-form/_all_cpe_conferences/'+cid+'/files/resolution').set(resData);
+        // บันทึกใน user path ด้วย
+        var userKey = emailToFbKey(c.createdBy||'');
+        if(userKey && c.id){
+          db.ref('pharma-form/'+userKey+'/cpe-conferences/'+c.id+'/files/resolution').set(resData).catch(function(){});
+        }
+        showToast('✓ อัพโหลดมติ CPE เรียบร้อยแล้ว');
+      } else {
+        showToast('อัพโหลดไม่สำเร็จ: '+(json.error||''),'err');
+      }
+    } catch(err){
+      showToast('เกิดข้อผิดพลาด: '+err.message,'err');
+    }
+    inputEl.value='';
+  };
+  reader.readAsDataURL(file);
 }
 
 async function sendToExperts(safeCid, cid){
@@ -2421,9 +2484,10 @@ async function sendToExperts(safeCid, cid){
         location:     c.location||'',
         note:         c.note||'',
         expertEmails: emails,
-        projectUrl:   c.files&&c.files.project&&c.files.project.url  ||'',
-        cvfileUrl:    c.files&&c.files.cvfile&&c.files.cvfile.url    ||'',
-        scheduleUrl:  c.files&&c.files.schedule&&c.files.schedule.url||'',
+        projectUrl:    c.files&&c.files.project&&c.files.project.url       ||'',
+        cvfileUrl:     c.files&&c.files.cvfile&&c.files.cvfile.url         ||'',
+        scheduleUrl:   c.files&&c.files.schedule&&c.files.schedule.url     ||'',
+        matiUrl:       c.files&&c.files.resolution&&c.files.resolution.url ||'',
       })
     });
     var _text = await res.text();
