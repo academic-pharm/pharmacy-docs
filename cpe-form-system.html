@@ -666,6 +666,20 @@ body::before,body::after{display:none !important}
     </div>
   </div>
 
+  <!-- Success prompt: แสดงหลังส่งเอกสารต่ออายุสำเร็จ -->
+  <div id="renew-conf-prompt" style="display:none" class="fsec">
+    <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(90,123,255,.07));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:22px 24px">
+      <div style="font-size:1.1rem;font-weight:800;color:#059669;margin-bottom:6px">🎉 ส่งเอกสารต่ออายุเรียบร้อยแล้ว!</div>
+      <div style="font-size:.85rem;color:#4b5563;margin-bottom:16px;line-height:1.6">
+        ขั้นตอนถัดไป — กรอกข้อมูลการจัดประชุมวิชาการของหน่วยงานท่าน<br>
+        <span style="font-size:.78rem;color:#6b7280">เจ้าหน้าที่จะตรวจสอบเอกสารและแจ้งผลทางอีเมล</span>
+      </div>
+      <button class="btn btn-primary" id="renew-go-conf-btn" onclick="goToConfFromRenew()" style="font-size:.88rem">
+        🎓 กรอกข้อมูลประชุมวิชาการ
+      </button>
+    </div>
+  </div>
+
   <div class="fsec">
     <div class="fsec-title">📞 ติดต่อเจ้าหน้าที่ผู้รับผิดชอบ</div>
     <div style="font-size:.88rem;line-height:2;color:var(--sub)">
@@ -1113,6 +1127,8 @@ function uploadToGDrive(file, orgName, docType){
 ════════════════════════════════ */
 function showView(id, orgKey, orgName){
   ['status','renew','conference','admin-renewals'].forEach(v=>document.getElementById('view-'+v).style.display='none');
+  // ซ่อน renew success prompt เมื่อออกจากหน้า renew
+  if(id !== 'renew'){ var _rcp=document.getElementById('renew-conf-prompt'); if(_rcp) _rcp.style.display='none'; }
   document.getElementById('view-'+id).style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='renew'){
@@ -1708,6 +1724,17 @@ function goToRenewFromNotice(){
   showView('renew', _expiryRenewOrgKey, _expiryRenewOrgName);
 }
 
+function goToConfFromRenew(){
+  var prompt = document.getElementById('renew-conf-prompt');
+  var orgKey  = prompt ? (prompt.dataset.orgKey||'')  : '';
+  var orgName = prompt ? (prompt.dataset.orgName||'') : '';
+  if(prompt) prompt.style.display = 'none';
+  currentConf.orgName = orgName;
+  currentConf.orgKey  = orgKey;
+  document.getElementById('conf-org-label').textContent = 'หน่วยงาน: '+orgName;
+  showView('conference');
+}
+
 function addOrg(){
   var name   = document.getElementById('new-org-name').value.trim();
   var expiry = document.getElementById('new-org-expiry').value;
@@ -1906,6 +1933,15 @@ async function submitRenewalDocs(){
   renewFileStore = { letter:null, form59:null, payment:null };
   ['letter','form59','payment'].forEach(function(t){ clearRenewFile(t); });
   if(isAdmin) loadRenewSubmissions(orgKey);
+  // แสดง prompt ไปหน้าประชุมวิชาการ
+  var confPrompt = document.getElementById('renew-conf-prompt');
+  if(confPrompt && !isAdmin){
+    confPrompt.style.display = 'block';
+    confPrompt.scrollIntoView({behavior:'smooth', block:'center'});
+    // เก็บ orgKey/orgName ไว้สำหรับปุ่ม
+    confPrompt.dataset.orgKey  = orgKey;
+    confPrompt.dataset.orgName = orgName;
+  }
 }
 
 function loadAllRenewals(){
