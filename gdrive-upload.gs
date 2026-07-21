@@ -283,6 +283,7 @@ function sendExpertEmail(data) {
   html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">หน่วยงาน</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb">' + (data.orgName || '-') + '</td></tr>';
   html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">วันที่จัด</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb">' + dateRange + '</td></tr>';
   if (data.location) html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">สถานที่</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb">' + data.location + '</td></tr>';
+  if (data.note) html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">หมายเหตุ</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb;white-space:pre-line">' + data.note + '</td></tr>';
   html += '</table>';
 
   html += '<div style="margin:20px 0"><div style="font-size:.82rem;font-weight:700;color:#374151;margin-bottom:10px">📎 เอกสารแนบ</div>';
