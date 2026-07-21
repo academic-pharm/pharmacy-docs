@@ -1653,6 +1653,15 @@ function loadMyOrgRequests(){
           extraHtml += '<div style="font-size:.75rem;color:#059669;margin-top:6px">'+
             'หน่วยงานนี้สามารถยื่นเอกสารต่ออายุ CPE ได้แล้ว</div>';
         }
+        // ปุ่มประชุมวิชาการ — แสดงสำหรับออร์กที่อนุมัติแล้วทุกกรณี
+        var _ck=(req.orgKey||'').replace(/'/g,"\\'");
+        var _cn=(req.name||'').replace(/'/g,"\\'");
+        extraHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(16,185,129,.18);display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+          '<button class="btn btn-sm" style="background:rgba(90,123,255,.1);color:#5a7bff;border:1px solid rgba(90,123,255,.35);font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;white-space:nowrap" '+
+          'onclick="goToConfFromMyRequest(\''+_ck+'\',\''+_cn+'\')">'+
+          '🎓 กรอกข้อมูลประชุมวิชาการ</button>'+
+          '<span style="font-size:.72rem;color:#6b7280">สำหรับแจ้งข้อมูลการจัดประชุม/อบรมในหน่วยงาน</span>'+
+          '</div>';
       } else if(st==='ปฏิเสธ'){
         extraHtml = '<div style="font-size:.76rem;color:#dc2626;margin-top:6px">'+
           '❌ ถูกปฏิเสธเมื่อ '+fmtDate(req.rejectedAt)+
@@ -1729,6 +1738,20 @@ function goToConfFromRenew(){
   var orgKey  = prompt ? (prompt.dataset.orgKey||'')  : '';
   var orgName = prompt ? (prompt.dataset.orgName||'') : '';
   if(prompt) prompt.style.display = 'none';
+  currentConf.orgName = orgName;
+  currentConf.orgKey  = orgKey;
+  document.getElementById('conf-org-label').textContent = 'หน่วยงาน: '+orgName;
+  showView('conference');
+}
+
+function goToConfFromMyRequest(orgKey, orgName){
+  // หาก orgKey ว่าง (approval เก่าก่อนบันทึก orgKey) ลองหาจาก allOrgs
+  if(!orgKey && orgName){
+    var found = Object.entries(allOrgs).find(function(e){
+      return !e[1].deleted && e[1].name === orgName;
+    });
+    if(found) orgKey = found[0];
+  }
   currentConf.orgName = orgName;
   currentConf.orgKey  = orgKey;
   document.getElementById('conf-org-label').textContent = 'หน่วยงาน: '+orgName;
