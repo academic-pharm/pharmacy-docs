@@ -267,7 +267,8 @@ function sendExpertEmail(data) {
   var dateRange = data.dateStart || '-';
   if (data.dateEnd && data.dateEnd !== data.dateStart) dateRange += ' – ' + data.dateEnd;
 
-  var subject = '[CPE] ขอเรียนเชิญพิจารณาหน่วยกิต CPE: ' + (data.confName || 'ประชุมวิชาการ');
+  var todayStr = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy');
+  var subject = '[CPE] ขอเรียนเชิญพิจารณาหน่วยกิต CPE: ' + (data.confName || 'ประชุมวิชาการ') + ' (' + todayStr + ')';
 
   var html = '<div style="font-family:\'Sarabun\',sans-serif;max-width:600px;margin:0 auto;color:#1a202c">';
   html += '<div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:24px 28px;border-radius:12px 12px 0 0">';
@@ -285,13 +286,20 @@ function sendExpertEmail(data) {
   if (data.location) html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">สถานที่</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb">' + data.location + '</td></tr>';
   html += '</table>';
 
-  html += '<table style="width:100%;border-collapse:collapse;margin:20px 0">';
+  // ─── กลุ่ม 1: เอกสารแนบ ───
+  html += '<table style="width:100%;border-collapse:collapse;margin:20px 0 0">';
   html += '<tr><td colspan="2" style="padding:10px 0 8px;font-size:.88rem;font-weight:700;color:#1a202c;border-bottom:2px solid #4f46e5">เอกสารแนบ</td></tr>';
-  if (data.projectUrl) html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">รายละเอียดโครงการ</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.projectUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
-  if (data.cvfileUrl)  html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">CV วิทยากร</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.cvfileUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
+  if (data.projectUrl)  html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">รายละเอียดโครงการ</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.projectUrl  + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
+  if (data.cvfileUrl)   html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">CV วิทยากร</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.cvfileUrl   + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
   if (data.scheduleUrl) html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">กำหนดการ</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.scheduleUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
-  if (data.matiUrl)     html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">มติผลการพิจารณารับรอง CPE</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.matiUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
   html += '</table>';
+  // ─── กลุ่ม 2: มติ CPE (แยกออกมา) ───
+  if (data.matiUrl) {
+    html += '<table style="width:100%;border-collapse:collapse;margin:0 0 20px">';
+    html += '<tr><td colspan="2" style="padding:16px 0 8px;font-size:.88rem;font-weight:700;color:#1a202c;border-bottom:2px solid #0891b2">มติผลการพิจารณารับรอง CPE</td></tr>';
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">มติผลการพิจารณารับรอง CPE</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.matiUrl + '" style="color:#0891b2;font-weight:700">เปิดเอกสาร</a></td></tr>';
+    html += '</table>';
+  }
   html += '</div></div>';
 
   var sent = 0;
