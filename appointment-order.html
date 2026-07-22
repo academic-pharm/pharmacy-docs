@@ -847,7 +847,7 @@ async function _generateApptPDF(data){
 
   try {
     // inject html2canvas เข้า iframe HTML
-    // ใช้ '<' + '/script>' เพื่อหลีกเลี่ยง HTML parser ตีความ </script> ก่อนกำหนด
+    // ใช้ '<' + '/script>' แทน closing tag เพื่อหลีกเลี่ยง HTML parser ตัด script block
     const ct = '<' + '/script>';
     const h2cTag = '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">' + ct;
     const html = buildPrintHTML(data).replace('</head>', h2cTag + '</head>');
