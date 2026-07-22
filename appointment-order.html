@@ -826,11 +826,10 @@ async function _loadProjectFolderFromFB(email, pid){
 
 async function _uploadApptToDrive(pid, data){
   if(!_APPT_DRIVE_URL) return;
-  // ดึง driveFolderId จาก Firebase ถ้ายังไม่มี
   if(!_apptDriveFolderId){
-    _apptDriveFolderId = await _loadProjectFolderFromFB(currentUser.email, pid);
+    showToast('Drive: ไม่พบโฟลเดอร์โครงการ — กลับไปบันทึกโครงการก่อนครับ','err');
+    return;
   }
-  if(!_apptDriveFolderId) return;
   try{
     const projName = data.projectName || pid;
     const filename = 'คำสั่งแต่งตั้ง_' + projName + '.html';
@@ -1242,11 +1241,8 @@ async function buildWordDoc(d){
   const projKey  = getUserProjKey(currentUser.email);
   const projects = JSON.parse(localStorage.getItem(projKey)||'[]');
   const proj     = projects.find(p=>p.id===projectId);
-  projectName    = proj ? (proj.projectName||'') : '';
-  // โหลด driveFolderId จาก Firebase (async)
-  _loadProjectFolderFromFB(currentUser.email, projectId).then(fid => {
-    _apptDriveFolderId = fid;
-  });
+  projectName        = proj ? (proj.projectName||'') : '';
+  _apptDriveFolderId = proj?.driveFolderId || null;
 
   // Update UI
   const bannerName = document.getElementById('banner-proj-name');
