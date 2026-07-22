@@ -38,7 +38,23 @@ function doPost(e) {
       return notifyCpeResult(data);
     }
 
-    // action: 'upload' (default) → อัปโหลดไฟล์ไปยัง Drive
+    // action: 'uploadFile' → อัปโหลดไฟล์เข้า folder ที่ระบุ (ใช้กับ approved-docs)
+    if (data.action === 'uploadFile') {
+      var folderId  = data.folderId  || '';
+      var filename  = data.filename  || 'file.pdf';
+      var mimeType  = data.mimeType  || 'application/pdf';
+      var b64raw    = data.base64    || '';
+      // strip data-URL prefix ถ้ามี (e.g. "data:application/pdf;base64,...")
+      var b64clean  = b64raw.indexOf(',') >= 0 ? b64raw.split(',')[1] : b64raw;
+      var folder    = DriveApp.getFolderById(folderId);
+      var bytes     = Utilities.base64Decode(b64clean);
+      var blob      = Utilities.newBlob(bytes, mimeType, filename);
+      var file      = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return respond({ success:true, fileId:file.getId(), fileUrl:file.getUrl(), filename:file.getName() });
+    }
+
+    // action: 'upload' (legacy) → อัปโหลดไฟล์ไปยัง Drive (CPE renewal)
     var b64     = data.fileBase64;
     var name    = data.fileName  || 'file';
     var mime    = data.mimeType  || 'application/octet-stream';
@@ -60,8 +76,50 @@ function doPost(e) {
   }
 }
 
-function doGet() {
-  return respond({ status:'CPE Upload API running' });
+function doGet(e) {
+  try {
+    var p = (e && e.parameter) ? e.parameter : {};
+    var action = p.action || '';
+
+    // action: 'createProjectFolder' → สร้างโฟลเดอร์ Drive สำหรับโครงการใหม่
+    if (action === 'createProjectFolder') {
+      var pid         = p.pid         || '';
+      var projectName = p.projectName || 'โครงการใหม่';
+      var rootAcad    = getOrCreate('โครงการบริการวิชาการ BUU', null);
+      var projFolder  = getOrCreate(projectName + (pid ? ' [' + pid + ']' : ''), rootAcad);
+      projFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      var approvedFolder = getOrCreate('เอกสารอนุมัติ', projFolder);
+      approvedFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return respond({
+        success:           true,
+        projectFolderId:   projFolder.getId(),
+        projectFolderUrl:  projFolder.getUrl(),
+        approvedFolderId:  approvedFolder.getId(),
+        approvedFolderUrl: approvedFolder.getUrl()
+      });
+    }
+
+    // action: 'renameFolder' → เปลี่ยนชื่อโฟลเดอร์
+    if (action === 'renameFolder') {
+      var folderId = p.folderId || '';
+      var newName  = p.newName  || '';
+      if (!folderId) return respond({ success:false, error:'ไม่มี folderId' });
+      DriveApp.getFolderById(folderId).setName(newName);
+      return respond({ success:true });
+    }
+
+    // action: 'deleteFile' → ย้ายไฟล์ไปถังขยะ
+    if (action === 'deleteFile') {
+      var fileId = p.fileId || '';
+      if (!fileId) return respond({ success:false, error:'ไม่มี fileId' });
+      DriveApp.getFileById(fileId).setTrashed(true);
+      return respond({ success:true });
+    }
+
+    return respond({ status:'CPE Upload API running' });
+  } catch(err) {
+    return respond({ success:false, error:err.toString() });
+  }
 }
 
 /* ─── Log submission to Google Sheet ─── */

@@ -394,6 +394,7 @@ let currentUser = null;
 let projectId   = null;
 let projectName = '';
 let LOGO_B64    = null;
+let _apptDriveFolderId = null; // Drive folder ของโครงการนี้
 
 fetch('logo-pharm.png').then(r=>r.blob()).then(blob=>{
   const rd = new FileReader();
@@ -787,13 +788,83 @@ function renumberCommittees(){
 }
 
 // ══════════════════════════════════════════
+// GOOGLE DRIVE INTEGRATION
+// ══════════════════════════════════════════
+const _APPT_DRIVE_URL = 'https://script.google.com/macros/s/AKfycbz7n_WT63VSW_BH6Eqdju0kOzT8Qh0cmiNBvpU2jnoPE0aauyZPTXnBSWRQt9s15v8H3w/exec';
+
+async function _apptDriveCall(data){
+  if(!_APPT_DRIVE_URL) return null;
+  try{
+    if(data.action !== 'uploadFile'){
+      const params = new URLSearchParams(data);
+      const res = await fetch(_APPT_DRIVE_URL + '?' + params.toString());
+      return await res.json();
+    }
+    const res = await fetch(_APPT_DRIVE_URL, {method:'POST', body:JSON.stringify(data)});
+    return await res.json();
+  }catch(e){ console.warn('[Drive] appt error:', e); return null; }
+}
+
+// อ่าน driveFolderId ของโครงการจาก Firebase
+async function _loadProjectFolderFromFB(email, pid){
+  try{
+    initFirebase();
+    if(typeof firebase==='undefined') return null;
+    const snap = await firebase.database()
+      .ref('pharma-form/' + emailToFbKey(email) + '/projects')
+      .once('value');
+    const val = snap.val();
+    const arr = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+    return arr.find(p => p.id === pid)?.driveFolderId || null;
+  }catch(e){ console.warn('[Drive] loadProjectFolder error:', e); return null; }
+}
+
+async function _uploadApptToDrive(pid, data){
+  if(!_APPT_DRIVE_URL) return;
+  // ดึง driveFolderId จาก Firebase ถ้ายังไม่มี
+  if(!_apptDriveFolderId){
+    _apptDriveFolderId = await _loadProjectFolderFromFB(currentUser.email, pid);
+  }
+  if(!_apptDriveFolderId) return;
+  try{
+    const projName = data.projectName || pid;
+    const filename = 'คำสั่งแต่งตั้ง_' + projName + '.html';
+    const htmlContent = buildPrintHTML(data);
+
+    // อ่าน driveFileId เก่าจาก Firebase เพื่อลบก่อน upload
+    const apptRef = _fbApptRef(currentUser.email, pid);
+    const prevSnap = apptRef ? await apptRef.once('value') : null;
+    const prevFileId = prevSnap?.val()?.driveFileId || null;
+    if(prevFileId){
+      _apptDriveCall({action:'deleteFile', fileId:prevFileId}).catch(()=>{});
+    }
+
+    // encode HTML → base64
+    const b64 = btoa(unescape(encodeURIComponent(htmlContent)));
+    const result = await _apptDriveCall({
+      action:'uploadFile', folderId:_apptDriveFolderId,
+      filename, base64:b64, mimeType:'text/html'
+    });
+
+    if(result?.success){
+      // บันทึก driveFileId ลง Firebase เท่านั้น (เพื่อใช้ลบครั้งหน้า)
+      if(apptRef) apptRef.update({ driveFileId: result.fileId, driveFileUrl: result.fileUrl }).catch(()=>{});
+      showToast('📁 บันทึกลง Drive แล้ว', 'ok');
+    } else {
+      console.warn('[Drive] upload appt failed:', result);
+    }
+  }catch(e){ console.warn('[Drive] upload appt error:', e); }
+}
+
+// ══════════════════════════════════════════
 // SAVE
 // ══════════════════════════════════════════
-function saveAppt(){
+async function saveAppt(){
   const data = getFormData();
   saveApptToStorage(projectId, data);
   _fbApptWrite(currentUser.email, projectId, data);
   showToast('บันทึกคำสั่งแต่งตั้งแล้ว ✓', 'ok');
+  _uploadApptToDrive(projectId, data); // อัปโหลด Drive (background)
 }
 
 // ══════════════════════════════════════════
@@ -1167,6 +1238,10 @@ async function buildWordDoc(d){
   const projects = JSON.parse(localStorage.getItem(projKey)||'[]');
   const proj     = projects.find(p=>p.id===projectId);
   projectName    = proj ? (proj.projectName||'') : '';
+  // โหลด driveFolderId จาก Firebase (async)
+  _loadProjectFolderFromFB(currentUser.email, projectId).then(fid => {
+    _apptDriveFolderId = fid;
+  });
 
   // Update UI
   const bannerName = document.getElementById('banner-proj-name');
