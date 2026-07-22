@@ -48,6 +48,11 @@ function doPost(e) {
       return logPaymentToSheet(data);
     }
 
+    // action: 'confirm_payment' → admin ยืนยัน + อัพโหลดบิลใบเสร็จ + แจ้ง user ทางอีเมล
+    if (data.action === 'confirm_payment') {
+      return confirmPaymentAction(data);
+    }
+
     // action: 'uploadFile' → อัปโหลดไฟล์เข้า folder ที่ระบุ (ใช้กับ approved-docs)
     if (data.action === 'uploadFile') {
       var folderId  = data.folderId  || '';
@@ -778,6 +783,71 @@ function logPaymentToSheet(data) {
     });
 
     return respond({ success: true, receiptUrl: receiptUrl });
+  } catch(err) {
+    return respond({ success: false, error: err.toString() });
+  }
+}
+
+/* ─── Admin confirm payment + upload receipt + notify user ─── */
+function confirmPaymentAction(data) {
+  try {
+    // 1. อัพโหลด PDF บิลใบเสร็จไป Drive
+    var adminReceiptUrl = '';
+    if (data.base64 && data.base64.length > 0) {
+      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', null);
+      var confName  = (data.confName || 'ทั่วไป').replace(/[\/\\]/g, '-').substring(0, 60);
+      var subFolder = getOrCreate(confName, rootPay);
+      subFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      var b64clean = data.base64.indexOf(',') >= 0 ? data.base64.split(',')[1] : data.base64;
+      var bytes    = Utilities.base64Decode(b64clean);
+      var filename = data.filename || ('ใบเสร็จ_' + new Date().getTime() + '.pdf');
+      var blob     = Utilities.newBlob(bytes, 'application/pdf', filename);
+      var file     = subFolder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      adminReceiptUrl = file.getUrl();
+    }
+
+    // 2. อัพเดต Sheet tab "ค่าธรรมเนียม" — เปลี่ยนสถานะ + เพิ่ม URL บิลใบเสร็จ
+    var ss      = getOrCreateSheet();
+    var sheet   = ss.getSheetByName('ค่าธรรมเนียม');
+    if (sheet) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        var vals = sheet.getRange(2, 1, lastRow - 1, 10).getValues();
+        for (var i = 0; i < vals.length; i++) {
+          if (vals[i][2] === (data.cid || '')) {
+            sheet.getRange(i + 2, 9).setValue(adminReceiptUrl); // col I = URL บิลใบเสร็จ admin
+            sheet.getRange(i + 2, 10).setValue('ยืนยันแล้ว');  // col J = สถานะ
+            break;
+          }
+        }
+      }
+    }
+
+    // 3. ส่งอีเมลแจ้ง user
+    var userEmail = data.userEmail || '';
+    if (userEmail) {
+      var subject = '[CPE] ชำระค่าธรรมเนียมการจัดประชุมวิชาการเรียบร้อยแล้ว — ' + (data.confName || '');
+      var html = '<div style="font-family:sans-serif;max-width:520px">' +
+        '<h2 style="color:#059669;margin-bottom:8px">✅ ชำระค่าธรรมเนียมการจัดประชุมเรียบร้อยแล้ว</h2>' +
+        '<p style="color:#374151">เรียน คุณ' + (data.payerName || '') + '</p>' +
+        '<p style="color:#374151">ระบบได้รับการชำระค่าธรรมเนียมการจัดประชุมวิชาการ <strong>' + (data.confName || '') + '</strong> เรียบร้อยแล้ว</p>' +
+        '<table style="border-collapse:collapse;width:100%;margin:16px 0;font-size:14px">' +
+          '<tr><td style="padding:6px 12px;background:#f0fdf4;font-weight:700;width:140px">ชื่อประชุม</td>' +
+              '<td style="padding:6px 12px;border-bottom:1px solid #e5e7eb">' + (data.confName || '-') + '</td></tr>' +
+          '<tr><td style="padding:6px 12px;background:#f0fdf4;font-weight:700">จำนวนเงิน</td>' +
+              '<td style="padding:6px 12px;border-bottom:1px solid #e5e7eb">' + (data.amount ? Number(data.amount).toLocaleString() : '-') + ' บาท</td></tr>' +
+        '</table>' +
+        (adminReceiptUrl
+          ? '<p><a href="' + adminReceiptUrl + '" style="display:inline-block;background:#059669;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">📥 ดาวน์โหลดบิลใบเสร็จการชำระค่าธรรมเนียมการจัดประชุม</a></p>'
+          : '') +
+        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">' +
+        '<p style="font-size:12px;color:#9ca3af">ระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>' +
+      '</div>';
+      MailApp.sendEmail({ to: userEmail, subject: subject, htmlBody: html });
+    }
+
+    return respond({ success: true, adminReceiptUrl: adminReceiptUrl });
   } catch(err) {
     return respond({ success: false, error: err.toString() });
   }

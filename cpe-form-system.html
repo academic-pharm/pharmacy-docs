@@ -1804,6 +1804,32 @@ function injectConfStatuses(){
 
       if(st === 'result_confirmed'){
         var hasResult = c.files && c.files.result_pdf && c.files.result_pdf.url;
+        var pay = c.payment || {};
+        var payStatus = pay.status || '';
+
+        // payment status banner
+        var payBanner = '';
+        if(payStatus === 'pending_receipt'){
+          payBanner = '<div style="margin-top:8px;display:flex;align-items:center;gap:7px;'+
+            'background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.25);border-radius:7px;padding:7px 10px">'+
+            '<span style="animation:pulse-dot 1.4s ease infinite;width:8px;height:8px;border-radius:50%;background:#d97706;flex-shrink:0;display:inline-block"></span>'+
+            '<span style="font-size:.73rem;font-weight:700;color:#b45309">อยู่ระหว่างการตรวจสอบการชำระค่าธรรมเนียม</span>'+
+          '</div>';
+        } else if(payStatus === 'confirmed'){
+          payBanner = '<div style="margin-top:8px;background:rgba(5,150,105,.07);border:1px solid rgba(5,150,105,.25);border-radius:7px;padding:8px 10px">'+
+            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:'+(pay.adminReceiptUrl ? '7px' : '0')+'">'+
+              '<span style="font-size:14px">✅</span>'+
+              '<span style="font-size:.73rem;font-weight:700;color:#065f46">ชำระค่าธรรมเนียมการจัดประชุมเรียบร้อยแล้ว</span>'+
+            '</div>'+
+            (pay.adminReceiptUrl
+              ? '<a href="'+pay.adminReceiptUrl+'" target="_blank" '+
+                  'style="display:inline-flex;align-items:center;gap:5px;font-size:.71rem;font-weight:700;'+
+                  'color:#fff;background:#059669;border-radius:6px;padding:5px 11px;text-decoration:none">'+
+                  '🧾 บิลใบเสร็จการชำระค่าธรรมเนียม</a>'
+              : '')+
+          '</div>';
+        }
+
         parts.push(
           '<div style="background:rgba(5,150,105,.05);border:1px solid rgba(5,150,105,.22);border-radius:10px;padding:10px 13px">'+
             '<div style="display:flex;align-items:center;gap:10px">'+
@@ -1821,13 +1847,16 @@ function injectConfStatuses(){
                     'style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;'+
                     'color:#fff;background:#059669;border-radius:7px;padding:5px 12px;text-decoration:none">'+
                     '📥 ดาวน์โหลดเอกสารผล</a>'+
-                  '<button onclick="openPaymentModal(\''+cidSafe+'\')" '+
-                    'style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;'+
-                    'color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;border-radius:7px;'+
-                    'padding:5px 12px;cursor:pointer;font-family:inherit">'+
-                    '💳 ชำระค่าธรรมเนียม</button>'+
+                  (!payStatus
+                    ? '<button onclick="openPaymentModal(\''+cidSafe+'\')" '+
+                        'style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;'+
+                        'color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;border-radius:7px;'+
+                        'padding:5px 12px;cursor:pointer;font-family:inherit">'+
+                        '💳 ชำระค่าธรรมเนียม</button>'
+                    : '')+
                 '</div>'
               : '')+
+            payBanner+
           '</div>'
         );
       } else if(st === 'pending_review' || st === 'sent_to_experts'){
@@ -2526,12 +2555,38 @@ function loadAllCpeConferences(){
             '</div>'+
           '</div>'
         : (st==='result_confirmed'
-            ? '<div style="margin-top:12px;border-top:1px solid rgba(200,210,230,.35);padding-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-                '<span style="font-size:.78rem;font-weight:700;color:#059669">✅ ยืนยันผลการพิจารณาแล้ว</span>'+
-                (c.confirmedAt ? '<span style="font-size:.72rem;color:#6b7280">เมื่อ '+fd(c.confirmedAt)+'</span>' : '')+
-                (c.files&&c.files.result_pdf&&c.files.result_pdf.url
-                  ? '<a href="'+c.files.result_pdf.url+'" target="_blank" style="font-size:.72rem;color:#4f46e5;font-weight:700;text-decoration:none;border:1px solid rgba(79,70,229,.3);border-radius:6px;padding:3px 8px">📥 ดาวน์โหลดผลการพิจารณา</a>'
-                  : '')+
+            ? '<div style="margin-top:12px;border-top:1px solid rgba(200,210,230,.35);padding-top:10px">'+
+                '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:'+(c.payment ? '10px' : '0')+'">'+
+                  '<span style="font-size:.78rem;font-weight:700;color:#059669">✅ ยืนยันผลการพิจารณาแล้ว</span>'+
+                  (c.confirmedAt ? '<span style="font-size:.72rem;color:#6b7280">เมื่อ '+fd(c.confirmedAt)+'</span>' : '')+
+                  (c.files&&c.files.result_pdf&&c.files.result_pdf.url
+                    ? '<a href="'+c.files.result_pdf.url+'" target="_blank" style="font-size:.72rem;color:#4f46e5;font-weight:700;text-decoration:none;border:1px solid rgba(79,70,229,.3);border-radius:6px;padding:3px 8px">📥 ดาวน์โหลดผลการพิจารณา</a>'
+                    : '')+
+                '</div>'+
+                // ── payment review section ──
+                (c.payment && c.payment.status === 'pending_receipt'
+                  ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:9px;padding:10px 13px">'+
+                      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
+                        '<div style="display:flex;align-items:center;gap:7px">'+
+                          '<span style="animation:pulse-dot 1.4s ease infinite;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;display:inline-block"></span>'+
+                          '<span style="font-size:.77rem;font-weight:700;color:#b45309">มีการชำระค่าธรรมเนียม — รอตรวจสอบ</span>'+
+                        '</div>'+
+                        '<button onclick="openPaymentReviewModal(\''+cid+'\')" '+
+                          'style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;'+
+                          'color:#fff;background:linear-gradient(135deg,#d97706,#b45309);border:none;border-radius:7px;'+
+                          'padding:5px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">'+
+                          '🔍 ตรวจสอบการชำระค่าธรรมเนียม</button>'+
+                      '</div>'+
+                    '</div>'
+                  : (c.payment && c.payment.status === 'confirmed'
+                      ? '<div style="display:flex;align-items:center;gap:7px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.25);border-radius:8px;padding:8px 12px">'+
+                          '<span style="font-size:14px">✅</span>'+
+                          '<span style="font-size:.75rem;font-weight:700;color:#065f46">ยืนยันการชำระค่าธรรมเนียมแล้ว</span>'+
+                          (c.payment.adminReceiptUrl
+                            ? '<a href="'+c.payment.adminReceiptUrl+'" target="_blank" style="font-size:.7rem;color:#4f46e5;font-weight:700;text-decoration:none;border:1px solid rgba(79,70,229,.3);border-radius:5px;padding:2px 7px;margin-left:auto">🧾 บิลใบเสร็จ</a>'
+                            : '')+
+                        '</div>'
+                      : ''))+
               '</div>'
             : '')
       )+
@@ -2917,6 +2972,166 @@ function closeConfDetailModal(){
 }
 
 /* ════════════════════════════════
+   ADMIN: PAYMENT REVIEW MODAL
+════════════════════════════════ */
+var _payReviewFile = null;
+
+function openPaymentReviewModal(cid){
+  var c = _adminConfs[cid];
+  if(!c || !c.payment){ return; }
+  var pay = c.payment;
+
+  function fmt(n){ return n ? Number(n).toLocaleString('th-TH') : '—'; }
+  function fdt(iso){ if(!iso) return '—'; return new Date(iso).toLocaleString('th-TH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+
+  _payReviewFile = null;
+  var inner = document.getElementById('pay-review-modal-inner');
+  inner.innerHTML =
+    // Header
+    '<div style="background:linear-gradient(135deg,#d97706 0%,#b45309 100%);padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:10px">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🔍</div>' +
+        '<div>' +
+          '<p style="margin:0;font-size:.92rem;font-weight:700;color:#fff">ตรวจสอบการชำระค่าธรรมเนียม</p>' +
+          '<p style="margin:0;font-size:.71rem;color:rgba(255,255,255,.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px">'+(c.confName||'')+'</p>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="closePaymentReviewModal()" style="background:rgba(255,255,255,.2);border:none;cursor:pointer;width:28px;height:28px;border-radius:7px;color:#fff;font-size:14px">✕</button>' +
+    '</div>' +
+
+    // Payment info
+    '<div style="padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0">' +
+      '<p style="margin:0 0 10px;font-size:.76rem;font-weight:700;color:#64748b">📋 ข้อมูลการชำระเงิน</p>' +
+      '<div style="display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:.82rem">' +
+        '<span style="color:#94a3b8">ผู้ชำระ</span><span style="font-weight:700;color:#1a202c">'+(pay.payerName||'—')+'</span>' +
+        '<span style="color:#94a3b8">เลขผู้เสียภาษี</span><span style="font-weight:700;color:#1a202c">'+(pay.taxId||'—')+'</span>' +
+        '<span style="color:#94a3b8">ที่อยู่</span><span style="color:#374151">'+(pay.address||'—')+'</span>' +
+        '<span style="color:#94a3b8">จำนวนเงิน</span><span style="font-weight:700;color:#0369a1;font-size:.9rem">'+fmt(pay.amount)+' บาท</span>' +
+        '<span style="color:#94a3b8">ชำระเมื่อ</span><span style="color:#374151">'+fdt(pay.paidAt)+'</span>' +
+      '</div>' +
+      (pay.receiptUrl
+        ? '<a href="'+pay.receiptUrl+'" target="_blank" style="margin-top:10px;display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;color:#4f46e5;border:1px solid rgba(79,70,229,.3);border-radius:7px;padding:5px 12px;text-decoration:none">📄 ดูหลักฐานการชำระเงิน ↗</a>'
+        : '')+
+    '</div>' +
+
+    // Admin receipt upload
+    '<div style="padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0">' +
+      '<p style="margin:0 0 10px;font-size:.76rem;font-weight:700;color:#64748b">🧾 แนบบิลใบเสร็จอย่างเป็นทางการ (PDF)</p>' +
+      '<input type="file" id="pay-review-file" accept="application/pdf" style="display:none" onchange="onPayReviewFileChange(this)"/>' +
+      '<div id="pay-review-drop" onclick="document.getElementById(\'pay-review-file\').click()" '+
+        'style="border:2px dashed #fcd34d;border-radius:9px;padding:16px 14px;text-align:center;cursor:pointer;background:#fffbeb;transition:background .15s" '+
+        'ondragover="event.preventDefault();this.style.background=\'#fef3c7\'" '+
+        'ondragleave="this.style.background=\'#fffbeb\'" '+
+        'ondrop="event.preventDefault();this.style.background=\'#fffbeb\';onPayReviewFileDrop(event)">' +
+        '<div id="pay-review-placeholder">' +
+          '<div style="font-size:20px;margin-bottom:4px">📄</div>' +
+          '<div style="font-size:.78rem;font-weight:700;color:#b45309">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>' +
+          '<div style="font-size:.68rem;color:#94a3b8;margin-top:2px">ใบเสร็จ / ใบแจ้งหนี้อย่างเป็นทางการ</div>' +
+        '</div>' +
+        '<div id="pay-review-preview" style="display:none;align-items:center;gap:8px;justify-content:center">' +
+          '<span style="font-size:16px">✅</span>' +
+          '<div style="text-align:left">' +
+            '<div id="pay-review-fname" style="font-size:.77rem;font-weight:700;color:#065f46;word-break:break-all"></div>' +
+            '<div id="pay-review-fsize" style="font-size:.68rem;color:#059669"></div>' +
+          '</div>' +
+          '<button onclick="event.stopPropagation();clearPayReviewFile()" style="background:none;border:none;cursor:pointer;font-size:16px;color:#94a3b8;margin-left:4px">✕</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    // Footer
+    '<div style="padding:.9rem 1.25rem 1.25rem;display:flex;gap:8px">' +
+      '<button onclick="closePaymentReviewModal()" style="flex:1;padding:9px;background:#f1f5f9;border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit">ยกเลิก</button>' +
+      '<button id="pay-review-confirm-btn" onclick="confirmPaymentReview(\''+cid+'\')" '+
+        'style="flex:2;padding:9px;background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">'+
+        '✅ ยืนยัน & แจ้ง User</button>' +
+    '</div>';
+
+  document.getElementById('pay-review-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePaymentReviewModal(){
+  document.getElementById('pay-review-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  _payReviewFile = null;
+}
+
+function onPayReviewFileChange(input){
+  if(input.files && input.files[0]) _setPayReviewFile(input.files[0]);
+}
+function onPayReviewFileDrop(e){
+  var f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f && f.type === 'application/pdf') _setPayReviewFile(f);
+  else if(f) showToast('กรุณาเลือกเฉพาะไฟล์ PDF','err');
+}
+function _setPayReviewFile(f){
+  _payReviewFile = f;
+  document.getElementById('pay-review-placeholder').style.display = 'none';
+  var prev = document.getElementById('pay-review-preview');
+  prev.style.display = 'flex';
+  document.getElementById('pay-review-fname').textContent = f.name;
+  document.getElementById('pay-review-fsize').textContent = (f.size/1024).toFixed(1)+' KB';
+  document.getElementById('pay-review-drop').style.background = '#f0fdf4';
+  document.getElementById('pay-review-drop').style.borderColor = '#6ee7b7';
+}
+function clearPayReviewFile(){
+  _payReviewFile = null;
+  document.getElementById('pay-review-file').value = '';
+  document.getElementById('pay-review-placeholder').style.display = 'block';
+  document.getElementById('pay-review-preview').style.display = 'none';
+  document.getElementById('pay-review-drop').style.background = '#fffbeb';
+  document.getElementById('pay-review-drop').style.borderColor = '#fcd34d';
+}
+
+function confirmPaymentReview(cid){
+  if(!_payReviewFile){ showToast('กรุณาแนบไฟล์ PDF บิลใบเสร็จก่อน','err'); return; }
+  var c = _adminConfs[cid];
+  if(!c || !c.payment){ showToast('ไม่พบข้อมูลการชำระเงิน','err'); return; }
+
+  var btn = document.getElementById('pay-review-confirm-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดำเนินการ...'; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var b64 = ev.target.result;
+    var payload = {
+      action:      'confirm_payment',
+      cid:         cid,
+      confName:    c.confName || '',
+      userEmail:   c.payment.payerEmail || c.createdBy || '',
+      payerName:   c.payment.payerName || '',
+      amount:      c.payment.amount || 0,
+      base64:      b64,
+      filename:    'ใบเสร็จ_'+(c.confName||cid).substring(0,30).replace(/\s+/g,'_')+'_'+Date.now()+'.pdf'
+    };
+
+    fetch(APPS_SCRIPT_URL,{ method:'POST', body:JSON.stringify(payload) })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(!res.success) throw new Error(res.error||'unknown');
+      var adminReceiptUrl = res.adminReceiptUrl || '';
+      var now = new Date().toISOString();
+      var update = { status:'confirmed', confirmedAt:now, adminReceiptUrl:adminReceiptUrl };
+      var userFbKey = emailToFbKey((c.payment.payerEmail || c.createdBy || '').toLowerCase());
+      return Promise.all([
+        db.ref('pharma-form/_all_cpe_conferences/'+cid+'/payment').update(update),
+        db.ref('pharma-form/'+userFbKey+'/cpe-conferences/'+cid+'/payment').update(update)
+      ]);
+    })
+    .then(function(){
+      closePaymentReviewModal();
+      showToast('✅ ยืนยันการชำระค่าธรรมเนียมแล้ว — แจ้ง User เรียบร้อย','ok');
+    })
+    .catch(function(e){
+      showToast('เกิดข้อผิดพลาด: '+(e.message||e),'err');
+      if(btn){ btn.disabled=false; btn.textContent='✅ ยืนยัน & แจ้ง User'; }
+    });
+  };
+  reader.readAsDataURL(_payReviewFile);
+}
+
+/* ════════════════════════════════
    PAYMENT MODAL
 ════════════════════════════════ */
 function openPaymentModal(confId){
@@ -3153,7 +3368,11 @@ function submitPaymentInfo(confId){
         confName: c.confName||'', paidAt: new Date().toISOString(),
         status: 'pending_receipt', receiptUrl: res.receiptUrl || ''
       };
-      return firebase.database().ref('pharma-form/'+fbKey+'/cpe-conferences/'+confId+'/payment').set(fbPayload);
+      var db2 = firebase.database();
+      return Promise.all([
+        db2.ref('pharma-form/'+fbKey+'/cpe-conferences/'+confId+'/payment').set(fbPayload),
+        db2.ref('pharma-form/_all_cpe_conferences/'+confId+'/payment').set(fbPayload)
+      ]);
     })
     .then(function(){
       closePaymentModal();
@@ -3194,6 +3413,14 @@ document.addEventListener('keydown',function(e){
   }
 });
 </script>
+
+<!-- ── Payment Review Modal (Admin) ── -->
+<div id="pay-review-modal" onclick="if(event.target===this)closePaymentReviewModal()"
+  style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,.5);padding:20px 16px;overflow-y:auto;align-items:flex-start;justify-content:center">
+  <div id="pay-review-modal-inner"
+    style="max-width:460px;width:100%;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">
+  </div>
+</div>
 
 <!-- ── Payment Modal ── -->
 <div id="payment-modal" onclick="if(event.target===this)closePaymentModal()"
