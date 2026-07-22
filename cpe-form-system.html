@@ -2539,7 +2539,10 @@ function loadAllCpeConferences(){
                   '📎 แนบไฟล์ PDF'+
                 '</label>'+
                 '<input type="file" id="result-pdf-'+safeCid+'" accept=".pdf" style="display:none" onchange="previewResultFile(\''+safeCid+'\',this)">'+
-                '<span id="result-fname-'+safeCid+'" style="font-size:.75rem;color:#374151"></span>'+
+                '<span id="result-fname-'+safeCid+'" style="font-size:.75rem;color:#374151;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>'+
+                '<button id="result-clear-'+safeCid+'" onclick="clearResultFile(\''+safeCid+'\')" '+
+                  'style="display:none;background:none;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;font-size:.72rem;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap">'+
+                  '✕ ล้างไฟล์</button>'+
               '</div>'+
               '<div style="display:flex;gap:8px">'+
                 '<button onclick="confirmCPEResult(\''+safeCid+'\',\''+cid+'\')" '+
@@ -2605,8 +2608,24 @@ function toggleResultPanel(safeCid){
 }
 
 function previewResultFile(safeCid, input){
-  var span = document.getElementById('result-fname-'+safeCid);
-  if(span) span.textContent = input.files[0] ? '📄 '+input.files[0].name : '';
+  var span  = document.getElementById('result-fname-'+safeCid);
+  var clear = document.getElementById('result-clear-'+safeCid);
+  if(input.files[0]){
+    if(span)  span.textContent = '📄 '+input.files[0].name;
+    if(clear) clear.style.display = 'inline-flex';
+  } else {
+    if(span)  span.textContent = '';
+    if(clear) clear.style.display = 'none';
+  }
+}
+
+function clearResultFile(safeCid){
+  var inp   = document.getElementById('result-pdf-'+safeCid);
+  var span  = document.getElementById('result-fname-'+safeCid);
+  var clear = document.getElementById('result-clear-'+safeCid);
+  if(inp)   inp.value = '';
+  if(span)  span.textContent = '';
+  if(clear) clear.style.display = 'none';
 }
 
 async function confirmCPEResult(safeCid, cid){
