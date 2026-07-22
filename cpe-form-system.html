@@ -2634,16 +2634,30 @@ function loadAllCpeConferences(){
           '</div>'+
           actionBtn+
         '</div>'+
-        '<div style="padding:8px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-bottom:1px solid rgba(200,210,230,.15)">'+
-          fileBtn('โครงการ',c.files&&c.files.project&&c.files.project.url,'📋')+
-          fileBtn('CV',c.files&&c.files.cvfile&&c.files.cvfile.url,'👤')+
-          fileBtn('กำหนดการ',c.files&&c.files.schedule&&c.files.schedule.url,'📅')+
-          (c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url?fileBtn('มติ CPE (PDF)',c.files.resolution_pdf.url,'📄'):'<span style="font-size:.69rem;color:#d1d5db">📄 ไม่มี PDF</span>')+
-          '<label for="res-pdf-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:7px;padding:3px 8px;font-size:.68rem;font-weight:700;white-space:nowrap">'+(c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url?'🔄 PDF':'⬆ PDF')+'</label>'+
-          '<input type="file" id="res-pdf-'+safeCid+'" accept=".pdf" style="display:none" onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'pdf\')">'+
-          (c.files&&c.files.resolution_word&&c.files.resolution_word.url?fileBtn('มติ CPE (Word)',c.files.resolution_word.url,'📝'):'<span style="font-size:.69rem;color:#d1d5db">📝 ไม่มี Word</span>')+
-          '<label for="res-word-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;padding:3px 8px;font-size:.68rem;font-weight:700;white-space:nowrap">'+(c.files&&c.files.resolution_word&&c.files.resolution_word.url?'🔄 Word':'⬆ Word')+'</label>'+
-          '<input type="file" id="res-word-'+safeCid+'" accept=".doc,.docx" style="display:none" onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'word\')">'+
+        '<div style="padding:10px 14px;border-bottom:1px solid rgba(200,210,230,.15);display:flex;flex-direction:column;gap:10px">'+
+          '<div>'+
+            '<div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase">เอกสารจาก USER</div>'+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+              fileBtn('โครงการ',c.files&&c.files.project&&c.files.project.url,'📋')+
+              fileBtn('CV วิทยากร',c.files&&c.files.cvfile&&c.files.cvfile.url,'👤')+
+              fileBtn('กำหนดการ',c.files&&c.files.schedule&&c.files.schedule.url,'📅')+
+            '</div>'+
+          '</div>'+
+          '<div>'+
+            '<div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase">มติ CPE (Admin อัปโหลด)</div>'+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+              (c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url?
+                '<a href="'+c.files.resolution_pdf.url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:8px;padding:5px 11px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap">📄 มติ CPE (PDF)</a>':
+                '<span style="font-size:.72rem;color:#d1d5db">📄 ไม่มี PDF</span>')+
+              '<label for="res-pdf-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:1px dashed #fed7aa;border-radius:8px;padding:5px 11px;font-size:.75rem;font-weight:700;white-space:nowrap">'+(c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url?'🔄 อัปโหลด PDF ใหม่':'⬆ อัปโหลด PDF')+'</label>'+
+              '<input type="file" id="res-pdf-'+safeCid+'" accept=".pdf" style="display:none" onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'pdf\')">'+
+              (c.files&&c.files.resolution_word&&c.files.resolution_word.url?
+                '<a href="'+c.files.resolution_word.url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;padding:5px 11px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap">📝 มติ CPE (Word)</a>':
+                '<span style="font-size:.72rem;color:#d1d5db">📝 ไม่มี Word</span>')+
+              '<label for="res-word-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;border:1px dashed #bfdbfe;border-radius:8px;padding:5px 11px;font-size:.75rem;font-weight:700;white-space:nowrap">'+(c.files&&c.files.resolution_word&&c.files.resolution_word.url?'🔄 อัปโหลด Word ใหม่':'⬆ อัปโหลด Word')+'</label>'+
+              '<input type="file" id="res-word-'+safeCid+'" accept=".doc,.docx" style="display:none" onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'word\')">'+
+            '</div>'+
+          '</div>'+
         '</div>'+
         '<div id="ep-'+safeCid+'" style="display:none;padding:14px 16px;border-bottom:1px solid rgba(200,210,230,.25)">'+
           '<div style="font-size:.83rem;font-weight:700;color:#4338ca;margin-bottom:10px">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>'+
