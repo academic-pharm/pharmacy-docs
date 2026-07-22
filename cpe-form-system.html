@@ -1724,15 +1724,23 @@ function loadMyOrgRequests(){
           extraHtml += '<div style="font-size:.75rem;color:#059669;margin-top:6px">'+
             'หน่วยงานนี้สามารถยื่นเอกสารต่ออายุ CPE ได้แล้ว</div>';
         }
-        // ปุ่มประชุมวิชาการ — แสดงสำหรับออร์กที่อนุมัติแล้วทุกกรณี
+        // ปุ่มประชุมวิชาการ + ผลการพิจารณาหน่วยกิต
         var _ck=(req.orgKey||'').replace(/'/g,"\\'");
         var _cn=(req.name||'').replace(/'/g,"\\'");
         var _orgNameId=(req.name||'').replace(/[^a-zA-Z0-9_-]/g,'_');
-        extraHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(16,185,129,.18);display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
-          '<button class="btn btn-sm" style="background:rgba(90,123,255,.1);color:#5a7bff;border:1px solid rgba(90,123,255,.35);font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;white-space:nowrap" '+
-          'onclick="goToConfFromMyRequest(\''+_ck+'\',\''+_cn+'\')">'+
-          '🎓 กรอกข้อมูลประชุมวิชาการ</button>'+
-          '<div id="conf-status-'+_orgNameId+'"></div>'+
+        extraHtml +=
+          '<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(16,185,129,.18)">'+
+            '<button class="btn btn-sm" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;'+
+              'background:rgba(90,123,255,.08);color:#4f46e5;border:1px solid rgba(90,123,255,.3);'+
+              'font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer" '+
+              'onclick="goToConfFromMyRequest(\''+_ck+'\',\''+_cn+'\')">'+
+              '🎓 กรอกข้อมูลประชุมวิชาการ</button>'+
+            '<div style="display:flex;align-items:center;gap:10px;margin:12px 0 10px">'+
+              '<div style="flex:1;height:1px;background:rgba(200,210,230,.5)"></div>'+
+              '<span style="font-size:.7rem;color:#94a3b8;white-space:nowrap;letter-spacing:.03em">ผลการพิจารณาหน่วยกิต</span>'+
+              '<div style="flex:1;height:1px;background:rgba(200,210,230,.5)"></div>'+
+            '</div>'+
+            '<div id="conf-status-'+_orgNameId+'"></div>'+
           '</div>';
       } else if(st==='ปฏิเสธ'){
         extraHtml = '<div style="font-size:.76rem;color:#dc2626;margin-top:6px">'+
@@ -1766,7 +1774,8 @@ function loadMyOrgRequests(){
 /* ════════════════════════════════
    USER: ประชุมวิชาการของฉัน
 ════════════════════════════════ */
-var _myConfs = {}; // orgKeyId → [conference, ...]
+var _myConfs = {};      // orgNameId → [conference, ...]
+var _myConfsById = {};  // confId    → conference
 
 function injectConfStatuses(){
   Object.entries(_myConfs).forEach(function(oe){
@@ -1775,40 +1784,61 @@ function injectConfStatuses(){
     var el = document.getElementById('conf-status-'+orgKeyId);
     if(!el) return;
 
+    if(!orgConfs.length){
+      el.innerHTML = '<p style="font-size:.75rem;color:#94a3b8;margin:0;text-align:center;padding:6px 0">ยังไม่มีข้อมูลที่ส่ง</p>';
+      return;
+    }
+
     var parts = [];
     orgConfs.forEach(function(c){
-      var st = c.status || 'pending_review';
+      var st   = c.status || 'pending_review';
       var name = c.confName || 'ประชุมวิชาการ';
+      var cid  = c.id || '';
+      var cidSafe = cid.replace(/'/g,"\\'");
+
+      var detailBtn = cid
+        ? '<button onclick="openConfDetailModal(\''+cidSafe+'\')" '+
+            'style="flex-shrink:0;font-size:.72rem;color:#6366f1;background:none;border:none;'+
+            'cursor:pointer;white-space:nowrap;padding:0;font-family:inherit">ดูรายละเอียด →</button>'
+        : '';
+
       if(st === 'result_confirmed'){
-        var dlBtn = (c.files&&c.files.result_pdf&&c.files.result_pdf.url)
-          ? '<a href="'+c.files.result_pdf.url+'" target="_blank" '+
-              'style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;'+
-              'color:#fff;background:#059669;border-radius:7px;padding:3px 9px;text-decoration:none;white-space:nowrap">'+
-              '📥 ดาวน์โหลดเอกสาร</a>'
-          : '';
+        var hasResult = c.files && c.files.result_pdf && c.files.result_pdf.url;
         parts.push(
-          '<div style="display:flex;align-items:center;gap:10px;background:rgba(5,150,105,.06);'+
-               'border:1px solid rgba(5,150,105,.2);border-radius:10px;padding:9px 13px;flex-wrap:wrap">'+
-            '<div style="flex:1;min-width:0">'+
-              '<div style="font-size:.75rem;font-weight:700;color:#065f46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎓 '+name+'</div>'+
-              '<div style="display:inline-flex;align-items:center;gap:5px;margin-top:4px">'+
-                '<span style="font-size:.7rem;font-weight:700;color:#059669">✅ ผลการพิจารณารับรองหน่วยกิต CPE</span>'+
+          '<div style="background:rgba(5,150,105,.05);border:1px solid rgba(5,150,105,.22);border-radius:10px;padding:10px 13px">'+
+            '<div style="display:flex;align-items:center;gap:10px">'+
+              '<div style="flex-shrink:0;width:32px;height:32px;border-radius:7px;background:rgba(5,150,105,.12);'+
+                   'display:flex;align-items:center;justify-content:center;font-size:16px">✅</div>'+
+              '<div style="flex:1;min-width:0">'+
+                '<div style="font-size:.82rem;font-weight:700;color:#065f46;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+name+'</div>'+
+                '<div style="font-size:.72rem;color:#059669;margin-top:2px">ผลการพิจารณารับรองหน่วยกิต CPE แล้ว</div>'+
               '</div>'+
+              detailBtn+
             '</div>'+
-            dlBtn+
+            (hasResult
+              ? '<a href="'+c.files.result_pdf.url+'" target="_blank" '+
+                  'style="margin-top:9px;display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;'+
+                  'color:#fff;background:#059669;border-radius:7px;padding:5px 12px;text-decoration:none">'+
+                  '📥 ดาวน์โหลดเอกสารผล</a>'
+              : '')+
           '</div>'
         );
       } else if(st === 'pending_review' || st === 'sent_to_experts'){
+        var subLabel = st === 'sent_to_experts'
+          ? 'ส่งให้ผู้ทรงคุณวุฒิพิจารณาแล้ว — รอผล'
+          : 'อยู่ระหว่างการพิจารณาหน่วยกิตจากผู้ทรงคุณวุฒิ';
         parts.push(
-          '<div style="display:flex;align-items:center;gap:10px;background:rgba(99,102,241,.05);'+
-               'border:1px solid rgba(99,102,241,.18);border-radius:10px;padding:9px 13px">'+
-            '<div style="flex:1;min-width:0">'+
-              '<div style="font-size:.75rem;font-weight:700;color:#312e81;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🎓 '+name+'</div>'+
-              '<div style="display:inline-flex;align-items:center;gap:5px;margin-top:4px">'+
-                '<span style="width:6px;height:6px;border-radius:50%;background:#4338ca;display:inline-block;'+
-                      'animation:pulse-dot 1.4s ease infinite;flex-shrink:0"></span>'+
-                '<span style="font-size:.7rem;font-weight:600;color:#4338ca">อยู่ระหว่างการพิจารณาหน่วยกิตจากผู้ทรงคุณวุฒิ</span>'+
+          '<div style="background:rgba(217,119,6,.04);border:1px solid rgba(217,119,6,.22);border-radius:10px;padding:10px 13px">'+
+            '<div style="display:flex;align-items:center;gap:10px">'+
+              '<div style="flex-shrink:0;width:32px;height:32px;border-radius:7px;background:rgba(217,119,6,.1);'+
+                   'display:flex;align-items:center;justify-content:center">'+
+                '<span style="width:8px;height:8px;border-radius:50%;background:#d97706;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span>'+
               '</div>'+
+              '<div style="flex:1;min-width:0">'+
+                '<div style="font-size:.82rem;font-weight:700;color:#1a202c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+name+'</div>'+
+                '<div style="font-size:.72rem;color:#b45309;margin-top:2px">'+subLabel+'</div>'+
+              '</div>'+
+              detailBtn+
             '</div>'+
           '</div>'
         );
@@ -1816,7 +1846,7 @@ function injectConfStatuses(){
     });
 
     el.innerHTML = parts.length
-      ? '<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">'+parts.join('')+'</div>'
+      ? '<div style="display:flex;flex-direction:column;gap:7px">'+parts.join('')+'</div>'
       : '';
   });
 }
@@ -1830,12 +1860,15 @@ function loadMyConferences(){
   db.ref('pharma-form/'+key+'/cpe-conferences').on('value', function(snap){
     var data = snap.val()||{};
     _myConfs = {};
+    _myConfsById = {};
     Object.entries(data).forEach(function(e){
-      var c = e[1];
+      var cid = e[0];
+      var c   = Object.assign({}, e[1], { id: cid });
       var orgNameId = (c.orgName||'').replace(/[^a-zA-Z0-9_-]/g,'_');
       if(!orgNameId) return;
       if(!_myConfs[orgNameId]) _myConfs[orgNameId] = [];
       _myConfs[orgNameId].push(c);
+      _myConfsById[cid] = c;
     });
     injectConfStatuses();
   });
@@ -2752,6 +2785,132 @@ async function seedAllOrgs(){
 }
 
 /* ════════════════════════════════
+   CONFERENCE DETAIL MODAL
+════════════════════════════════ */
+function openConfDetailModal(confId){
+  var c = _myConfsById[confId];
+  if(!c){ return; }
+  var st   = c.status || 'pending_review';
+  var name = c.confName || 'ประชุมวิชาการ';
+
+  // badge
+  var badgeMap = {
+    pending_review:   { bg:'#fef3c7', color:'#b45309', border:'rgba(217,119,6,.3)', label:'รอพิจารณา' },
+    sent_to_experts:  { bg:'#eff6ff', color:'#1d4ed8', border:'rgba(59,130,246,.3)', label:'ส่งผู้ทรงแล้ว' },
+    result_confirmed: { bg:'#f0fdf4', color:'#065f46', border:'rgba(5,150,105,.3)', label:'รับรองแล้ว' }
+  };
+  var b = badgeMap[st] || badgeMap['pending_review'];
+
+  // helper
+  function fd(iso){ if(!iso) return '—'; var d=new Date(iso); return d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}); }
+  function fdt(iso){ if(!iso) return '—'; var d=new Date(iso); return d.toLocaleString('th-TH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+
+  // timeline steps
+  var steps = [
+    { icon:'✅', color:'#059669', bgc:'#f0fdf4', label:'ส่งเอกสารเรียบร้อย', sub: fdt(c.createdAt), done:true },
+    { icon:'📤', color: st==='pending_review' ? '#94a3b8' : '#2563eb',
+      bgc: st==='pending_review' ? '#f8fafc' : '#eff6ff',
+      label:'ส่งให้ผู้ทรงคุณวุฒิพิจารณา',
+      sub: st!=='pending_review' ? (c.sentAt ? fdt(c.sentAt) : 'ดำเนินการแล้ว') : 'รอดำเนินการ',
+      done: st!=='pending_review' },
+    { icon: st==='result_confirmed' ? '🏆' : '⏳',
+      color: st==='result_confirmed' ? '#059669' : '#d97706',
+      bgc: st==='result_confirmed' ? '#f0fdf4' : '#fffbeb',
+      label: st==='result_confirmed' ? 'ได้รับการรับรองหน่วยกิต CPE' : 'รอผลการพิจารณา',
+      sub: st==='result_confirmed' ? fdt(c.confirmedAt) : 'อยู่ระหว่างดำเนินการ',
+      done: st==='result_confirmed' }
+  ];
+  var timelineHtml = steps.map(function(s, i){
+    return '<div style="display:flex;gap:12px">' +
+      '<div style="display:flex;flex-direction:column;align-items:center">' +
+        '<div style="width:30px;height:30px;border-radius:50%;background:'+s.bgc+';border:1px solid '+(s.done ? s.color+'55' : '#e2e8f0')+';'+
+             'display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">'+s.icon+'</div>' +
+        (i<steps.length-1 ? '<div style="width:1px;flex:1;background:#e2e8f0;margin:3px 0"></div>' : '') +
+      '</div>' +
+      '<div style="padding-bottom:'+(i<steps.length-1?'16':'4')+'px;padding-top:4px">' +
+        '<p style="margin:0 0 2px;font-size:.83rem;font-weight:700;color:'+(s.done?'#1a202c':'#94a3b8')+'">'+s.label+'</p>' +
+        '<p style="margin:0;font-size:.73rem;color:'+(s.done?s.color:'#94a3b8')+'">'+s.sub+'</p>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // documents
+  var docs = [
+    { key:'project', icon:'📋', label:'รายละเอียดโครงการ' },
+    { key:'cvfile',  icon:'👤', label:'CV วิทยากร' },
+    { key:'schedule',icon:'📅', label:'กำหนดการ' },
+    { key:'result_pdf', icon:'🏆', label:'เอกสารผลการพิจารณา' }
+  ];
+  var docsHtml = docs.map(function(d){
+    var url = c.files && c.files[d.key] && c.files[d.key].url;
+    if(!url) return '';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">' +
+      '<span style="font-size:15px">'+d.icon+'</span>' +
+      '<span style="flex:1;font-size:.82rem;color:#374151">'+d.label+'</span>' +
+      '<a href="'+url+'" target="_blank" style="font-size:.73rem;color:#4f46e5;text-decoration:none;font-weight:700;'+
+         'border:1px solid rgba(79,70,229,.25);border-radius:5px;padding:3px 9px;white-space:nowrap">เปิด ↗</a>' +
+    '</div>';
+  }).join('');
+  if(!docsHtml) docsHtml = '<p style="font-size:.78rem;color:#94a3b8;margin:0">ไม่มีเอกสารแนบ</p>';
+
+  // result download
+  var resultDl = (st==='result_confirmed' && c.files && c.files.result_pdf && c.files.result_pdf.url)
+    ? '<div style="padding:0 1.25rem 1.25rem">'+
+        '<a href="'+c.files.result_pdf.url+'" target="_blank" '+
+           'style="display:flex;align-items:center;justify-content:center;gap:7px;'+
+           'background:#059669;color:#fff;border-radius:8px;padding:10px;text-decoration:none;font-size:.88rem;font-weight:700">'+
+           '📥 ดาวน์โหลดเอกสารผลการรับรองหน่วยกิต</a>'+
+      '</div>'
+    : '';
+
+  var dateStr = c.dateStart
+    ? (c.dateEnd && c.dateEnd!==c.dateStart ? c.dateStart+' – '+c.dateEnd : c.dateStart)
+    : '—';
+
+  var html =
+    '<div style="padding:1.1rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px">' +
+      '<div style="flex:1;min-width:0">' +
+        '<p style="margin:0 0 5px;font-size:1rem;font-weight:700;color:#1a202c">'+name+'</p>' +
+        '<p style="margin:0;font-size:.75rem;color:#64748b">ส่งเมื่อ '+fd(c.createdAt)+' · โดย '+(c.createdBy||'—')+'</p>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
+        '<span style="font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid '+b.border+';background:'+b.bg+';color:'+b.color+'">'+b.label+'</span>' +
+        '<button onclick="closeConfDetailModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;padding:0">✕</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0">' +
+      '<div style="background:#f8fafc;border-radius:8px;padding:9px 11px">' +
+        '<p style="margin:0 0 3px;font-size:.69rem;color:#94a3b8">📅 วันที่จัด</p>' +
+        '<p style="margin:0;font-size:.83rem;font-weight:700;color:#1a202c">'+dateStr+'</p>' +
+      '</div>' +
+      '<div style="background:#f8fafc;border-radius:8px;padding:9px 11px">' +
+        '<p style="margin:0 0 3px;font-size:.69rem;color:#94a3b8">📍 สถานที่</p>' +
+        '<p style="margin:0;font-size:.83rem;font-weight:700;color:#1a202c">'+(c.location||'—')+'</p>' +
+      '</div>' +
+    '</div>' +
+    '<div style="padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0">' +
+      '<p style="margin:0 0 9px;font-size:.78rem;font-weight:700;color:#64748b">เอกสารแนบ</p>' +
+      '<div style="display:flex;flex-direction:column;gap:6px">'+docsHtml+'</div>' +
+    '</div>' +
+    '<div style="padding:1rem 1.25rem">' +
+      '<p style="margin:0 0 12px;font-size:.78rem;font-weight:700;color:#64748b">สถานะการพิจารณา</p>' +
+      timelineHtml +
+    '</div>' +
+    resultDl;
+
+  var inner = document.getElementById('conf-detail-inner');
+  inner.innerHTML = html;
+  var modal = document.getElementById('conf-detail-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeConfDetailModal(){
+  document.getElementById('conf-detail-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+/* ════════════════════════════════
    AURA REACTIVE MOUSE
 ════════════════════════════════ */
 (function(){
@@ -2778,5 +2937,13 @@ document.addEventListener('keydown',function(e){
   }
 });
 </script>
+
+<!-- ── Conference Detail Modal ── -->
+<div id="conf-detail-modal" onclick="if(event.target===this)closeConfDetailModal()"
+  style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.45);padding:20px 16px;overflow-y:auto;align-items:flex-start;justify-content:center">
+  <div id="conf-detail-inner"
+    style="max-width:520px;width:100%;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18)">
+  </div>
+</div>
 </body>
 </html>
