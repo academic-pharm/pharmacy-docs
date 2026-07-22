@@ -917,6 +917,7 @@ async function saveAppt(){
   saveApptToStorage(projectId, data);
   _fbApptWrite(currentUser.email, projectId, data);
   showToast('บันทึกคำสั่งแต่งตั้งแล้ว ✓', 'ok');
+  _uploadApptToDrive(projectId, data); // อัปโหลด PDF เข้า Drive โฟลเดอร์โครงการ
 }
 
 // ══════════════════════════════════════════
@@ -959,8 +960,6 @@ function exportPDF(){
   win.document.write(buildPrintHTML(d));
   win.document.close();
   setTimeout(()=>win.print(), 800);
-  // อัปโหลด PDF เข้า Drive โฟลเดอร์โครงการ (background)
-  _uploadApptToDrive(projectId, d);
 }
 
 function buildPrintHTML(d, previewMode=false){
