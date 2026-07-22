@@ -836,78 +836,65 @@ async function _loadScript(src){
 async function _generateApptPDF(data){
   await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
 
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;';
-    document.body.appendChild(iframe);
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;';
+  document.body.appendChild(iframe);
 
-    // msgId เฉพาะสำหรับ request นี้ (ป้องกัน race condition)
-    const msgId = 'appt_pdf_' + Date.now();
-
-    // inject html2canvas + runner script เข้าไปใน iframe HTML
-    // เพื่อให้ html2canvas ทำงานในบริบทของ iframe เอง (เห็น @font-face TH Sarabun ได้ถูกต้อง)
-    const iframeScript =
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\\/script>' +
-      '<script>' +
-      'window.addEventListener("load",async function(){' +
-      '  try{' +
-      '    await document.fonts.ready;' +
-      '    await new Promise(r=>setTimeout(r,600));' +
-      '    var body=document.body;' +
-      '    var totalH=Math.max(body.scrollHeight,1123);' +
-      '    var canvas=await html2canvas(body,{scale:2,backgroundColor:"#ffffff",width:794,height:totalH,windowWidth:794,windowHeight:totalH});' +
-      '    var dataUrl=canvas.toDataURL("image/jpeg",0.95);' +
-      '    window.parent.postMessage({type:"' + msgId + '",dataUrl:dataUrl,canvasW:canvas.width,canvasH:canvas.height},"*");' +
-      '  }catch(e){' +
-      '    window.parent.postMessage({type:"' + msgId + '",error:e.message},"*");' +
-      '  }' +
-      '});' +
-      '<\\/script>';
-
-    const html = buildPrintHTML(data).replace('</head>', iframeScript + '</head>');
-
-    // รับผลจาก iframe
-    const handler = (event) => {
-      if (!event.data || event.data.type !== msgId) return;
-      window.removeEventListener('message', handler);
-      try { document.body.removeChild(iframe); } catch(e){}
-
-      if (event.data.error) { reject(new Error(event.data.error)); return; }
-
-      try {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p','mm','a4');
-        const pageW = 210, pageH = 297;
-        const imgW = pageW;
-        const imgH = (event.data.canvasH / event.data.canvasW) * imgW;
-
-        let yOffset = 0;
-        let remaining = imgH;
-        pdf.addImage(event.data.dataUrl, 'JPEG', 0, yOffset, imgW, imgH);
-        remaining -= pageH;
-        while(remaining > 0){
-          pdf.addPage();
-          yOffset -= pageH;
-          pdf.addImage(event.data.dataUrl, 'JPEG', 0, yOffset, imgW, imgH);
-          remaining -= pageH;
-        }
-        resolve(pdf.output('datauristring').split(',')[1]);
-      } catch(e){ reject(e); }
-    };
-
-    window.addEventListener('message', handler);
-
-    // timeout 30 วินาที
-    setTimeout(()=>{
-      window.removeEventListener('message', handler);
-      try { document.body.removeChild(iframe); } catch(e){}
-      reject(new Error('PDF generation timeout'));
-    }, 30000);
+  try {
+    // inject html2canvas เข้า iframe HTML
+    // ใช้ '<' + '/script>' เพื่อหลีกเลี่ยง HTML parser ตีความ </script> ก่อนกำหนด
+    const ct = '<' + '/script>';
+    const h2cTag = '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">' + ct;
+    const html = buildPrintHTML(data).replace('</head>', h2cTag + '</head>');
 
     iframe.contentDocument.open();
     iframe.contentDocument.write(html);
     iframe.contentDocument.close();
-  });
+
+    // รอ html2canvas โหลดใน iframe (poll ทุก 100ms สูงสุด 15 วินาที)
+    await new Promise((resolve, reject) => {
+      let n = 0;
+      const t = setInterval(() => {
+        if (iframe.contentWindow && iframe.contentWindow.html2canvas) { clearInterval(t); resolve(); }
+        if (++n > 150) { clearInterval(t); reject(new Error('html2canvas load timeout')); }
+      }, 100);
+    });
+
+    // รอ font โหลดเสร็จใน iframe
+    try { await iframe.contentDocument.fonts.ready; } catch(e){}
+    await new Promise(r => setTimeout(r, 600));
+
+    // เรียก html2canvas ผ่าน iframe.contentWindow
+    // html2canvas จะทำงานใน context ของ iframe → เห็น @font-face TH Sarabun ได้ถูกต้อง
+    const body = iframe.contentDocument.body;
+    const totalH = Math.max(body.scrollHeight, 1123);
+    const canvas = await iframe.contentWindow.html2canvas(body, {
+      scale: 2, backgroundColor: '#ffffff',
+      width: 794, height: totalH,
+      windowWidth: 794, windowHeight: totalH
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    let remaining = imgH;
+    let yOffset = 0;
+    pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH);
+    remaining -= pageH;
+    while(remaining > 0){
+      pdf.addPage();
+      yOffset -= pageH;
+      pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH);
+      remaining -= pageH;
+    }
+    return pdf.output('datauristring').split(',')[1];
+  } finally {
+    try { document.body.removeChild(iframe); } catch(e){}
+  }
 }
 
 async function _uploadApptToDrive(pid, data){
