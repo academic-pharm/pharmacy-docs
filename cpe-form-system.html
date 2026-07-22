@@ -2488,172 +2488,164 @@ function loadAllCpeConferences(){
         '</div>';
     }
 
-    wrap.innerHTML = confs.map(function(e){
-      var cid = e[0];
-      var c   = e[1];
-      var dateRange = c.dateStart ? fd(c.dateStart)+(c.dateEnd&&c.dateEnd!==c.dateStart?' – '+fd(c.dateEnd):'') : '-';
-      var st = c.status||'pending_review';
-      var stMap = {
-        'pending_review':    { color:'#4338ca', label:'⏳ รอพิจารณา' },
-        'sent_to_experts':   { color:'#0891b2', label:'📧 ส่งผู้ทรงคุณวุฒิแล้ว' },
-        'result_confirmed':  { color:'#059669', label:'✅ ผลการพิจารณารับรองหน่วยกิต CPE' },
-        'approved':          { color:'#059669', label:'✅ ผ่านการพิจารณา' },
-        'rejected':          { color:'#dc2626', label:'❌ ไม่ผ่านการพิจารณา' },
-      };
-      var sm = stMap[st] || stMap['pending_review'];
-      var sentInfo = st==='sent_to_experts' && c.sentAt
-        ? '<div style="font-size:.72rem;color:#0891b2;margin-top:4px">📤 ส่งเมื่อ '+fd(c.sentAt)+(c.sentToExperts?' ถึง '+c.sentToExperts.join(', '):'')+'</div>'
-        : '';
-      var safeCid = cid.replace(/[^a-zA-Z0-9_-]/g,'_');
+    // ── จัดกลุ่มตาม pipeline ──
+    var _needAction = [], _waiting = [], _done = [];
+    confs.forEach(function(e){
+      var _st = e[1].status||'pending_review';
+      var _ps = e[1].payment ? (e[1].payment.status||'') : '';
+      if(_st==='pending_review'){ _needAction.push({step:1,e:e}); }
+      else if(_st==='result_confirmed' && _ps==='pending_receipt'){ _needAction.push({step:4,e:e}); }
+      else if(_st==='sent_to_experts'){ _waiting.push({step:2,e:e}); }
+      else if(_st==='result_confirmed' && !_ps){ _waiting.push({step:3,e:e}); }
+      else if(_st==='result_confirmed' && _ps==='confirmed'){ _done.push(e); }
+      else { _waiting.push({step:2,e:e}); }
+    });
+    _needAction.sort(function(a,b){ return a.step-b.step; });
 
-      return '<div style="border:1px solid rgba(200,210,230,.5);border-radius:14px;padding:16px 18px;margin-bottom:14px;background:#fff">'+
-        // ─── header ───
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px">'+
+    function buildAdminCard(e, stepNum){
+      var cid=e[0], c=e[1];
+      var dateRange=c.dateStart?fd(c.dateStart)+(c.dateEnd&&c.dateEnd!==c.dateStart?' – '+fd(c.dateEnd):''):'-';
+      var st=c.status||'pending_review';
+      var ps=c.payment?(c.payment.status||''):'';
+      var safeCid=cid.replace(/[^a-zA-Z0-9_-]/g,'_');
+      var isUrgent=(stepNum===1||stepNum===4);
+      var pillBg=isUrgent?'rgba(217,119,6,.1)':'rgba(14,165,233,.1)';
+      var pillCol=isUrgent?'#b45309':'#0369a1';
+      var pillBd=isUrgent?'rgba(217,119,6,.3)':'rgba(14,165,233,.3)';
+      var stepLabels={1:'ขั้นที่ 1 · ส่งผู้ทรงฯ',2:'ขั้นที่ 2 · รอผู้ทรง',3:'ขั้นที่ 3 · รอชำระเงิน',4:'ขั้นที่ 4 · ตรวจสอบชำระ'};
+      var actionBtn='';
+      if(st==='pending_review'){
+        actionBtn='<button onclick="toggleExpertPanel(\''+safeCid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-family:inherit">📧 ส่งผู้ทรงฯ</button>';
+      } else if(st==='sent_to_experts'){
+        actionBtn='<button onclick="toggleResultPanel(\''+safeCid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:700;color:#0369a1;background:none;border:1px solid rgba(14,165,233,.4);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-family:inherit">✅ ยืนยันผล CPE</button>';
+      } else if(st==='result_confirmed'&&ps==='pending_receipt'){
+        actionBtn='<button onclick="openPaymentReviewModal(\''+cid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-family:inherit">🔍 ตรวจสอบชำระเงิน</button>';
+      }
+      var sentInfo=st==='sent_to_experts'&&c.sentAt?'<span style="font-size:.7rem;color:#0369a1">ส่งผู้ทรงฯ '+fd(c.sentAt)+(c.sentToExperts?' · '+c.sentToExperts.join(', '):'')+'</span>':'';
+      return (
+        '<div style="background:#fff;border:1px solid rgba(200,210,230,.45);border-radius:11px;overflow:hidden;margin-bottom:8px">'+
+        '<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(200,210,230,.25)">'+
           '<div style="flex:1;min-width:0">'+
-            '<div style="font-size:.95rem;font-weight:800;color:var(--text)">'+( c.confName||'-')+'</div>'+
-            '<div style="font-size:.77rem;color:var(--sub);margin-top:2px">'+
-              '🏢 '+(c.orgName||'-')+' · 📅 '+dateRange+
-              ' · ส่งโดย '+(c.createdBy||'-')+' · '+fd(c.createdAt)+
-            '</div>'+sentInfo+
-          '</div>'+
-          '<span style="font-size:.75rem;font-weight:700;color:'+sm.color+';border:1px solid currentColor;border-radius:12px;padding:4px 10px;white-space:nowrap">'+sm.label+'</span>'+
-        '</div>'+
-        // ─── ไฟล์ + ปุ่มส่ง ───
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-          fileBtn('รายละเอียดโครงการ', c.files&&c.files.project&&c.files.project.url,  '📋')+
-          fileBtn('CV วิทยากร',        c.files&&c.files.cvfile&&c.files.cvfile.url,    '👤')+
-          fileBtn('กำหนดการ',          c.files&&c.files.schedule&&c.files.schedule.url,'📅')+
-          // ─── มติ CPE (admin upload: PDF + Word แยกกัน) ───
-          '<div style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">'+
-            // PDF
-            '<div style="display:inline-flex;align-items:center;gap:3px">'+
-              (c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url
-                ? fileBtn('มติ CPE (PDF)', c.files.resolution_pdf.url, '📄')
-                : '<span style="font-size:.72rem;color:#d1d5db">📄 ไม่มี PDF</span>')+
-              '<label for="res-pdf-'+safeCid+'" '+
-                'style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;'+
-                'background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:7px;'+
-                'padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'+
-                (c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url ? '🔄 PDF' : '⬆ PDF')+
-              '</label>'+
-              '<input type="file" id="res-pdf-'+safeCid+'" accept=".pdf" style="display:none" '+
-                'onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'pdf\')">'+
+            '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'+
+              '<span style="font-size:.85rem;font-weight:700;color:var(--text,#1a202c);">'+(c.confName||'-')+'</span>'+
+              (stepNum?'<span style="font-size:.63rem;font-weight:700;background:'+pillBg+';color:'+pillCol+';border:1px solid '+pillBd+';border-radius:20px;padding:2px 8px;white-space:nowrap">'+stepLabels[stepNum]+'</span>':'')+
             '</div>'+
-            // Word
-            '<div style="display:inline-flex;align-items:center;gap:3px">'+
-              (c.files&&c.files.resolution_word&&c.files.resolution_word.url
-                ? fileBtn('มติ CPE (Word)', c.files.resolution_word.url, '📝')
-                : '<span style="font-size:.72rem;color:#d1d5db">📝 ไม่มี Word</span>')+
-              '<label for="res-word-'+safeCid+'" '+
-                'style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;'+
-                'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;'+
-                'padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'+
-                (c.files&&c.files.resolution_word&&c.files.resolution_word.url ? '🔄 Word' : '⬆ Word')+
-              '</label>'+
-              '<input type="file" id="res-word-'+safeCid+'" accept=".doc,.docx" style="display:none" '+
-                'onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'word\')">'+
+            '<div style="font-size:.72rem;color:#6b7280;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+              '<span>🏢 '+(c.orgName||'-')+'</span><span>📅 '+dateRange+'</span><span>ส่งโดย '+(c.createdBy||'-')+'</span>'+
+              (sentInfo?sentInfo:'')+
             '</div>'+
           '</div>'+
-          '<button onclick="toggleExpertPanel(\''+safeCid+'\')" '+
-          'style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:#4f46e5;color:#fff;'+
-          'border:none;border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer">'+
-          '📧 ส่งให้ผู้ทรงคุณวุฒิ</button>'+
+          actionBtn+
         '</div>'+
-        // ─── expert compose panel ───
-        '<div id="ep-'+safeCid+'" style="display:none;margin-top:16px;border-top:1px solid rgba(200,210,230,.35);padding-top:16px">'+
-          '<div style="font-size:.85rem;font-weight:800;color:#4338ca;margin-bottom:12px">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>'+
-          // info box
-          '<div style="background:#f0f7ff;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.78rem;color:#374151;line-height:1.7">'+
-            '<strong>เอกสารที่จะส่ง:</strong><br>'+
-            '📌 '+( c.confName||'-')+'<br>'+
-            '📅 '+dateRange+' · 🏢 '+(c.orgName||'-')+'<br>'+
+        '<div style="padding:8px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-bottom:1px solid rgba(200,210,230,.15)">'+
+          fileBtn('โครงการ',c.files&&c.files.project&&c.files.project.url,'📋')+
+          fileBtn('CV',c.files&&c.files.cvfile&&c.files.cvfile.url,'👤')+
+          fileBtn('กำหนดการ',c.files&&c.files.schedule&&c.files.schedule.url,'📅')+
+          (c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url?fileBtn('มติ CPE (PDF)',c.files.resolution_pdf.url,'📄'):'<span style="font-size:.69rem;color:#d1d5db">📄 ไม่มี PDF</span>')+
+          '<label for="res-pdf-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:7px;padding:3px 8px;font-size:.68rem;font-weight:700;white-space:nowrap">'+(c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url?'🔄 PDF':'⬆ PDF')+'</label>'+
+          '<input type="file" id="res-pdf-'+safeCid+'" accept=".pdf" style="display:none" onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'pdf\')">'+
+          (c.files&&c.files.resolution_word&&c.files.resolution_word.url?fileBtn('มติ CPE (Word)',c.files.resolution_word.url,'📝'):'<span style="font-size:.69rem;color:#d1d5db">📝 ไม่มี Word</span>')+
+          '<label for="res-word-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;padding:3px 8px;font-size:.68rem;font-weight:700;white-space:nowrap">'+(c.files&&c.files.resolution_word&&c.files.resolution_word.url?'🔄 Word':'⬆ Word')+'</label>'+
+          '<input type="file" id="res-word-'+safeCid+'" accept=".doc,.docx" style="display:none" onchange="uploadResolutionFile(\''+safeCid+'\',\''+cid+'\',this,\'word\')">'+
+        '</div>'+
+        '<div id="ep-'+safeCid+'" style="display:none;padding:14px 16px;border-bottom:1px solid rgba(200,210,230,.25)">'+
+          '<div style="font-size:.83rem;font-weight:700;color:#4338ca;margin-bottom:10px">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>'+
+          '<div style="background:#f0f7ff;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.77rem;color:#374151;line-height:1.7">'+
+            '<strong>เอกสารที่จะส่ง:</strong><br>📌 '+(c.confName||'-')+'<br>📅 '+dateRange+' · 🏢 '+(c.orgName||'-')+'<br>'+
             '<span style="color:#6b7280">ไฟล์แนบ: รายละเอียดโครงการ / CV วิทยากร / กำหนดการ'+((c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url)||(c.files&&c.files.resolution_word&&c.files.resolution_word.url)?' / มติ CPE':'')+'</span>'+
           '</div>'+
-          // email inputs
-          '<div style="font-size:.77rem;color:#6b7280;margin-bottom:8px;font-weight:600">📮 อีเมลผู้ทรงคุณวุฒิ</div>'+
-          emailInput(1, safeCid, 'อีเมลผู้ทรงคุณวุฒิท่านที่ 1')+
-          emailInput(2, safeCid, 'อีเมลผู้ทรงคุณวุฒิท่านที่ 2')+
-          emailInput(3, safeCid, 'อีเมลผู้ทรงคุณวุฒิท่านที่ 3')+
-          // buttons
-          '<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">'+
-            '<button id="exbtn-'+safeCid+'" onclick="sendToExperts(\''+safeCid+'\',\''+cid+'\')" '+
-            'style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:.83rem;font-weight:700;cursor:pointer">'+
-            '📤 ส่งอีเมล</button>'+
-            '<button onclick="toggleExpertPanel(\''+safeCid+'\')" '+
-            'style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:9px 16px;font-size:.83rem;cursor:pointer">'+
-            'ยกเลิก</button>'+
+          '<div style="font-size:.75rem;color:#6b7280;margin-bottom:8px;font-weight:600">📮 อีเมลผู้ทรงคุณวุฒิ</div>'+
+          emailInput(1,safeCid,'อีเมลผู้ทรงคุณวุฒิท่านที่ 1')+
+          emailInput(2,safeCid,'อีเมลผู้ทรงคุณวุฒิท่านที่ 2')+
+          emailInput(3,safeCid,'อีเมลผู้ทรงคุณวุฒิท่านที่ 3')+
+          '<div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">'+
+            '<button id="exbtn-'+safeCid+'" onclick="sendToExperts(\''+safeCid+'\',\''+cid+'\')" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:.82rem;font-weight:700;cursor:pointer">📤 ส่งอีเมล</button>'+
+            '<button onclick="toggleExpertPanel(\''+safeCid+'\')" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer">ยกเลิก</button>'+
           '</div>'+
         '</div>'+
-      // ─── ยืนยันผลการพิจารณา ───
-      (st==='sent_to_experts'
-        ? '<div style="margin-top:12px;border-top:1px solid rgba(200,210,230,.35);padding-top:12px">'+
-            '<button onclick="toggleResultPanel(\''+safeCid+'\')" '+
-              'style="display:inline-flex;align-items:center;gap:7px;background:#059669;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:.78rem;font-weight:700;cursor:pointer">'+
-              '✅ ยืนยันผลการพิจารณาหน่วยกิต CPE'+
-            '</button>'+
-            '<div id="rp-'+safeCid+'" style="display:none;margin-top:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px">'+
-              '<div style="font-size:.85rem;font-weight:800;color:#059669;margin-bottom:8px">✅ ยืนยันผลการพิจารณารับรองหน่วยกิต CPE</div>'+
-              '<div style="font-size:.78rem;color:#374151;margin-bottom:12px">แนบเอกสารผลการพิจารณา (ไฟล์ Word) เพื่อส่งให้ผู้ส่งคำขอรับทราบทางอีเมล <span style="color:#6b7280">(ไม่บังคับ)</span></div>'+
-              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
-                '<label for="result-pdf-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#fff;color:#059669;border:1px solid #86efac;border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:700">'+
-                  '📎 แนบไฟล์ PDF'+
-                '</label>'+
-                '<input type="file" id="result-pdf-'+safeCid+'" accept=".pdf" style="display:none" onchange="previewResultFile(\''+safeCid+'\',this)">'+
-                '<span id="result-fname-'+safeCid+'" style="font-size:.75rem;color:#374151;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>'+
-                '<button id="result-clear-'+safeCid+'" onclick="clearResultFile(\''+safeCid+'\')" '+
-                  'style="display:none;background:none;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;font-size:.72rem;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap">'+
-                  '✕ ล้างไฟล์</button>'+
-              '</div>'+
-              '<div style="display:flex;gap:8px">'+
-                '<button onclick="confirmCPEResult(\''+safeCid+'\',\''+cid+'\')" '+
-                  'style="background:#059669;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:.82rem;font-weight:700;cursor:pointer">'+
-                  '✅ ยืนยัน & แจ้ง User'+
-                '</button>'+
-                '<button onclick="toggleResultPanel(\''+safeCid+'\')" '+
-                  'style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer">'+
-                  'ยกเลิก'+
-                '</button>'+
-              '</div>'+
+        (st==='sent_to_experts'?
+          '<div id="rp-'+safeCid+'" style="display:none;padding:14px 16px;background:#f0fdf4;border-top:1px solid #bbf7d0">'+
+            '<div style="font-size:.83rem;font-weight:700;color:#059669;margin-bottom:8px">✅ ยืนยันผลการพิจารณารับรองหน่วยกิต CPE</div>'+
+            '<div style="font-size:.77rem;color:#374151;margin-bottom:10px">แนบเอกสารผลการพิจารณา (ไฟล์ PDF) เพื่อส่งให้ผู้ส่งคำขอรับทราบทางอีเมล <span style="color:#6b7280">(ไม่บังคับ)</span></div>'+
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+              '<label for="result-pdf-'+safeCid+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#fff;color:#059669;border:1px solid #86efac;border-radius:8px;padding:6px 14px;font-size:.77rem;font-weight:700">📎 แนบไฟล์ PDF</label>'+
+              '<input type="file" id="result-pdf-'+safeCid+'" accept=".pdf" style="display:none" onchange="previewResultFile(\''+safeCid+'\',this)">'+
+              '<span id="result-fname-'+safeCid+'" style="font-size:.74rem;color:#374151;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>'+
+              '<button id="result-clear-'+safeCid+'" onclick="clearResultFile(\''+safeCid+'\')" style="display:none;background:none;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;font-size:.7rem;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap">✕ ล้างไฟล์</button>'+
+            '</div>'+
+            '<div style="display:flex;gap:8px">'+
+              '<button onclick="confirmCPEResult(\''+safeCid+'\',\''+cid+'\')" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer">✅ ยืนยัน & แจ้ง User</button>'+
+              '<button onclick="toggleResultPanel(\''+safeCid+'\')" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 13px;font-size:.8rem;cursor:pointer">ยกเลิก</button>'+
             '</div>'+
           '</div>'
-        : (st==='result_confirmed'
-            ? '<div style="margin-top:12px;border-top:1px solid rgba(200,210,230,.35);padding-top:10px">'+
-                '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:'+(c.payment ? '10px' : '0')+'">'+
-                  '<span style="font-size:.78rem;font-weight:700;color:#059669">✅ ยืนยันผลการพิจารณาแล้ว</span>'+
-                  (c.confirmedAt ? '<span style="font-size:.72rem;color:#6b7280">เมื่อ '+fd(c.confirmedAt)+'</span>' : '')+
-                  (c.files&&c.files.result_pdf&&c.files.result_pdf.url
-                    ? '<a href="'+c.files.result_pdf.url+'" target="_blank" style="font-size:.72rem;color:#4f46e5;font-weight:700;text-decoration:none;border:1px solid rgba(79,70,229,.3);border-radius:6px;padding:3px 8px">📥 ดาวน์โหลดผลการพิจารณา</a>'
-                    : '')+
-                '</div>'+
-                // ── payment review section ──
-                (c.payment && c.payment.status === 'pending_receipt'
-                  ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:9px;padding:10px 13px">'+
-                      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
-                        '<div style="display:flex;align-items:center;gap:7px">'+
-                          '<span style="animation:pulse-dot 1.4s ease infinite;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;display:inline-block"></span>'+
-                          '<span style="font-size:.77rem;font-weight:700;color:#b45309">มีการชำระค่าธรรมเนียม — รอตรวจสอบ</span>'+
-                        '</div>'+
-                        '<button onclick="openPaymentReviewModal(\''+cid+'\')" '+
-                          'style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:700;'+
-                          'color:#fff;background:linear-gradient(135deg,#d97706,#b45309);border:none;border-radius:7px;'+
-                          'padding:5px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">'+
-                          '🔍 ตรวจสอบการชำระค่าธรรมเนียม</button>'+
-                      '</div>'+
-                    '</div>'
-                  : (c.payment && c.payment.status === 'confirmed'
-                      ? '<div style="display:flex;align-items:center;gap:7px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.25);border-radius:8px;padding:8px 12px">'+
-                          '<span style="font-size:14px">✅</span>'+
-                          '<span style="font-size:.75rem;font-weight:700;color:#065f46">ยืนยันการชำระค่าธรรมเนียมแล้ว</span>'+
-                          (c.payment.adminReceiptUrl
-                            ? '<a href="'+c.payment.adminReceiptUrl+'" target="_blank" style="font-size:.7rem;color:#4f46e5;font-weight:700;text-decoration:none;border:1px solid rgba(79,70,229,.3);border-radius:5px;padding:2px 7px;margin-left:auto">🧾 บิลใบเสร็จ</a>'
-                            : '')+
-                        '</div>'
-                      : ''))+
-              '</div>'
-            : '')
-      )+
+        :'')+
+        (st==='result_confirmed'?
+          '<div style="padding:8px 14px;border-top:1px solid rgba(200,210,230,.2);display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+            '<span style="font-size:.72rem;font-weight:700;color:#059669">✅ ยืนยันผลการพิจารณาแล้ว</span>'+
+            (c.confirmedAt?'<span style="font-size:.69rem;color:#6b7280">'+fd(c.confirmedAt)+'</span>':'')+
+            (c.files&&c.files.result_pdf&&c.files.result_pdf.url?'<a href="'+c.files.result_pdf.url+'" target="_blank" style="font-size:.69rem;color:#4f46e5;font-weight:700;text-decoration:none;border:1px solid rgba(79,70,229,.3);border-radius:5px;padding:3px 8px;white-space:nowrap">📥 ดาวน์โหลดผล</a>':'')+
+            (ps==='confirmed'&&c.payment.adminReceiptUrl?'<a href="'+c.payment.adminReceiptUrl+'" target="_blank" style="margin-left:auto;font-size:.69rem;color:#059669;font-weight:700;text-decoration:none;border:1px solid rgba(5,150,105,.3);border-radius:5px;padding:3px 8px;white-space:nowrap">🧾 บิลใบเสร็จ</a>':'')+
+          '</div>'
+        :'')+
+        '</div>'
+      );
+    }
+
+    function buildAdminSection(title,accentCol,bgCol,bdCol,items,withStep){
+      if(!items.length) return '';
+      var h='<div style="margin-bottom:16px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+          '<span style="width:3px;height:15px;background:'+accentCol+';border-radius:2px;display:inline-block"></span>'+
+          '<span style="font-size:.78rem;font-weight:700;color:'+accentCol+'">'+title+'</span>'+
+          '<span style="font-size:.66rem;font-weight:700;background:'+bgCol+';color:'+accentCol+';border:1px solid '+bdCol+';border-radius:20px;padding:1px 8px">'+items.length+' รายการ</span>'+
+        '</div>';
+      if(withStep){ items.forEach(function(item){ h+=buildAdminCard(item.e,item.step); }); }
+      else { items.forEach(function(e){ h+=buildAdminCard(e,0); }); }
+      return h+'</div>';
+    }
+
+    var _doneId='adc-done-'+Date.now();
+    var _doneHtml='';
+    if(_done.length){
+      _doneHtml='<div style="margin-bottom:16px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+          '<span style="width:3px;height:15px;background:#059669;border-radius:2px;display:inline-block"></span>'+
+          '<span style="font-size:.78rem;font-weight:700;color:#059669">เสร็จสิ้น</span>'+
+          '<span style="font-size:.66rem;font-weight:700;background:rgba(5,150,105,.08);color:#059669;border:1px solid rgba(5,150,105,.25);border-radius:20px;padding:1px 8px">'+_done.length+' รายการ</span>'+
+          '<button onclick="var s=document.getElementById(\''+_doneId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">แสดง / ซ่อน ▾</button>'+
+        '</div>'+
+        '<div id="'+_doneId+'" style="display:none">'+_done.map(function(e){ return buildAdminCard(e,0); }).join('')+'</div>'+
+        '<div style="background:rgba(5,150,105,.04);border:1px solid rgba(5,150,105,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:15px">🏆</span>'+
+          '<span style="font-size:.72rem;color:#065f46">'+_done.length+' รายการดำเนินการเสร็จสมบูรณ์แล้ว</span>'+
+        '</div>'+
       '</div>';
-    }).join('');
+    }
+
+    var _guideHtml='<div style="background:rgba(249,250,255,.9);border:1px solid rgba(200,210,230,.4);border-radius:12px;padding:12px 16px;margin-bottom:16px">'+
+      '<div style="font-size:.65rem;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:10px">ขั้นตอนการดำเนินการ</div>'+
+      '<div style="display:flex;align-items:center">'+
+        '<div style="text-align:center;flex:1"><div style="width:26px;height:26px;border-radius:50%;background:rgba(217,119,6,.1);border:1.5px solid rgba(217,119,6,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;color:#b45309;font-weight:700">1</div><div style="font-size:8.5px;color:#b45309;font-weight:700;line-height:1.3">รับเรื่อง<br>ส่งผู้ทรงฯ</div></div>'+
+        '<div style="height:1.5px;flex:1;background:rgba(200,210,230,.5);margin-bottom:20px"></div>'+
+        '<div style="text-align:center;flex:1"><div style="width:26px;height:26px;border-radius:50%;background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;color:#0369a1;font-weight:700">2</div><div style="font-size:8.5px;color:#0369a1;line-height:1.3">รอผู้ทรงฯ<br>ยืนยันผล</div></div>'+
+        '<div style="height:1.5px;flex:1;background:rgba(200,210,230,.5);margin-bottom:20px"></div>'+
+        '<div style="text-align:center;flex:1"><div style="width:26px;height:26px;border-radius:50%;background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;color:#0369a1;font-weight:700">3</div><div style="font-size:8.5px;color:#0369a1;line-height:1.3">รอ user<br>ชำระเงิน</div></div>'+
+        '<div style="height:1.5px;flex:1;background:rgba(200,210,230,.5);margin-bottom:20px"></div>'+
+        '<div style="text-align:center;flex:1"><div style="width:26px;height:26px;border-radius:50%;background:rgba(217,119,6,.1);border:1.5px solid rgba(217,119,6,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;color:#b45309;font-weight:700">4</div><div style="font-size:8.5px;color:#b45309;font-weight:700;line-height:1.3">ตรวจสอบ<br>ชำระเงิน</div></div>'+
+        '<div style="height:1.5px;flex:1;background:rgba(200,210,230,.5);margin-bottom:20px"></div>'+
+        '<div style="text-align:center;flex:1"><div style="width:26px;height:26px;border-radius:50%;background:rgba(5,150,105,.1);border:1.5px solid rgba(5,150,105,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:13px;color:#059669">✓</div><div style="font-size:8.5px;color:#059669;line-height:1.3">เสร็จสิ้น</div></div>'+
+      '</div>'+
+      '<div style="margin-top:8px;display:flex;gap:14px">'+
+        '<span style="font-size:.63rem;color:#b45309;display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:rgba(217,119,6,.4);display:inline-block"></span>ต้องดำเนินการ</span>'+
+        '<span style="font-size:.63rem;color:#0369a1;display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:rgba(14,165,233,.35);display:inline-block"></span>รอดำเนินการจากฝ่ายอื่น</span>'+
+        '<span style="font-size:.63rem;color:#059669;display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:rgba(5,150,105,.3);display:inline-block"></span>เสร็จสิ้น</span>'+
+      '</div>'+
+    '</div>';
+
+    wrap.innerHTML = _guideHtml +
+      buildAdminSection('ต้องดำเนินการ','#b45309','rgba(217,119,6,.08)','rgba(217,119,6,.25)',_needAction,true) +
+      buildAdminSection('รอดำเนินการจากฝ่ายอื่น','#0369a1','rgba(14,165,233,.08)','rgba(14,165,233,.25)',_waiting,true) +
+      _doneHtml;
   });
 }
 
