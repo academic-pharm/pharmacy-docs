@@ -2632,7 +2632,6 @@ async function confirmCPEResult(safeCid, cid){
         _adminConfs[cid].files.result_pdf={url:resultPdfUrl,name:resultPdfName,uploadedAt:now};
       }
     }
-    renderAdminConfs();
     showToast('✅ ยืนยันผลการพิจารณาเรียบร้อย — แจ้ง User แล้ว');
   }catch(err){ showToast('เกิดข้อผิดพลาด: '+err.message,'err'); }
 }
