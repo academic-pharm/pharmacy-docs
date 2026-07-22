@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard โครงการ — บริการวิชาการ BUU</title>
+<title>Dashboard CPE — ประชุมวิชาการ BUU</title>
 <link rel="icon" href="data:,">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -50,13 +50,14 @@ body{background:#eceff5;color:#16181f;font-family:'Prompt',sans-serif;min-height
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .kpi{background:rgba(255,255,255,.54);border:1px solid rgba(255,255,255,.88);backdrop-filter:blur(20px);border-radius:14px;padding:16px 18px;box-shadow:0 8px 24px -8px rgba(100,80,200,.1);transition:transform .2s,box-shadow .2s}
 .kpi:hover{transform:translateY(-3px);box-shadow:0 14px 36px -8px rgba(100,80,200,.18)}
+.kpi.kpi-cpe{border-color:rgba(168,85,247,.22);background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(168,85,247,.06))}
 .kpi-icon{font-size:1.5rem;margin-bottom:8px}
 .kpi-val{font-size:1.8rem;font-weight:800;line-height:1;color:#16181f}
 .kpi-lbl{font-size:.75rem;color:#6a6d77;margin-top:4px}
 .kpi-delta{font-size:.72rem;margin-top:6px;color:#888aaa}
 
 /* Chart row */
-.chart-row{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.chart-row{display:grid;grid-template-columns:1fr 1.5fr;gap:16px}
 
 /* Card */
 .card{background:rgba(255,255,255,.54);border:1px solid rgba(255,255,255,.88);backdrop-filter:blur(20px);border-radius:14px;padding:18px 20px;box-shadow:0 8px 24px -8px rgba(100,80,200,.1)}
@@ -73,12 +74,13 @@ thead th{text-align:left;padding:8px 12px;font-size:.72rem;font-weight:600;text-
 tbody tr{border-bottom:1px solid rgba(200,210,230,.35);transition:background .1s}
 tbody tr:hover{background:rgba(168,85,247,.04)}
 td{padding:9px 12px;vertical-align:middle;color:#16181f}
-.badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:.7rem;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-size:.7rem;font-weight:600}
 .badge-grn{background:rgba(15,110,86,.1);color:#065f46}
 .badge-yel{background:rgba(217,119,6,.1);color:#92400e}
+.badge-blue{background:rgba(37,99,235,.1);color:#1d4ed8}
+.badge-purple{background:rgba(124,58,237,.12);color:#6d28d9}
 .truncate{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.email-chip{display:inline-block;background:rgba(168,85,247,.1);color:#7c3aed;border-radius:6px;padding:2px 7px;font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.amt{font-variant-numeric:tabular-nums;font-weight:600}
+.org-chip{display:inline-block;background:rgba(139,92,246,.08);color:#6d28d9;border:1px solid rgba(139,92,246,.22);border-radius:6px;padding:2px 7px;font-size:.7rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Calendar */
 .cal-nav-btn{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.88);color:#16181f;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s}
@@ -89,16 +91,21 @@ td{padding:9px 12px;vertical-align:middle;color:#16181f}
 .cal-head-cell:last-child{color:#2563eb}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal-cell{min-height:70px;padding:5px 6px;border-radius:8px;background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.72)}
-.cal-cell.today{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.08)}
+.cal-cell.today{border-color:rgba(139,92,246,.45);background:rgba(139,92,246,.07)}
 .cal-cell.other-month{opacity:.28;pointer-events:none}
 .cal-date{font-size:.72rem;font-weight:700;color:#6a6d77;margin-bottom:3px}
-.cal-cell.today .cal-date{color:#059669}
+.cal-cell.today .cal-date{color:#7c3aed}
 .cal-event{font-size:.62rem;font-weight:600;border-radius:3px;padding:1px 5px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
-.ev-project{background:rgba(16,185,129,.14);color:#065f46}
+.ev-cpe{background:rgba(139,92,246,.16);color:#6d28d9}
+.ev-cpe-end{background:rgba(239,68,68,.12);color:#b91c1c}
 .cal-more{font-size:.6rem;color:#888aaa}
 
+/* Status badge mapping */
+.s-pending{background:rgba(245,158,11,.12);color:#92400e}
+.s-sent{background:rgba(34,211,238,.12);color:#0e7490}
+.s-result{background:rgba(52,211,153,.12);color:#065f46}
+
 .last-upd{font-size:.72rem;color:#888aaa;text-align:right;padding:4px 0 12px}
-.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.4),rgba(168,85,247,.1),rgba(255,255,255,.4));background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;height:100%}
 
 @media(max-width:768px){
   .kpi-row{grid-template-columns:repeat(2,1fr)}
@@ -117,96 +124,91 @@ td{padding:9px 12px;vertical-align:middle;color:#16181f}
 <div id="au-cursor"></div>
 
 <div class="header">
-  <h1><div class="au-dot"></div> โครงการบริการวิชาการ BUU</h1>
+  <h1><div class="au-dot"></div> ประชุมวิชาการ CPE</h1>
   <div class="nav-tabs">
-    <a href="dashboard.html" class="nav-tab active">📁 โครงการ</a>
-    <a href="dashboard-cpe.html" class="nav-tab">🎓 CPE</a>
+    <a href="dashboard.html" class="nav-tab">📁 โครงการ</a>
+    <a href="dashboard-cpe.html" class="nav-tab active">🎓 CPE</a>
   </div>
   <div class="status-pill loading" id="statusPill"><div class="dot"></div><span id="statusTxt">กำลังเชื่อมต่อ...</span></div>
 </div>
 
 <div class="dash">
 
-  <div class="section-label">ภาพรวมโครงการบริการวิชาการ</div>
+  <div class="section-label">ภาพรวมประชุมวิชาการ CPE</div>
 
-  <!-- KPI -->
+  <!-- CPE KPI -->
   <div class="kpi-row">
-    <div class="kpi">
-      <div class="kpi-icon">📁</div>
-      <div class="kpi-val" id="kProjects">—</div>
-      <div class="kpi-lbl">โครงการทั้งหมด</div>
-      <div class="kpi-delta" id="dProjects">—</div>
+    <div class="kpi kpi-cpe">
+      <div class="kpi-icon">🎓</div>
+      <div class="kpi-val" id="kConfTotal">—</div>
+      <div class="kpi-lbl">ประชุมทั้งหมด</div>
+      <div class="kpi-delta" id="dConfTotal">—</div>
     </div>
-    <div class="kpi">
-      <div class="kpi-icon">💰</div>
-      <div class="kpi-val" id="kBudget">—</div>
-      <div class="kpi-lbl">งบประมาณรวม (บาท)</div>
-      <div class="kpi-delta" id="dBudget">—</div>
+    <div class="kpi kpi-cpe">
+      <div class="kpi-icon">📤</div>
+      <div class="kpi-val" id="kConfSent">—</div>
+      <div class="kpi-lbl">ส่งผู้ทรงคุณวุฒิแล้ว</div>
+      <div class="kpi-delta" id="dConfSent">—</div>
     </div>
-    <div class="kpi">
-      <div class="kpi-icon">👥</div>
-      <div class="kpi-val" id="kUsers">—</div>
-      <div class="kpi-lbl">ผู้ใช้งาน</div>
-      <div class="kpi-delta" id="dUsers">—</div>
+    <div class="kpi kpi-cpe">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-val" id="kConfResult">—</div>
+      <div class="kpi-lbl">ผลการพิจารณาออกแล้ว</div>
+      <div class="kpi-delta" id="dConfResult">—</div>
     </div>
-    <div class="kpi">
-      <div class="kpi-icon">📄</div>
-      <div class="kpi-val" id="kDocs">—</div>
-      <div class="kpi-lbl">เอกสารที่อนุมัติแล้ว</div>
-      <div class="kpi-delta" id="dDocs">—</div>
+    <div class="kpi kpi-cpe">
+      <div class="kpi-icon">⏳</div>
+      <div class="kpi-val" id="kConfPending">—</div>
+      <div class="kpi-lbl">รอการพิจารณา</div>
+      <div class="kpi-delta" id="dConfPending">—</div>
     </div>
   </div>
 
-  <!-- Charts -->
+  <!-- CPE Charts -->
   <div class="chart-row">
     <div class="card">
       <div class="card-hd">
-        <span class="card-title">โครงการรายเดือน (6 เดือนล่าสุด)</span>
-        <span class="card-badge" id="lineTotal">0 โครงการ</span>
+        <span class="card-title">สถานะประชุม CPE</span>
+        <span class="card-badge" id="cpeDonutBadge">0 ประชุม</span>
       </div>
-      <div class="chart-wrap"><canvas id="lineChart" height="180"></canvas></div>
+      <div class="chart-wrap"><canvas id="cpeDonut" height="200"></canvas></div>
     </div>
     <div class="card">
       <div class="card-hd">
-        <span class="card-title">งบประมาณรายผู้ใช้</span>
-        <span class="card-badge" id="donutTotal">฿0</span>
+        <span class="card-title">ประชุม CPE รายเดือน (6 เดือนล่าสุด)</span>
+        <span class="card-badge" id="cpeBarBadge">0 ประชุม</span>
       </div>
-      <div class="chart-wrap"><canvas id="donutChart" height="180"></canvas></div>
+      <div class="chart-wrap"><canvas id="cpeBar" height="200"></canvas></div>
     </div>
   </div>
 
+  <!-- CPE Table -->
   <div class="card card-full">
     <div class="card-hd">
-      <span class="card-title">จำนวนโครงการต่อผู้ใช้</span>
-      <span class="card-badge" id="barTotal">0 user</span>
-    </div>
-    <div class="chart-wrap"><canvas id="barChart" height="110"></canvas></div>
-  </div>
-
-  <!-- Table -->
-  <div class="card card-full">
-    <div class="card-hd">
-      <span class="card-title">โครงการล่าสุด</span>
+      <span class="card-title">รายการประชุมวิชาการ</span>
       <span class="card-badge" id="tblBadge">—</span>
     </div>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>#</th><th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th>
-          <th>งบประมาณ (บาท)</th><th>รายรับ (บาท)</th>
-          <th>อัปเดตล่าสุด</th><th>เอกสาร</th>
+          <th>#</th>
+          <th>ชื่อประชุม</th>
+          <th>หน่วยงาน</th>
+          <th>วันที่เริ่ม</th>
+          <th>วันที่สิ้นสุด</th>
+          <th>สถานะ</th>
         </tr></thead>
-        <tbody id="tBody">
-          <tr><td colspan="7" style="text-align:center;padding:20px;color:#888aaa">กำลังโหลด...</td></tr>
+        <tbody id="cpeTbody">
+          <tr><td colspan="6" style="text-align:center;padding:20px;color:#888aaa">กำลังโหลด...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Calendar (projects only) -->
+  <!-- CPE Calendar -->
   <div class="card card-full">
     <div class="card-hd">
-      <span class="card-title">📅 ปฏิทินโครงการ</span>
+      <span class="card-title">📅 ปฏิทินประชุม CPE</span>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
         <span id="calTitle" style="font-size:.82rem;font-weight:700;color:#16181f;min-width:110px;text-align:center"></span>
@@ -215,7 +217,10 @@ td{padding:9px 12px;vertical-align:middle;color:#16181f}
     </div>
     <div style="display:flex;gap:14px;margin-bottom:10px">
       <span style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:#6a6d77">
-        <span style="width:9px;height:9px;border-radius:2px;background:rgba(16,185,129,.55);display:inline-block"></span>โครงการบริการวิชาการ
+        <span style="width:9px;height:9px;border-radius:2px;background:rgba(139,92,246,.55);display:inline-block"></span>วันเริ่มประชุม
+      </span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:#6a6d77">
+        <span style="width:9px;height:9px;border-radius:2px;background:rgba(239,68,68,.4);display:inline-block"></span>วันสิ้นสุดประชุม
       </span>
     </div>
     <div id="calGrid"></div>
@@ -234,41 +239,29 @@ const FB_CFG = {
 if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
 const db = firebase.database();
 
-function emailToFbKey(e){ return (e||'').toLowerCase().replace(/\./g,'_').replace(/@/g,'__').replace(/[#$\[\]\/]/g,'_'); }
 function fmt(n){ return (n||0).toLocaleString('th-TH'); }
-function fmtShort(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return fmt(n); }
 function fmtDate(iso){ if(!iso) return '—'; return new Date(iso).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}); }
-function getProjectBudget(p){ return (p.budget||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0); }
-function shortEmail(e){ return (e||'').split('@')[0]; }
 
-const COLORS = ['#a855f7','#22d3ee','#34d399','#f59e0b','#f87171','#8b5cf6','#38bdf8','#4ade80'];
 const GRAY_BORDER = 'rgba(200,210,230,.4)';
-
 Chart.defaults.color = '#6a6d77';
 Chart.defaults.borderColor = GRAY_BORDER;
 Chart.defaults.font.family = "'Prompt', sans-serif";
 Chart.defaults.font.size = 11;
 
-const lineCtx = document.getElementById('lineChart').getContext('2d');
-const lineGrad = lineCtx.createLinearGradient(0,0,0,200);
-lineGrad.addColorStop(0,'rgba(168,85,247,.3)');
-lineGrad.addColorStop(1,'rgba(168,85,247,0)');
-
-const lineChart = new Chart(lineCtx,{
-  type:'line',
-  data:{labels:[],datasets:[{label:'โครงการ',data:[],borderColor:'#a855f7',backgroundColor:lineGrad,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#a855f7',tension:.35,fill:true}]},
-  options:{responsive:true,animation:{duration:500},plugins:{legend:{display:false}},scales:{x:{grid:{color:GRAY_BORDER},ticks:{maxTicksLimit:6}},y:{grid:{color:GRAY_BORDER},ticks:{stepSize:1,precision:0},beginAtZero:true}}}
-});
-
-const donutChart = new Chart(document.getElementById('donutChart').getContext('2d'),{
+// CPE Donut
+const cpeDonutChart = new Chart(document.getElementById('cpeDonut').getContext('2d'),{
   type:'doughnut',
-  data:{labels:[],datasets:[{data:[],backgroundColor:COLORS,borderWidth:2,borderColor:'#eceff5',hoverOffset:8}]},
-  options:{responsive:true,animation:{duration:500},cutout:'62%',plugins:{legend:{position:'right',labels:{padding:10,boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:ctx=>' '+fmtShort(ctx.parsed)+' บาท'}}}}
+  data:{
+    labels:['รอการพิจารณา','ส่งผู้ทรงคุณวุฒิแล้ว','ผลการพิจารณาออกแล้ว'],
+    datasets:[{data:[0,0,0],backgroundColor:['#f59e0b','#22d3ee','#34d399'],borderWidth:2,borderColor:'#eceff5',hoverOffset:8}]
+  },
+  options:{responsive:true,animation:{duration:500},cutout:'60%',plugins:{legend:{position:'right',labels:{padding:10,boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed+' ประชุม'}}}}
 });
 
-const barChart = new Chart(document.getElementById('barChart').getContext('2d'),{
+// CPE Bar
+const cpeBarChart = new Chart(document.getElementById('cpeBar').getContext('2d'),{
   type:'bar',
-  data:{labels:[],datasets:[{label:'จำนวนโครงการ',data:[],backgroundColor:COLORS,borderRadius:6,borderSkipped:false}]},
+  data:{labels:[],datasets:[{label:'ประชุม CPE',data:[],backgroundColor:'rgba(168,85,247,.65)',borderColor:'#a855f7',borderRadius:6,borderSkipped:false,borderWidth:1.5}]},
   options:{responsive:true,animation:{duration:500},plugins:{legend:{display:false}},scales:{x:{grid:{color:GRAY_BORDER}},y:{grid:{color:GRAY_BORDER},ticks:{stepSize:1,precision:0},beginAtZero:true}}}
 });
 
@@ -297,68 +290,68 @@ function renderCalendar(){
 }
 renderCalendar();
 
-// ── Process ──
-let prevCounts={projects:0,budget:0,users:0,docs:0};
-function processData(rawData){
-  const data=rawData||{};
-  const userEmails=Object.values(data['_users']||{}).filter(Boolean);
-  const allProjects=[], projsByUser={}, budgetByUser={};
-  userEmails.forEach(email=>{
-    const key=emailToFbKey(email);
-    const projs=Array.isArray(data[key]?.projects)?data[key].projects:[];
-    projsByUser[email]=projs.length;
-    budgetByUser[email]=projs.reduce((s,p)=>s+getProjectBudget(p),0);
-    projs.forEach(p=>allProjects.push({...p,_ownerEmail:email}));
-  });
-  Object.keys(data).filter(k=>!['_users','_approved_','_settings','_aliases','_all_cpe_conferences','_orgs'].includes(k)).forEach(key=>{
-    if(!userEmails.some(e=>emailToFbKey(e)===key)){
-      const projs=Array.isArray(data[key]?.projects)?data[key].projects:[];
-      if(projs.length){projsByUser['unknown:'+key]=projs.length;budgetByUser['unknown:'+key]=projs.reduce((s,p)=>s+getProjectBudget(p),0);projs.forEach(p=>allProjects.push({...p,_ownerEmail:'unknown:'+key}));}
-    }
-  });
-  const approvedRoot=data['_approved_']?.['approved-docs']||{};
-  let totalDocs=0; const docsByPid={};
-  Object.entries(approvedRoot).forEach(([pid,docs])=>{const n=Object.keys(docs||{}).length;docsByPid[pid]=n;totalDocs+=n;});
+// ── Status helper ──
+function statusLabel(s){
+  if(s==='result_confirmed') return {text:'ผลออกแล้ว',cls:'badge s-result'};
+  if(s==='sent_to_experts')  return {text:'ส่งผู้ทรงแล้ว',cls:'badge s-sent'};
+  return {text:'รอพิจารณา',cls:'badge s-pending'};
+}
 
-  const totalProjects=allProjects.length, totalBudget=Object.values(budgetByUser).reduce((s,v)=>s+v,0), totalUsers=userEmails.length;
-  document.getElementById('kProjects').textContent=totalProjects;
-  document.getElementById('kBudget').textContent=fmtShort(totalBudget);
-  document.getElementById('kUsers').textContent=totalUsers;
-  document.getElementById('kDocs').textContent=totalDocs;
-  document.getElementById('dProjects').textContent=totalProjects+' โครงการ';
-  document.getElementById('dBudget').textContent=fmt(totalBudget)+' บาท';
-  document.getElementById('dUsers').textContent=totalUsers+' บัญชี';
-  document.getElementById('dDocs').textContent=totalDocs+' ไฟล์';
+// ── Process CPE ──
+function processCPE(confsObj){
+  var confList=Object.values(confsObj||{});
+  var total   = confList.length;
+  var sent    = confList.filter(c=>['sent_to_experts','result_confirmed'].includes(c.status)).length;
+  var result  = confList.filter(c=>c.status==='result_confirmed').length;
+  var pending = confList.filter(c=>!c.status||c.status==='pending_review').length;
+  var sentOnly= sent-result;
 
-  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const mCounts={}, now=new Date();
-  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);mCounts[d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')]=0;}
-  allProjects.forEach(p=>{if(!p.updatedAt)return;const d=new Date(p.updatedAt);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(k in mCounts)mCounts[k]++;});
-  lineChart.data.labels=Object.keys(mCounts).map(k=>{const[y,m]=k.split('-');return months[+m-1]+' '+(+y+543-2500);});
-  lineChart.data.datasets[0].data=Object.values(mCounts); lineChart.update();
-  document.getElementById('lineTotal').textContent=totalProjects+' โครงการ';
+  document.getElementById('kConfTotal').textContent   = total;
+  document.getElementById('kConfSent').textContent    = sent;
+  document.getElementById('kConfResult').textContent  = result;
+  document.getElementById('kConfPending').textContent = pending;
+  document.getElementById('dConfTotal').textContent   = total+' ประชุม';
+  document.getElementById('dConfSent').textContent    = sent+' ประชุม';
+  document.getElementById('dConfResult').textContent  = result+' ประชุม';
+  document.getElementById('dConfPending').textContent = pending+' ประชุม';
 
-  const dLabels=[], dVals=[];
-  Object.entries(budgetByUser).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a).slice(0,7).forEach(([e,b])=>{dLabels.push(shortEmail(e));dVals.push(b);});
-  donutChart.data.labels=dLabels; donutChart.data.datasets[0].data=dVals; donutChart.update();
-  document.getElementById('donutTotal').textContent='฿'+fmtShort(totalBudget);
+  // Donut
+  cpeDonutChart.data.datasets[0].data=[pending,sentOnly,result];
+  cpeDonutChart.update();
+  document.getElementById('cpeDonutBadge').textContent=total+' ประชุม';
 
-  const bE=Object.entries(projsByUser).sort(([,a],[,b])=>b-a).slice(0,10);
-  barChart.data.labels=bE.map(([e])=>shortEmail(e));
-  barChart.data.datasets[0].data=bE.map(([,v])=>v);
-  barChart.data.datasets[0].backgroundColor=bE.map((_,i)=>COLORS[i%COLORS.length]);
-  barChart.update(); document.getElementById('barTotal').textContent=Object.keys(projsByUser).length+' user';
+  // Bar — by dateStart month, last 6 months
+  var months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var mCounts={}, now=new Date();
+  for(var i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);mCounts[d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')]=0;}
+  confList.forEach(function(c){if(!c.dateStart)return;var k=c.dateStart.substring(0,7);if(k in mCounts)mCounts[k]++;});
+  cpeBarChart.data.labels=Object.keys(mCounts).map(function(k){var p=k.split('-');return months[+p[1]-1]+' '+(+p[0]+543-2500);});
+  cpeBarChart.data.datasets[0].data=Object.values(mCounts);
+  cpeBarChart.update();
+  document.getElementById('cpeBarBadge').textContent=total+' ประชุม';
 
-  const sorted=[...allProjects].sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0)).slice(0,10);
-  document.getElementById('tblBadge').textContent='10 ล่าสุด';
-  document.getElementById('tBody').innerHTML=sorted.length?sorted.map((p,i)=>{
-    const budget=getProjectBudget(p), income=parseFloat(p.incomeRegTotal)||0, docsN=docsByPid[p.id]||0;
-    return`<tr><td style="color:#888aaa">${i+1}</td><td><div class="truncate" title="${p.projectName||''}">${p.projectName||'(ไม่มีชื่อ)'}</div></td><td><span class="email-chip">${shortEmail(p._ownerEmail)}</span></td><td class="amt">${budget>0?fmt(budget):'—'}</td><td class="amt" style="color:#059669">${income>0?fmt(income):'—'}</td><td style="color:#6a6d77">${fmtDate(p.updatedAt)}</td><td>${docsN>0?`<span class="badge badge-grn">${docsN} ไฟล์</span>`:'<span class="badge badge-yel">ยังไม่มี</span>'}</td></tr>`;
-  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:20px;color:#888aaa">ยังไม่มีโครงการ</td></tr>';
+  // Table — sort by dateStart desc
+  var sorted=[...confList].sort(function(a,b){return (b.dateStart||'').localeCompare(a.dateStart||'');}).slice(0,15);
+  document.getElementById('tblBadge').textContent=sorted.length+' รายการ';
+  document.getElementById('cpeTbody').innerHTML=sorted.length?sorted.map(function(c,i){
+    var sl=statusLabel(c.status);
+    return`<tr>
+      <td style="color:#888aaa">${i+1}</td>
+      <td><div class="truncate" title="${c.confName||''}">${c.confName||'(ไม่มีชื่อ)'}</div></td>
+      <td><span class="org-chip" title="${c.orgName||''}">${c.orgName||'—'}</span></td>
+      <td style="color:#6a6d77">${fmtDate(c.dateStart)}</td>
+      <td style="color:#6a6d77">${fmtDate(c.dateEnd)}</td>
+      <td><span class="${sl.cls}">${sl.text}</span></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:#888aaa">ยังไม่มีข้อมูล</td></tr>';
 
-  // Calendar: projects only
+  // Calendar — CPE events
   calEvents=[];
-  allProjects.forEach(function(p){var dt=p.startDate||p.updatedAt||'';if(dt)calEvents.push({date:dt.substring(0,10),title:(p.projectName||'โครงการ').substring(0,18),type:'project'});});
+  confList.forEach(function(c){
+    var name=(c.confName||'CPE').substring(0,18);
+    if(c.dateStart) calEvents.push({date:c.dateStart.substring(0,10),title:name,type:'cpe'});
+    if(c.dateEnd && c.dateEnd!==c.dateStart) calEvents.push({date:c.dateEnd.substring(0,10),title:name+' (สิ้นสุด)',type:'cpe-end'});
+  });
   renderCalendar();
 
   document.getElementById('statusPill').className='status-pill';
@@ -366,10 +359,14 @@ function processData(rawData){
   document.getElementById('lastUpd').textContent='อัปเดตล่าสุด: '+new Date().toLocaleTimeString('th-TH');
 }
 
-db.ref('pharma-form').on('value',snap=>{
-  try{processData(snap.val());}
+// ── Firebase listener ──
+db.ref('pharma-form/_all_cpe_conferences').on('value',function(snap){
+  try{processCPE(snap.val());}
   catch(e){console.error(e);document.getElementById('statusPill').className='status-pill err';document.getElementById('statusTxt').textContent='เกิดข้อผิดพลาด';}
-},err=>{document.getElementById('statusPill').className='status-pill err';document.getElementById('statusTxt').textContent='เชื่อมต่อไม่ได้: '+err.code;});
+},function(err){
+  document.getElementById('statusPill').className='status-pill err';
+  document.getElementById('statusTxt').textContent='เชื่อมต่อไม่ได้: '+err.code;
+});
 </script>
 <script>
 (function(){

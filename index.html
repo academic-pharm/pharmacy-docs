@@ -566,6 +566,38 @@ footer{
       <span class="acard-arrow">เปิดแบบฟอร์ม →</span>
     </a>
 
+    <!-- DASHBOARD โครงการ -->
+    <a class="acard" id="dash-proj-card" href="dashboard.html" style="--fd:5.1s;--fdelay:.6s;animation-delay:.42s">
+      <div class="acard-icon">📊</div>
+      <div>
+        <div class="acard-num" style="font-size:26px;line-height:1.15">Dashboard</div>
+        <div class="acard-title">โครงการบริการวิชาการ</div>
+      </div>
+      <div class="acard-pills">
+        <span class="acard-pill">📁 โครงการ</span>
+        <span class="acard-pill">📈 กราฟ Real-time</span>
+        <span class="acard-pill">📅 ปฏิทิน</span>
+      </div>
+      <p class="acard-desc">ภาพรวมโครงการบริการวิชาการ KPI งบประมาณ กราฟ และตารางอัปเดตแบบ Real-time</p>
+      <span class="acard-arrow">เปิด Dashboard →</span>
+    </a>
+
+    <!-- DASHBOARD CPE -->
+    <a class="acard" id="dash-cpe-card" href="dashboard-cpe.html" style="--fd:4.9s;--fdelay:.7s;animation-delay:.5s">
+      <div class="acard-icon">🎓</div>
+      <div>
+        <div class="acard-num" style="font-size:26px;line-height:1.15">Dashboard CPE</div>
+        <div class="acard-title">ประชุมวิชาการ CPE</div>
+      </div>
+      <div class="acard-pills">
+        <span class="acard-pill">🎓 CPE</span>
+        <span class="acard-pill">📊 สถานะ</span>
+        <span class="acard-pill">📅 ปฏิทิน</span>
+      </div>
+      <p class="acard-desc">ภาพรวมประชุมวิชาการ CPE สถานะ รายเดือน และตารางประชุมอัปเดตแบบ Real-time</p>
+      <span class="acard-arrow">เปิด Dashboard →</span>
+    </a>
+
   </div>
 </div>
 
@@ -575,8 +607,14 @@ footer{
 <div class="dash-section">
   <div class="dash-section-hd">
     <span class="section-label" style="margin-bottom:0">[ ข้อมูล REAL-TIME ] DASHBOARD</span>
-    <div class="dash-status-pill loading" id="idxStatusPill">
-      <div class="dash-dot"></div><span id="idxStatusTxt">กำลังเชื่อมต่อ...</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;gap:3px;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.85);border-radius:10px;padding:3px">
+        <a href="dashboard.html" style="font-size:.75rem;font-weight:600;padding:5px 14px;border-radius:7px;text-decoration:none;background:white;color:#5a7bff;box-shadow:0 2px 8px rgba(80,100,200,.12)">📁 โครงการ</a>
+        <a href="dashboard-cpe.html" style="font-size:.75rem;font-weight:600;padding:5px 14px;border-radius:7px;text-decoration:none;color:#4a4d57">🎓 CPE</a>
+      </div>
+      <div class="dash-status-pill loading" id="idxStatusPill">
+        <div class="dash-dot"></div><span id="idxStatusTxt">กำลังเชื่อมต่อ...</span>
+      </div>
     </div>
   </div>
 
