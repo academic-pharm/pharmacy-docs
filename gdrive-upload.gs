@@ -43,6 +43,11 @@ function doPost(e) {
       return logApptToSheet(data);
     }
 
+    // action: 'log_payment' → อัพโหลดหลักฐานชำระเงิน + บันทึกลง Sheet tab "ค่าธรรมเนียม"
+    if (data.action === 'log_payment') {
+      return logPaymentToSheet(data);
+    }
+
     // action: 'uploadFile' → อัปโหลดไฟล์เข้า folder ที่ระบุ (ใช้กับ approved-docs)
     if (data.action === 'uploadFile') {
       var folderId  = data.folderId  || '';
@@ -407,6 +412,17 @@ function sendAdminEmail(data) {
                + 'URL PDF       : ' + (data.pdfUrl || '-') + '\n\n'
                + 'กรุณาตรวจสอบในระบบหรือ Google Sheet: "ข้อมูลโครงการบริการวิชาการและ CPE" → tab คำสั่งแต่งตั้ง';
 
+    } else if (data.type === 'payment') {
+      formType = 'ค่าธรรมเนียมการจัดประชุมวิชาการ';
+      subject  = '[แจ้งเตือน] มีการชำระค่าธรรมเนียมประชุมวิชาการ — ' + (data.confName || '');
+      body     = 'มีการส่งหลักฐานการชำระค่าธรรมเนียมใหม่เข้ามาในระบบ\n\n'
+               + 'ประชุมวิชาการ       : ' + (data.confName || '-') + '\n'
+               + 'ผู้ชำระ            : ' + (data.payerName || '-') + '\n'
+               + 'เลขผู้เสียภาษี     : ' + (data.taxId || '-') + '\n'
+               + 'จำนวนเงิน          : ' + (data.amount || '-') + ' บาท\n'
+               + 'อีเมลผู้ชำระ       : ' + (data.email || '-') + '\n'
+               + 'URL หลักฐาน        : ' + (data.receiptUrl || '-') + '\n\n'
+               + 'กรุณาตรวจสอบในระบบหรือ Google Sheet: "ข้อมูลโครงการบริการวิชาการและ CPE" → tab ค่าธรรมเนียม';
     } else if (data.type === 'org_register_approved') {
       return; // admin เป็นคนทำเอง ไม่ต้องส่งอีเมลซ้ำ
     } else {
@@ -687,6 +703,81 @@ function logApptToSheet(data) {
     }
 
     return respond({ success: true });
+  } catch(err) {
+    return respond({ success: false, error: err.toString() });
+  }
+}
+
+/* ─── Log payment to Sheet + upload receipt to Drive ─── */
+function logPaymentToSheet(data) {
+  try {
+    // 1. อัพโหลดไฟล์หลักฐานเข้า Drive (ถ้ามี)
+    var receiptUrl = data.receiptUrl || '';
+    if (data.base64 && data.base64.length > 0) {
+      var rootPay  = getOrCreate('ค่าธรรมเนียม CPE', null);
+      var confName = (data.confName || 'ทั่วไป').replace(/[\/\\]/g, '-').substring(0, 60);
+      var subFolder = getOrCreate(confName, rootPay);
+      subFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      var b64clean = data.base64.indexOf(',') >= 0 ? data.base64.split(',')[1] : data.base64;
+      var bytes    = Utilities.base64Decode(b64clean);
+      var filename = data.filename || ('หลักฐานชำระเงิน_' + new Date().getTime() + '.pdf');
+      var blob     = Utilities.newBlob(bytes, 'application/pdf', filename);
+      var file     = subFolder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      receiptUrl = file.getUrl();
+    }
+
+    // 2. บันทึกลง Sheet tab "ค่าธรรมเนียม"
+    var ss = getOrCreateSheet();
+    var headers = [
+      'timestamp', 'อีเมลผู้ชำระ', 'confId', 'ชื่อประชุมวิชาการ',
+      'เลขประจำตัวผู้เสียภาษี', 'ชื่อผู้ชำระ (พร้อมคำนำหน้า)', 'ที่อยู่',
+      'จำนวนเงิน (บาท)', 'URL หลักฐานการชำระ Drive', 'สถานะ'
+    ];
+    var sheet = getOrCreateTab(ss, 'ค่าธรรมเนียม', headers);
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+    var now = new Date().toISOString();
+    var rowData = [
+      now,
+      data.email       || '',
+      data.confId      || '',
+      data.confName    || '',
+      data.taxId       || '',
+      data.payerName   || '',
+      data.address     || '',
+      data.amount      || 0,
+      receiptUrl,
+      'รอตรวจสอบ'
+    ];
+
+    // upsert ตาม email + confId (col 2+3)
+    var lastRow = sheet.getLastRow();
+    var updated = false;
+    if (lastRow > 1) {
+      var vals = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+      for (var i = 0; i < vals.length; i++) {
+        if (vals[i][1] === (data.email || '') && vals[i][2] === (data.confId || '')) {
+          sheet.getRange(i + 2, 1, 1, headers.length).setValues([rowData]);
+          updated = true;
+          break;
+        }
+      }
+    }
+    if (!updated) { sheet.appendRow(rowData); }
+
+    // 3. แจ้ง admin
+    sendAdminEmail({
+      type: 'payment',
+      confName:   data.confName,
+      payerName:  data.payerName,
+      taxId:      data.taxId,
+      amount:     data.amount,
+      email:      data.email,
+      receiptUrl: receiptUrl
+    });
+
+    return respond({ success: true, receiptUrl: receiptUrl });
   } catch(err) {
     return respond({ success: false, error: err.toString() });
   }

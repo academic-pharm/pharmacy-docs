@@ -3022,6 +3022,35 @@ function openPaymentModal(confId){
           '</div>' +
         '</div>' +
 
+        // File upload
+        '<div>' +
+          '<label style="display:block;font-size:.74rem;font-weight:700;color:#374151;margin-bottom:5px">' +
+            '<span style="color:#ef4444">*</span> หลักฐานการชำระเงิน (PDF)' +
+          '</label>' +
+          '<input type="file" id="pay-file" accept="application/pdf" style="display:none" onchange="onPayFileChange(this)"/>' +
+          '<div id="pay-drop-zone" onclick="document.getElementById(\'pay-file\').click()" '+
+            'style="border:2px dashed #c7d2fe;border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;'+
+            'background:#f5f3ff;transition:background .15s" '+
+            'ondragover="event.preventDefault();this.style.background=\'#ede9fe\'" '+
+            'ondragleave="this.style.background=\'#f5f3ff\'" '+
+            'ondrop="event.preventDefault();this.style.background=\'#f5f3ff\';onPayFileDrop(event)">' +
+            '<div id="pay-file-placeholder">' +
+              '<div style="font-size:22px;margin-bottom:4px">📄</div>' +
+              '<div style="font-size:.78rem;font-weight:700;color:#4f46e5">คลิกหรือลากไฟล์มาวางที่นี่</div>' +
+              '<div style="font-size:.68rem;color:#94a3b8;margin-top:2px">รองรับเฉพาะไฟล์ PDF</div>' +
+            '</div>' +
+            '<div id="pay-file-preview" style="display:none;align-items:center;gap:8px;justify-content:center">' +
+              '<span style="font-size:18px">✅</span>' +
+              '<div style="text-align:left">' +
+                '<div id="pay-file-name" style="font-size:.78rem;font-weight:700;color:#065f46;word-break:break-all"></div>' +
+                '<div id="pay-file-size" style="font-size:.68rem;color:#059669"></div>' +
+              '</div>' +
+              '<button onclick="event.stopPropagation();clearPayFile()" '+
+                'style="background:none;border:none;cursor:pointer;font-size:16px;color:#94a3b8;margin-left:4px">✕</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
       '</div>' +
     '</div>' +
 
@@ -3029,7 +3058,7 @@ function openPaymentModal(confId){
     '<div style="padding:.9rem 1.25rem 1.25rem;display:flex;gap:8px">' +
       '<button onclick="closePaymentModal()" '+
         'style="flex:1;padding:9px;background:#f1f5f9;border:none;border-radius:8px;font-size:.84rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit">ยกเลิก</button>' +
-      '<button onclick="submitPaymentInfo(\''+confId+'\')" '+
+      '<button id="pay-submit-btn" onclick="submitPaymentInfo(\''+confId+'\')" '+
         'style="flex:2;padding:9px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;border-radius:8px;font-size:.84rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">'+
         '✅ ยืนยันการชำระค่าธรรมเนียม</button>' +
     '</div>';
@@ -3045,32 +3074,99 @@ function closePaymentModal(){
   document.body.style.overflow = '';
 }
 
+/* ── Payment file helpers ── */
+var _payFile = null;
+
+function onPayFileChange(input){
+  if(input.files && input.files[0]) _setPayFile(input.files[0]);
+}
+function onPayFileDrop(e){
+  var f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f && f.type === 'application/pdf') _setPayFile(f);
+  else if(f) showToast('กรุณาเลือกเฉพาะไฟล์ PDF', 'err');
+}
+function _setPayFile(f){
+  _payFile = f;
+  document.getElementById('pay-file-placeholder').style.display = 'none';
+  var prev = document.getElementById('pay-file-preview');
+  prev.style.display = 'flex';
+  document.getElementById('pay-file-name').textContent = f.name;
+  document.getElementById('pay-file-size').textContent = (f.size/1024).toFixed(1) + ' KB';
+  document.getElementById('pay-drop-zone').style.background = '#f0fdf4';
+  document.getElementById('pay-drop-zone').style.borderColor = '#6ee7b7';
+}
+function clearPayFile(){
+  _payFile = null;
+  document.getElementById('pay-file').value = '';
+  document.getElementById('pay-file-placeholder').style.display = 'block';
+  document.getElementById('pay-file-preview').style.display = 'none';
+  document.getElementById('pay-drop-zone').style.background = '#f5f3ff';
+  document.getElementById('pay-drop-zone').style.borderColor = '#c7d2fe';
+}
+
 function submitPaymentInfo(confId){
   var taxId   = (document.getElementById('pay-taxid')   || {}).value || '';
   var name    = (document.getElementById('pay-name')    || {}).value || '';
   var address = (document.getElementById('pay-address') || {}).value || '';
   var amount  = (document.getElementById('pay-amount')  || {}).value || '';
 
-  if(!taxId || taxId.length < 13){ alert('กรุณากรอกเลขประจำตัวผู้เสียภาษี 13 หลักให้ครบ'); return; }
-  if(!name.trim()){ alert('กรุณากรอกชื่อ-นามสกุล'); return; }
-  if(!address.trim()){ alert('กรุณากรอกที่อยู่'); return; }
-  if(!amount || parseFloat(amount) <= 0){ alert('กรุณากรอกจำนวนเงิน'); return; }
+  if(!taxId || taxId.length < 13){ showToast('กรุณากรอกเลขผู้เสียภาษี 13 หลักให้ครบ','err'); return; }
+  if(!name.trim()){ showToast('กรุณากรอกชื่อ-นามสกุล','err'); return; }
+  if(!address.trim()){ showToast('กรุณากรอกที่อยู่','err'); return; }
+  if(!amount || parseFloat(amount) <= 0){ showToast('กรุณากรอกจำนวนเงิน','err'); return; }
+  if(!_payFile){ showToast('กรุณาแนบไฟล์หลักฐานการชำระเงิน (PDF)','err'); return; }
 
-  var c = _myConfsById[confId];
+  var c    = _myConfsById[confId] || {};
   var user = currentUser || getUser();
-  var db = firebase.database();
-  var key = emailToFbKey(((user && (user._canonicalEmail||user.email))||'').toLowerCase());
-  var payload = {
-    taxId: taxId, payerName: name, address: address, amount: parseFloat(amount),
-    confName: c ? (c.confName||'') : '', paidAt: new Date().toISOString(), status: 'pending_receipt'
-  };
+  var email = ((user && (user._canonicalEmail||user.email))||'').toLowerCase();
+  var fbKey = emailToFbKey(email);
 
-  db.ref('pharma-form/'+key+'/cpe-conferences/'+confId+'/payment').set(payload)
+  // Disable submit
+  var btn = document.getElementById('pay-submit-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังอัพโหลด...'; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var b64 = ev.target.result; // data:application/pdf;base64,...
+    var payload = {
+      action:    'log_payment',
+      email:     email,
+      confId:    confId,
+      confName:  c.confName || '',
+      taxId:     taxId,
+      payerName: name,
+      address:   address,
+      amount:    parseFloat(amount),
+      base64:    b64,
+      filename:  'หลักฐานชำระ_' + (c.confName||confId).substring(0,30).replace(/\s+/g,'_') + '_' + Date.now() + '.pdf'
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(!res.success) throw new Error(res.error||'unknown');
+      // บันทึกลง Firebase ด้วย
+      var fbPayload = {
+        taxId: taxId, payerName: name, address: address, amount: parseFloat(amount),
+        confName: c.confName||'', paidAt: new Date().toISOString(),
+        status: 'pending_receipt', receiptUrl: res.receiptUrl || ''
+      };
+      return firebase.database().ref('pharma-form/'+fbKey+'/cpe-conferences/'+confId+'/payment').set(fbPayload);
+    })
     .then(function(){
       closePaymentModal();
-      showToast('บันทึกข้อมูลการชำระค่าธรรมเนียมแล้ว ✓', 'ok');
+      showToast('ส่งหลักฐานการชำระค่าธรรมเนียมเรียบร้อย ✓', 'ok');
     })
-    .catch(function(e){ alert('เกิดข้อผิดพลาด: ' + e.message); });
+    .catch(function(e){
+      showToast('เกิดข้อผิดพลาด: '+(e.message||e), 'err');
+      if(btn){ btn.disabled=false; btn.textContent='✅ ยืนยันการชำระค่าธรรมเนียม'; }
+    });
+  };
+  reader.readAsDataURL(_payFile);
 }
 
 /* ════════════════════════════════
