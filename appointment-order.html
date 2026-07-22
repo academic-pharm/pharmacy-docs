@@ -824,6 +824,63 @@ async function _loadProjectFolderFromFB(email, pid){
   }catch(e){ console.warn('[Drive] loadProjectFolder error:', e); return null; }
 }
 
+async function _loadScript(src){
+  return new Promise((resolve, reject)=>{
+    if(document.querySelector(`script[src="${src}"]`)){ resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function _generateApptPDF(data){
+  await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+
+  // render ใน iframe (เพื่อให้ @font-face + styles ทำงานได้ถูกต้อง)
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;visibility:hidden;';
+  document.body.appendChild(iframe);
+  try{
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(buildPrintHTML(data));
+    iframe.contentDocument.close();
+    // รอให้ font โหลดเสร็จ
+    await new Promise(r => setTimeout(r, 1800));
+
+    const body = iframe.contentDocument.body;
+    const totalH = Math.max(body.scrollHeight, 1123);
+
+    const canvas = await html2canvas(body, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor:'#ffffff',
+      width: 794, height: totalH,
+      windowWidth: 794, windowHeight: totalH
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+    let remaining = imgH;
+    let yOffset = 0;
+    pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH);
+    remaining -= pageH;
+    while(remaining > 0){
+      pdf.addPage();
+      yOffset -= pageH;
+      pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH);
+      remaining -= pageH;
+    }
+    return pdf.output('datauristring').split(',')[1]; // base64 only
+  } finally {
+    document.body.removeChild(iframe);
+  }
+}
+
 async function _uploadApptToDrive(pid, data){
   if(!_APPT_DRIVE_URL) return;
   if(!_apptDriveFolderId){
@@ -831,9 +888,12 @@ async function _uploadApptToDrive(pid, data){
     return;
   }
   try{
+    showToast('⏳ กำลังสร้าง PDF...','ok');
+    const pdfB64 = await _generateApptPDF(data);
+    if(!pdfB64){ showToast('สร้าง PDF ล้มเหลว','err'); return; }
+
     const projName = data.projectName || pid;
-    const filename = 'คำสั่งแต่งตั้ง_' + projName + '.html';
-    const htmlContent = buildPrintHTML(data);
+    const filename = 'คำสั่งแต่งตั้ง_' + projName + '.pdf';
 
     // อ่าน driveFileId เก่าจาก Firebase เพื่อลบก่อน upload
     const apptRef = _fbApptRef(currentUser.email, pid);
@@ -843,21 +903,19 @@ async function _uploadApptToDrive(pid, data){
       _apptDriveCall({action:'deleteFile', fileId:prevFileId}).catch(()=>{});
     }
 
-    // encode HTML → base64
-    const b64 = btoa(unescape(encodeURIComponent(htmlContent)));
     const result = await _apptDriveCall({
       action:'uploadFile', folderId:_apptDriveFolderId,
-      filename, base64:b64, mimeType:'text/html'
+      filename, base64:pdfB64, mimeType:'application/pdf'
     });
 
     if(result?.success){
-      // บันทึก driveFileId ลง Firebase เท่านั้น (เพื่อใช้ลบครั้งหน้า)
       if(apptRef) apptRef.update({ driveFileId: result.fileId, driveFileUrl: result.fileUrl }).catch(()=>{});
-      showToast('📁 บันทึกลง Drive แล้ว', 'ok');
+      showToast('📁 บันทึก PDF ลง Drive แล้ว','ok');
     } else {
       console.warn('[Drive] upload appt failed:', result);
+      showToast('Drive: อัปโหลดล้มเหลว','err');
     }
-  }catch(e){ console.warn('[Drive] upload appt error:', e); }
+  }catch(e){ console.warn('[Drive] upload appt error:', e); showToast('Drive: error — '+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════
