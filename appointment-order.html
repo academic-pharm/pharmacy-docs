@@ -429,21 +429,26 @@ function _fbApptRef(email, pid){
   }catch{ return null; }
 }
 async function _fbApptSync(email, pid){
-  try{
-    const ref = _fbApptRef(email, pid);
-    if(!ref) return;
-    const snap = await ref.once('value');
-    const cloud = snap.val();
-    const local = loadAppt(pid);
-    if(!cloud && !local) return;
-    if(!cloud){ ref.set(local).catch(()=>{}); return; }
-    if(!local){ localStorage.setItem(getApptKey(pid), JSON.stringify(cloud)); return; }
-    // Keep newer
-    const cloudT = new Date(cloud.updatedAt||0).getTime();
-    const localT = new Date(local.updatedAt||0).getTime();
-    if(cloudT > localT) localStorage.setItem(getApptKey(pid), JSON.stringify(cloud));
-    else ref.set(local).catch(()=>{});
-  }catch(e){ console.warn('[FB] appt sync error:',e); }
+  // timeout 8 วินาที ป้องกัน Firebase hang
+  const timeout = new Promise(r => setTimeout(r, 8000));
+  const sync = (async () => {
+    try{
+      const ref = _fbApptRef(email, pid);
+      if(!ref) return;
+      const snap = await ref.once('value');
+      const cloud = snap.val();
+      const local = loadAppt(pid);
+      if(!cloud && !local) return;
+      if(!cloud){ ref.set(local).catch(()=>{}); return; }
+      if(!local){ localStorage.setItem(getApptKey(pid), JSON.stringify(cloud)); return; }
+      // Keep newer
+      const cloudT = new Date(cloud.updatedAt||0).getTime();
+      const localT = new Date(local.updatedAt||0).getTime();
+      if(cloudT > localT) localStorage.setItem(getApptKey(pid), JSON.stringify(cloud));
+      else ref.set(local).catch(()=>{});
+    }catch(e){ console.warn('[FB] appt sync error:',e); }
+  })();
+  await Promise.race([sync, timeout]);
 }
 function _fbApptWrite(email, pid, data){
   const ref = _fbApptRef(email, pid);
@@ -1306,12 +1311,14 @@ async function buildWordDoc(d){
     return;
   }
 
-  // Load project name from academic form data
+  // Load project name from academic form data (ป้องกัน JSON parse error)
   const projKey  = getUserProjKey(currentUser.email);
-  const projects = JSON.parse(localStorage.getItem(projKey)||'[]');
+  let projects = [];
+  try { projects = JSON.parse(localStorage.getItem(projKey)||'[]'); } catch(e){ projects = []; }
+  if(!Array.isArray(projects)) projects = [];
   const proj     = projects.find(p=>p.id===projectId);
   projectName        = proj ? (proj.projectName||'') : '';
-  _apptDriveFolderId = proj?.driveFolderId || null;
+  _apptDriveFolderId = proj ? (proj.driveFolderId||null) : null;
 
   // Update UI
   const bannerName = document.getElementById('banner-proj-name');
