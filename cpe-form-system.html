@@ -450,8 +450,8 @@ body::before,body::after{display:none !important}
 
   <!-- Main Tab Bar (shown after login) -->
   <div id="main-tab-bar" style="display:none" class="main-tab-bar">
-    <button id="tab-btn-admin-manage" onclick="switchTab('admin-manage')" class="mtab" style="display:none">⚡ จัดการหน่วยงาน</button>
-    <button id="tab-btn-admin-conf"   onclick="switchTab('admin-conf')"   class="mtab" style="display:none">🎓 ประชุมวิชาการ</button>
+    <button id="tab-btn-admin-manage" onclick="switchTab('admin-manage')" class="mtab" style="display:none">⚡ จัดการหน่วยงาน <span id="tab-dot-admin-manage" style="display:none;width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:pulse-dot 1.4s ease infinite"></span></button>
+    <button id="tab-btn-admin-conf"   onclick="switchTab('admin-conf')"   class="mtab" style="display:none">🎓 ประชุมวิชาการ <span id="tab-dot-admin-conf" style="display:none;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;animation:pulse-dot 1.4s ease infinite;animation-delay:.3s"></span></button>
     <button id="tab-btn-my-requests"  onclick="switchTab('my-requests')"  class="mtab" style="display:none">📋 คำขอของฉัน</button>
     <button id="tab-btn-search"       onclick="switchTab('search')"       class="mtab active">🔍 ค้นหาหน่วยงาน</button>
   </div>
@@ -473,6 +473,27 @@ body::before,body::after{display:none !important}
   <!-- Admin: เพิ่มหน่วยงาน -->
   <div id="admin-add-section" data-tab="admin-manage" style="display:none" class="fsec">
     <div class="fsec-title">⚡ เพิ่ม / จัดการหน่วยงาน (Admin)</div>
+
+    <!-- Org Stats Strip -->
+    <div id="org-stats-strip" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <div style="flex:1;min-width:90px;background:#f8faff;border:1px solid rgba(200,210,230,.45);border-radius:10px;padding:10px 14px;text-align:center">
+        <div id="stat-total" style="font-size:1.5rem;font-weight:800;color:#4f46e5;line-height:1">—</div>
+        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">สถาบันทั้งหมด</div>
+      </div>
+      <div style="flex:1;min-width:90px;background:rgba(5,150,105,.05);border:1px solid rgba(5,150,105,.2);border-radius:10px;padding:10px 14px;text-align:center">
+        <div id="stat-active" style="font-size:1.5rem;font-weight:800;color:#059669;line-height:1">—</div>
+        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">ยังไม่หมดอายุ</div>
+      </div>
+      <div style="flex:1;min-width:90px;background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.18);border-radius:10px;padding:10px 14px;text-align:center">
+        <div id="stat-expired" style="font-size:1.5rem;font-weight:800;color:#dc2626;line-height:1">—</div>
+        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">หมดอายุแล้ว</div>
+      </div>
+      <div style="flex:1;min-width:90px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 14px;text-align:center">
+        <div id="stat-expiring" style="font-size:1.5rem;font-weight:800;color:#d97706;line-height:1">—</div>
+        <div style="font-size:.68rem;color:#6b7280;margin-top:3px">ใกล้หมดอายุ (&lt;90 วัน)</div>
+      </div>
+    </div>
+
     <div class="form-row">
       <div class="form-group" style="flex:2">
         <label>ชื่อหน่วยงาน</label>
@@ -1280,9 +1301,31 @@ function loadAllOrgs(){
           }
         });
         if(document.getElementById('org-list-panel').style.display!=='none') renderOrgList();
+        updateOrgStats();
       });
     }catch(e){ console.warn('Firebase DB listener error:',e.message); }
   });
+}
+
+function updateOrgStats(){
+  if(!isAdmin) return;
+  var entries = Object.values(allOrgs).filter(function(o){ return !o.deleted; });
+  var today = new Date(); today.setHours(0,0,0,0);
+  var total = entries.length;
+  var expired = 0, expiringSoon = 0, active = 0;
+  entries.forEach(function(o){
+    if(!o.expiryDate){ active++; return; }
+    var exp = new Date(o.expiryDate+'T00:00:00');
+    var daysLeft = Math.ceil((exp - today) / 86400000);
+    if(daysLeft < 0){ expired++; }
+    else if(daysLeft <= 90){ expiringSoon++; }
+    else { active++; }
+  });
+  var el = function(id){ return document.getElementById(id); };
+  if(el('stat-total'))    el('stat-total').textContent    = total;
+  if(el('stat-active'))   el('stat-active').textContent   = active;
+  if(el('stat-expired'))  el('stat-expired').textContent  = expired;
+  if(el('stat-expiring')) el('stat-expiring').textContent = expiringSoon;
 }
 
 function toggleOrgList(){
@@ -1471,6 +1514,7 @@ function deleteOrg(key){
   }catch(e){ console.warn(e); }
   delete allOrgs[key];
   renderOrgList();
+  updateOrgStats();
   showToast('ลบสถาบัน "'+org.name+'" แล้ว','warn');
 }
 
@@ -1555,6 +1599,8 @@ function renderOrgRequests(data){
   var pending = Object.entries(data).filter(function(e){ return e[1].status==='รอตรวจสอบ'; });
   if(pending.length){ badge.textContent=pending.length+' รายการ'; badge.style.display='inline'; }
   else { badge.style.display='none'; }
+  var dot = document.getElementById('tab-dot-admin-manage');
+  if(dot) dot.style.display = pending.length ? 'inline-block' : 'none';
   if(!pending.length){
     wrap.innerHTML='<div style="padding:18px;text-align:center;color:#6a6d77;font-size:.83rem">ไม่มีคำขอรอตรวจสอบ</div>';
     return;
@@ -2107,6 +2153,7 @@ function addOrg(){
   document.getElementById('new-org-reg').value='';
   showToast('✓ เพิ่มสถาบัน "'+name+'" แล้ว');
   if(document.getElementById('org-list-panel').style.display!=='none') renderOrgList();
+  updateOrgStats();
   // Sync Firebase (best effort — ถ้า rules บล็อกก็ยังใช้ session นี้ได้)
   try{
     db.ref('pharma-form/_cpe_orgs/'+key).set(record)
@@ -2548,6 +2595,9 @@ function loadAllCpeConferences(){
       else { _waiting.push({step:2,e:e}); }
     });
     _needAction.sort(function(a,b){ return a.step-b.step; });
+    // update tab dot
+    var _confDot = document.getElementById('tab-dot-admin-conf');
+    if(_confDot) _confDot.style.display = _needAction.length ? 'inline-block' : 'none';
 
     function buildAdminCard(e, stepNum){
       var cid=e[0], c=e[1];
@@ -2645,7 +2695,7 @@ function loadAllCpeConferences(){
           '<span style="font-size:.66rem;font-weight:700;background:rgba(5,150,105,.08);color:#059669;border:1px solid rgba(5,150,105,.25);border-radius:20px;padding:1px 8px">'+_done.length+' รายการ</span>'+
           '<button onclick="var s=document.getElementById(\''+_doneId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'+
         '</div>'+
-        '<div id="'+_doneId+'">'+_done.map(function(e){ return buildAdminCard(e,0); }).join('')+'</div>'+
+        '<div id="'+_doneId+'" style="display:none">'+_done.map(function(e){ return buildAdminCard(e,0); }).join('')+'</div>'+
         '<div style="background:rgba(5,150,105,.04);border:1px solid rgba(5,150,105,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'+
           '<span style="font-size:15px">🏆</span>'+
           '<span style="font-size:.72rem;color:#065f46">'+_done.length+' รายการดำเนินการเสร็จสมบูรณ์แล้ว</span>'+
