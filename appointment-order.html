@@ -904,14 +904,36 @@ async function _generateApptPDF(data){
 
 async function _uploadApptToDrive(pid, data){
   if(!_APPT_DRIVE_URL) return;
-  if(!_apptDriveFolderId){
-    showToast('Drive: ไม่พบโฟลเดอร์โครงการ — กลับไปบันทึกโครงการก่อนครับ','err');
-    return;
-  }
   try{
     showToast('⏳ กำลังสร้าง PDF...','ok');
-    const pdfB64 = await _generateApptPDF(data);
-    if(!pdfB64){ showToast('สร้าง PDF ล้มเหลว','err'); return; }
+
+    // ถ้าไม่มี driveFolderId → สร้างโฟลเดอร์โครงการอัตโนมัติ
+    if(!_apptDriveFolderId){
+      showToast('⏳ กำลังสร้างโฟลเดอร์โครงการ...','ok');
+      const projRes = await _apptDriveCall({
+        action:'createProjectFolder',
+        pid: pid,
+        projectName: projectName || pid
+      });
+      if(!projRes?.projectFolderId){
+        showToast('Drive: สร้างโฟลเดอร์โครงการล้มเหลว','err');
+        return;
+      }
+      _apptDriveFolderId = projRes.projectFolderId;
+      // บันทึก driveFolderId กลับไปใน localStorage
+      try{
+        const projKey  = getUserProjKey(currentUser.email);
+        let projects = [];
+        try { projects = JSON.parse(localStorage.getItem(projKey)||'[]'); } catch(e){ projects = []; }
+        if(!Array.isArray(projects)) projects = [];
+        const idx = projects.findIndex(p=>p.id===pid);
+        if(idx>=0){
+          projects[idx].driveFolderId  = projRes.projectFolderId;
+          projects[idx].driveFolderUrl = projRes.projectFolderUrl;
+          localStorage.setItem(projKey, JSON.stringify(projects));
+        }
+      }catch(e){ console.warn('[Drive] save driveFolderId error:',e); }
+    }
 
     // get หรือ create โฟลเดอร์ "คำสั่งแต่งตั้ง" ภายในโฟลเดอร์โครงการ
     const subRes = await _apptDriveCall({
@@ -920,6 +942,9 @@ async function _uploadApptToDrive(pid, data){
       folderName: 'คำสั่งแต่งตั้ง'
     });
     const targetFolderId = subRes?.folderId || _apptDriveFolderId;
+
+    const pdfB64 = await _generateApptPDF(data);
+    if(!pdfB64){ showToast('สร้าง PDF ล้มเหลว','err'); return; }
 
     const projName = data.projectName || pid;
     const filename = 'คำสั่งแต่งตั้ง_' + projName + '.pdf';
