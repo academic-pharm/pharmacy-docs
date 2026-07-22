@@ -952,6 +952,10 @@ function exportPDF(){
   saveAppt();
   const d = getFormData();
   const win = window.open('','_blank');
+  if(!win){
+    showToast('ป๊อปอัปถูกบล็อก — กรุณาอนุญาตป๊อปอัปในเบราว์เซอร์ก่อนครับ','err');
+    return;
+  }
   win.document.write(buildPrintHTML(d));
   win.document.close();
   setTimeout(()=>win.print(), 800);
