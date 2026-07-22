@@ -332,6 +332,38 @@ footer{
 .dash-amt{font-variant-numeric:tabular-nums;font-weight:600;color:#16181f}
 .dash-last-upd{font-size:.72rem;color:#9ba3b2;text-align:right;padding:4px 0 8px}
 
+/* ── Calendar ── */
+.idx-cal-nav{display:inline-flex;align-items:center;gap:5px}
+.cal-nav-btn{background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.85);color:#16181f;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:.9rem;display:inline-flex;align-items:center;justify-content:center;transition:background .15s;font-family:inherit}
+.cal-nav-btn:hover{background:rgba(90,123,255,.12);border-color:rgba(90,123,255,.25)}
+.cal-head-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px}
+.cal-head-cell{text-align:center;font-size:.64rem;font-weight:700;color:#9ba3b2;padding:4px 0}
+.cal-head-cell:first-child{color:#dc2626}.cal-head-cell:last-child{color:#2563eb}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-cell{min-height:60px;padding:4px 5px;border-radius:7px;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.72)}
+.cal-cell.today{border-color:rgba(90,123,255,.38);background:rgba(90,123,255,.06)}
+.cal-cell.other-month{opacity:.2;pointer-events:none}
+.cal-date{font-size:.67rem;font-weight:700;color:#9ba3b2;margin-bottom:2px}
+.cal-cell.today .cal-date{color:#5a7bff}
+.cal-ev{font-size:.57rem;font-weight:600;border-radius:3px;padding:1px 4px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.cal-ev-proj{background:rgba(16,185,129,.16);color:#065f46}
+.cal-ev-cpe{background:rgba(168,85,247,.16);color:#6d28d9}
+.cal-ev-cpe-end{background:rgba(239,68,68,.12);color:#b91c1c}
+.cal-more{font-size:.56rem;color:#9ba3b2;display:block}
+.cal-legend{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:.7rem;color:#6a6d77}
+.cal-legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+/* ── CPE Pipeline ── */
+.cpe-pipeline{display:flex;align-items:stretch;justify-content:center;gap:6px;padding:8px 0 16px;flex-wrap:wrap}
+.pipeline-step{text-align:center;background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.85);border-radius:12px;padding:14px 22px;min-width:118px;flex:1;max-width:160px}
+.pipeline-step .p-val{font-size:1.9rem;font-weight:700;color:#16181f;line-height:1}
+.pipeline-step .p-lbl{font-size:.72rem;color:#6a6d77;margin-top:4px}
+.pipeline-step .p-pct{font-size:.7rem;font-weight:700;margin-top:5px}
+.pipeline-arrow{display:flex;align-items:center;font-size:1.3rem;color:#c8d0de;flex-shrink:0}
+.pipeline-bar-wrap{padding:0 8px 4px}
+.pipeline-track{height:7px;background:rgba(0,0,0,.06);border-radius:8px;overflow:hidden;margin-bottom:4px}
+.pipeline-fill{height:100%;border-radius:8px;transition:width .7s ease}
+.pipeline-bar-lbl{font-size:.67rem;color:#9ba3b2;margin-bottom:8px}
 /* tab switcher */
 .idx-tabs{display:flex;gap:3px;background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.85);border-radius:10px;padding:3px}
 .idx-tab{font-family:'Prompt',sans-serif;font-size:.75rem;font-weight:600;padding:5px 16px;border-radius:7px;border:none;cursor:pointer;background:transparent;color:#4a4d57;transition:all .15s}
@@ -658,6 +690,31 @@ footer{
       <canvas id="idxBarChart" height="100"></canvas>
     </div>
 
+    <!-- Top 5 by budget -->
+    <div class="dash-card dash-card-full">
+      <div class="dash-card-hd">
+        <span class="dash-card-title">💰 Top 5 โครงการตามงบประมาณ</span>
+        <span class="dash-card-badge" id="idxTopBudgetBadge">—</span>
+      </div>
+      <canvas id="idxProjTopBudget" height="130"></canvas>
+    </div>
+
+    <!-- Project Calendar -->
+    <div class="dash-card dash-card-full">
+      <div class="dash-card-hd">
+        <span class="dash-card-title">📅 ปฏิทินโครงการ</span>
+        <div class="idx-cal-nav">
+          <button class="cal-nav-btn" onclick="calProjNav(-1)">‹</button>
+          <span id="calProjTitle" style="font-size:.8rem;font-weight:700;color:#16181f;min-width:108px;text-align:center"></span>
+          <button class="cal-nav-btn" onclick="calProjNav(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(16,185,129,.55)"></div>วันเริ่มโครงการ</div>
+      </div>
+      <div id="calProjGrid"></div>
+    </div>
+
     <!-- Table -->
     <div class="dash-card">
       <div class="dash-card-hd">
@@ -729,6 +786,64 @@ footer{
         </div>
         <canvas id="idxCpeBar" height="160"></canvas>
       </div>
+    </div>
+
+    <!-- CPE Pipeline -->
+    <div class="dash-card dash-card-full">
+      <div class="dash-card-hd">
+        <span class="dash-card-title">🔄 สถานะการดำเนินงาน (Pipeline)</span>
+        <span class="dash-card-badge" id="idxPipelineBadge">—</span>
+      </div>
+      <div class="cpe-pipeline">
+        <div class="pipeline-step">
+          <div class="p-val" id="pipeTotal">—</div>
+          <div class="p-lbl">ยื่นทั้งหมด</div>
+          <div class="p-pct" style="color:#9ba3b2">100%</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="p-val" id="pipePending">—</div>
+          <div class="p-lbl">รอการพิจารณา</div>
+          <div class="p-pct" id="pipePendingPct" style="color:#f59e0b">—</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="p-val" id="pipeSent">—</div>
+          <div class="p-lbl">ส่งผู้ทรงแล้ว</div>
+          <div class="p-pct" id="pipeSentPct" style="color:#22d3ee">—</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="p-val" id="pipeResult">—</div>
+          <div class="p-lbl">ผลออกแล้ว</div>
+          <div class="p-pct" id="pipeResultPct" style="color:#34d399">—</div>
+        </div>
+      </div>
+      <div class="pipeline-bar-wrap">
+        <div class="pipeline-track"><div class="pipeline-fill" id="fillPending" style="background:#f59e0b;width:0%"></div></div>
+        <div class="pipeline-bar-lbl">รอการพิจารณา</div>
+        <div class="pipeline-track"><div class="pipeline-fill" id="fillSent" style="background:#22d3ee;width:0%"></div></div>
+        <div class="pipeline-bar-lbl">ส่งผู้ทรงคุณวุฒิแล้ว</div>
+        <div class="pipeline-track"><div class="pipeline-fill" id="fillResult" style="background:#34d399;width:0%"></div></div>
+        <div class="pipeline-bar-lbl">ผลการพิจารณาออกแล้ว</div>
+      </div>
+    </div>
+
+    <!-- CPE Calendar -->
+    <div class="dash-card dash-card-full">
+      <div class="dash-card-hd">
+        <span class="dash-card-title">📅 ปฏิทินประชุม CPE</span>
+        <div class="idx-cal-nav">
+          <button class="cal-nav-btn" onclick="calCpeNav(-1)">‹</button>
+          <span id="calCpeTitle" style="font-size:.8rem;font-weight:700;color:#16181f;min-width:108px;text-align:center"></span>
+          <button class="cal-nav-btn" onclick="calCpeNav(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(168,85,247,.55)"></div>วันเริ่มประชุม</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(239,68,68,.45)"></div>วันสิ้นสุด</div>
+      </div>
+      <div id="calCpeGrid"></div>
     </div>
 
     <!-- CPE Table -->
@@ -1041,11 +1156,73 @@ document.addEventListener('DOMContentLoaded',()=>{
       </tr>`;
     }).join(''):'<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ba3b2">ยังไม่มีโครงการ</td></tr>';
 
+    /* top 5 by budget */
+    const top5=[...allProjects].map(p=>({name:(p.projectName||'ไม่มีชื่อ').substring(0,30),budget:getProjectBudget(p)})).filter(p=>p.budget>0).sort((a,b)=>b.budget-a.budget).slice(0,5);
+    projTopBudgetChart.data.labels=top5.map(p=>p.name);
+    projTopBudgetChart.data.datasets[0].data=top5.map(p=>p.budget);
+    projTopBudgetChart.data.datasets[0].backgroundColor=top5.map((_,i)=>COLORS[i%COLORS.length]);
+    projTopBudgetChart.update();
+    S('idxTopBudgetBadge', top5.length>0?'฿'+fmtShort(top5[0].budget):'—');
+
+    /* project calendar */
+    calProj.events=[];
+    allProjects.forEach(function(p){
+      var dt=p.startDate||p.updatedAt||'';
+      if(dt) calProj.events.push({date:dt.substring(0,10),title:(p.projectName||'โครงการ').substring(0,15),type:'proj'});
+    });
+    renderCal(calProj,'calProjGrid','calProjTitle');
+
     /* status & timestamp */
     const pill=document.getElementById('idxStatusPill');
     if(pill){pill.className='dash-status-pill';document.getElementById('idxStatusTxt').textContent='Real-time';}
     S('idxLastUpd','อัปเดตล่าสุด: '+new Date().toLocaleTimeString('th-TH'));
   }
+
+  /* ── Top 5 projects by budget (horizontal bar) ── */
+  const projTopBudgetChart = new Chart(document.getElementById('idxProjTopBudget').getContext('2d'),{
+    type:'bar',
+    data:{labels:[],datasets:[{label:'งบประมาณ',data:[],backgroundColor:COLORS,borderRadius:5,borderSkipped:false}]},
+    options:{
+      indexAxis:'y',responsive:true,animation:{duration:500},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' ฿'+fmt(ctx.parsed.x)+' บาท'}}},
+      scales:{
+        x:{grid:{color:LG},ticks:{callback:v=>fmtShort(v)}},
+        y:{grid:{color:'transparent'},ticks:{font:{size:10}}}
+      }
+    }
+  });
+
+  /* ── Calendar state ── */
+  var calProj={year:new Date().getFullYear(),month:new Date().getMonth(),events:[]};
+  var calCpe ={year:new Date().getFullYear(),month:new Date().getMonth(),events:[]};
+
+  function renderCal(state,gridId,titleId){
+    var thM=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    var tEl=document.getElementById(titleId); if(tEl) tEl.textContent=thM[state.month]+' '+(state.year+543);
+    var gEl=document.getElementById(gridId); if(!gEl) return;
+    var firstDow=new Date(state.year,state.month,1).getDay();
+    var dim=new Date(state.year,state.month+1,0).getDate();
+    var today=new Date();
+    var todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    var evMap={}; state.events.forEach(function(ev){if(!evMap[ev.date])evMap[ev.date]=[];evMap[ev.date].push(ev);});
+    var dn=['อา','จ','อ','พ','พฤ','ศ','ส'];
+    var h='<div class="cal-head-row">'+dn.map(function(d){return'<div class="cal-head-cell">'+d+'</div>';}).join('')+'</div><div class="cal-grid">';
+    for(var i=0;i<firstDow;i++) h+='<div class="cal-cell other-month"></div>';
+    for(var d=1;d<=dim;d++){
+      var ds=state.year+'-'+String(state.month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      var isT=(ds===todayStr),evs=evMap[ds]||[];
+      h+='<div class="cal-cell'+(isT?' today':'')+'"><div class="cal-date">'+d+'</div>';
+      evs.slice(0,2).forEach(function(ev){h+='<span class="cal-ev cal-ev-'+ev.type+'" title="'+ev.title+'">'+ev.title+'</span>';});
+      if(evs.length>2) h+='<span class="cal-more">+'+(evs.length-2)+' อื่นๆ</span>';
+      h+='</div>';
+    }
+    var tail=(7-(firstDow+dim)%7)%7; for(var j=0;j<tail;j++) h+='<div class="cal-cell other-month"></div>';
+    gEl.innerHTML=h+'</div>';
+  }
+  window.calProjNav=function(dir){calProj.month+=dir;if(calProj.month>11){calProj.month=0;calProj.year++;}if(calProj.month<0){calProj.month=11;calProj.year--;}renderCal(calProj,'calProjGrid','calProjTitle');};
+  window.calCpeNav =function(dir){calCpe.month+=dir;if(calCpe.month>11){calCpe.month=0;calCpe.year++;}if(calCpe.month<0){calCpe.month=11;calCpe.year--;}renderCal(calCpe,'calCpeGrid','calCpeTitle');};
+  renderCal(calProj,'calProjGrid','calProjTitle');
+  renderCal(calCpe,'calCpeGrid','calCpeTitle');
 
   /* ── processCPE ── */
   function processCPE(confsObj){
@@ -1063,6 +1240,18 @@ document.addEventListener('DOMContentLoaded',()=>{
     S('idxCpeDonutBadge',total+' ประชุม');
     S('idxCpeBarBadge',total+' ประชุม');
 
+    /* pipeline */
+    const sentPct  = total>0?Math.round(sent/total*100):0;
+    const resultPct= total>0?Math.round(result/total*100):0;
+    const pendingPct=total>0?Math.round(pending/total*100):0;
+    S('pipeTotal',total); S('pipePending',pending); S('pipeSent',sent); S('pipeResult',result);
+    S('pipePendingPct',pendingPct+'%'); S('pipeSentPct',sentPct+'%'); S('pipeResultPct',resultPct+'%');
+    S('idxPipelineBadge',total+' ประชุม');
+    var fP=document.getElementById('fillPending'),fS=document.getElementById('fillSent'),fR=document.getElementById('fillResult');
+    if(fP) fP.style.width=pendingPct+'%';
+    if(fS) fS.style.width=sentPct+'%';
+    if(fR) fR.style.width=resultPct+'%';
+
     cpeDonutChart.data.datasets[0].data=[pending,sentOnly,result];
     cpeDonutChart.update();
 
@@ -1076,6 +1265,15 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     const sorted=[...confList].sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||'')).slice(0,12);
     S('idxCpeTblBadge',sorted.length+' รายการ');
+    /* CPE calendar */
+    calCpe.events=[];
+    confList.forEach(function(c){
+      var name=(c.confName||'CPE').substring(0,15);
+      if(c.dateStart) calCpe.events.push({date:c.dateStart.substring(0,10),title:name,type:'cpe'});
+      if(c.dateEnd&&c.dateEnd!==c.dateStart) calCpe.events.push({date:c.dateEnd.substring(0,10),title:name+' (สิ้นสุด)',type:'cpe-end'});
+    });
+    renderCal(calCpe,'calCpeGrid','calCpeTitle');
+
     const tb=document.getElementById('idxCpeTbody');
     if(tb) tb.innerHTML=sorted.length?sorted.map((c,i)=>{
       const sl=c.status==='result_confirmed'?{cls:'cpe-s-result',txt:'ผลออกแล้ว'}:c.status==='sent_to_experts'?{cls:'cpe-s-sent',txt:'ส่งผู้ทรงแล้ว'}:{cls:'cpe-s-pending',txt:'รอพิจารณา'};
