@@ -23,9 +23,14 @@ function doPost(e) {
       return logToSheet(data);
     }
 
-    // action: 'send_expert_email' → ส่งอีเมลให้ผู้ทรงคุณวุฒิ
+    // action: 'send_expert_email' → ส่งอีเมลให้ผู้ทรงคุณวุฒิ (ประชุมวิชาการ)
     if (data.action === 'send_expert_email') {
       return sendExpertEmail(data);
+    }
+
+    // action: 'send_article_expert_email' → ส่งอีเมลให้ผู้ทรงคุณวุฒิ (บทความวิชาการ)
+    if (data.action === 'send_article_expert_email') {
+      return sendArticleExpertEmail(data);
     }
 
     // action: 'update_conference_row' → admin อัพเดต row ใน Sheet ด้วย confId
@@ -588,6 +593,75 @@ function sendExpertEmail(data) {
     if (data.matiWordUrl) html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;width:290px;border-bottom:1px solid #e5e7eb">มติผลการพิจารณารับรอง CPE (Word)</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.matiWordUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
     html += '</table>';
   }
+  html += '</div></div>';
+
+  var sent = 0;
+  var errors = [];
+  expertEmails.forEach(function(email) {
+    email = (email || '').trim();
+    if (email && email.indexOf('@') > 0) {
+      try {
+        MailApp.sendEmail({
+          to: email,
+          subject: subject,
+          htmlBody: html,
+          name: 'ระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา'
+        });
+        sent++;
+      } catch(mailErr) {
+        errors.push(email + ': ' + mailErr.message);
+      }
+    }
+  });
+
+  if (errors.length > 0) {
+    return respond({ success: false, sent: sent, error: errors.join('; ') });
+  }
+  return respond({ success: true, sent: sent });
+}
+
+/* ─── Send expert email: บทความวิชาการ ─── */
+function sendArticleExpertEmail(data) {
+  var expertEmails = data.expertEmails || [];
+  if (expertEmails.length === 0) {
+    return respond({ success: false, error: 'ไม่มีอีเมลผู้ทรงคุณวุฒิ' });
+  }
+
+  var sendTimeStr = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm');
+  var subject = '[CPE] ขอเรียนเชิญพิจารณาบทความวิชาการ: ' + (data.userName || 'ผู้ส่งบทความ') + ' (' + sendTimeStr + ')';
+
+  var html = '<div style="font-family:\'Sarabun\',sans-serif;max-width:600px;margin:0 auto;color:#1a202c">';
+  html += '<div style="background:linear-gradient(135deg,#6d28d9,#7c3aed);padding:24px 28px;border-radius:12px 12px 0 0">';
+  html += '<div style="color:#fff;font-size:1.2rem;font-weight:700">📝 ขอเรียนเชิญพิจารณาบทความวิชาการ</div>';
+  html += '<div style="color:rgba(255,255,255,.8);font-size:.85rem;margin-top:4px">คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>';
+  html += '</div>';
+  html += '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px 28px;border-radius:0 0 12px 12px">';
+  html += '<p>เรียน ผู้ทรงคุณวุฒิ</p>';
+  html += '<p>ขอความอนุเคราะห์ผู้ทรงคุณวุฒิพิจารณาบทความวิชาการที่ส่งเข้ามาในระบบ CPE ดังนี้</p>';
+
+  html += '<table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f8fafc;border-radius:8px;overflow:hidden">';
+  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;width:130px;border-bottom:1px solid #e5e7eb">ผู้เขียนบทความ</td><td style="padding:9px 14px;font-size:.88rem;font-weight:700;border-bottom:1px solid #e5e7eb">' + (data.userName || '-') + '</td></tr>';
+  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">อีเมลผู้เขียน</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb">' + (data.userEmail || '-') + '</td></tr>';
+  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280">วันที่ส่ง</td><td style="padding:9px 14px;font-size:.88rem">' + sendTimeStr + '</td></tr>';
+  html += '</table>';
+
+  html += '<table style="width:100%;border-collapse:collapse;margin:20px 0">';
+  html += '<tr><td colspan="2" style="padding:10px 0 8px;font-size:.88rem;font-weight:700;color:#1a202c;border-bottom:2px solid #6d28d9">เอกสารแนบ</td></tr>';
+  if (data.formattedDocUrl) {
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;width:250px;border-bottom:1px solid #e5e7eb">บทความที่จัดรูปแบบแล้ว</td>';
+    html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.formattedDocUrl + '" style="color:#6d28d9;font-weight:700">เปิดเอกสาร</a></td></tr>';
+  }
+  if (data.adminDocPdfUrl) {
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">เอกสาร Admin (PDF)</td>';
+    html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.adminDocPdfUrl + '" style="color:#6d28d9;font-weight:700">เปิดเอกสาร</a></td></tr>';
+  }
+  if (data.adminDocWordUrl) {
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">เอกสาร Admin (Word)</td>';
+    html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.adminDocWordUrl + '" style="color:#6d28d9;font-weight:700">เปิดเอกสาร</a></td></tr>';
+  }
+  html += '</table>';
+
+  html += '<p style="font-size:.85rem;color:#6b7280;margin-top:20px">หากมีข้อสงสัยกรุณาติดต่อ คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>';
   html += '</div></div>';
 
   var sent = 0;

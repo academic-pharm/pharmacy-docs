@@ -4503,8 +4503,33 @@ async function artConfirmSendToExperts(safeId, aid){
   await db.ref('pharma-form/_all_articles/'+aid).update(updates);
   if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
 
+  // ส่งอีเมลผู้ทรงคุณวุฒิ
+  var fmtPdf  = a.files&&a.files.formattedDoc_pdf&&a.files.formattedDoc_pdf.url;
+  var fmtWord = a.files&&a.files.formattedDoc_word&&a.files.formattedDoc_word.url;
+  try {
+    var emailRes = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action          : 'send_article_expert_email',
+        expertEmails    : experts,
+        userName        : a.userName  || '',
+        userEmail       : a.userEmail || '',
+        formattedDocUrl : fmtPdf || fmtWord || '',
+        adminDocPdfUrl  : (a.files&&a.files.adminDoc_pdf&&a.files.adminDoc_pdf.url)   || '',
+        adminDocWordUrl : (a.files&&a.files.adminDoc_word&&a.files.adminDoc_word.url) || ''
+      })
+    });
+    var emailJson = await emailRes.json().catch(function(){ return {}; });
+    if(emailJson.sent > 0){
+      showToast('✅ ส่งอีเมลผู้ทรงคุณวุฒิ '+emailJson.sent+' ท่านแล้ว');
+    } else {
+      showToast('⚠️ อัพเดตสถานะแล้ว แต่ส่งอีเมลไม่สำเร็จ: '+(emailJson.error||'unknown'), 'warn');
+    }
+  } catch(emailErr){
+    showToast('⚠️ อัพเดตสถานะแล้ว แต่ส่งอีเมลไม่สำเร็จ', 'warn');
+  }
+
   document.getElementById('art-inline-'+safeId).style.display = 'none';
-  showToast('✅ อัพเดตสถานะและเอกสารแนบแล้ว');
 }
 
 /* ── Admin: Upload adminDoc PDF/Word directly from card ── */
