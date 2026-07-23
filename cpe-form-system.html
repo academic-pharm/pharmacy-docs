@@ -2926,8 +2926,12 @@ function loadAllCpeConferences(){
               (sentInfo?sentInfo:'')+
             '</div>'+
           '</div>'+
-          actionBtn+
+          '<div style="display:flex;align-items:center;gap:7px;flex-shrink:0">'+
+            actionBtn+
+            '<button id="conf-tog-'+safeCid+'" onclick="toggleConfCard(\''+safeCid+'\')" style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:#6b7280;background:none;border:1px solid rgba(200,210,230,.7);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit" onmouseover="this.style.background=\'rgba(200,210,230,.2)\'" onmouseout="this.style.background=\'none\'">รายละเอียด <span id="conf-tog-arrow-'+safeCid+'">▾</span></button>'+
+          '</div>'+
         '</div>'+
+        '<div id="conf-body-'+safeCid+'" style="display:none">'+
         '<div style="padding:10px 14px;border-bottom:1px solid rgba(200,210,230,.15);display:flex;flex-direction:column;gap:10px">'+
           '<div>'+
             '<div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase">เอกสารจาก USER</div>'+
@@ -2976,6 +2980,7 @@ function loadAllCpeConferences(){
             (ps==='confirmed'&&c.payment.adminReceiptUrl?'<a href="'+c.payment.adminReceiptUrl+'" target="_blank" style="margin-left:auto;font-size:.69rem;color:#059669;font-weight:700;text-decoration:none;border:1px solid rgba(5,150,105,.3);border-radius:5px;padding:3px 8px;white-space:nowrap">🧾 บิลใบเสร็จ</a>':'')+
           '</div>'
         :'')+
+        '</div>'+
         '</div>'
       );
     }
@@ -4609,6 +4614,20 @@ async function submitArtRevision(){
 /* ════════════════════════════════
    ADMIN: บทความวิชาการ
 ════════════════════════════════ */
+window.toggleConfCard = function(sid){
+  var body  = document.getElementById('conf-body-'+sid);
+  var arrow = document.getElementById('conf-tog-arrow-'+sid);
+  var btn   = document.getElementById('conf-tog-'+sid);
+  if(!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.textContent = open ? '▾' : '▴';
+  if(btn){
+    var txt = btn.childNodes[0];
+    if(txt) txt.nodeValue = open ? 'รายละเอียด ' : 'ซ่อน ';
+  }
+};
+
 window.toggleArtCard = function(sid){
   var body  = document.getElementById('art-body-'+sid);
   var arrow = document.getElementById('art-tog-arrow-'+sid);
