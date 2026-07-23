@@ -4013,7 +4013,7 @@ function sidebarGo(section){
   // Navigate first (showView triggers syncSidebarActive which may reset active)
   if(section === 'main'){
     showView('status');
-    switchTab('search');
+    switchTab(isAdmin ? 'admin-manage' : 'search');
   } else if(section === 'article'){
     showView('article');
   } else if(section === 'conf'){
