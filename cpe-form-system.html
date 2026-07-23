@@ -282,6 +282,11 @@ body::after{display:none}
   display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
 #reg-panel{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);
   width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:odm-up .22s cubic-bezier(.32,.72,0,1)}
+/* ── Article Registration Modal ── */
+#art-reg-modal{position:fixed;inset:0;z-index:9100;background:rgba(10,12,24,.6);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
+#art-reg-panel{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);
+  width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:odm-up .22s cubic-bezier(.32,.72,0,1)}
 /* ── Pending Requests ── */
 .req-item{padding:14px 16px;border-bottom:1px solid rgba(200,210,230,.35)}
 .req-item:last-child{border-bottom:none}
@@ -966,6 +971,18 @@ body::after{display:none}
       </a>
     </div>
 
+    <!-- Register entry card (shows when no article submitted yet) -->
+    <div id="art-register-card" style="display:none">
+      <div class="reg-card" onclick="showArtRegModal()" style="cursor:pointer">
+        <div class="reg-card-icon">📝</div>
+        <div class="reg-card-text">
+          <h3>ลงทะเบียนบทความวิชาการ</h3>
+          <p>กรอกข้อมูลผู้เขียนและชื่อบทความ พร้อมแนบไฟล์เพื่อส่งให้เจ้าหน้าที่</p>
+        </div>
+        <button class="btn btn-primary btn-sm reg-card-btn" onclick="showArtRegModal();event.stopPropagation()">ลงทะเบียน →</button>
+      </div>
+    </div>
+
     <!-- Current article status (shows when user has submitted) -->
     <div id="art-status-card" class="fsec" style="display:none">
       <div class="fsec-title" style="margin-bottom:18px">📊 สถานะบทความวิชาการของคุณ</div>
@@ -1133,6 +1150,69 @@ body::after{display:none}
     <div class="odm-footer">
       <button class="btn btn-primary" onclick="submitOrgRegister()">📤 ยื่นคำขอลงทะเบียน</button>
       <button class="btn btn-outline" onclick="closeRegisterModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE REGISTRATION MODAL -->
+<div id="art-reg-modal" style="display:none" onclick="if(event.target===this)closeArtRegModal()">
+  <div id="art-reg-panel">
+    <div class="odm-header">
+      <div>
+        <div class="odm-title">📝 ลงทะเบียนบทความวิชาการ</div>
+        <div class="odm-sub">ยื่นบทความเพื่อขอรับหน่วยกิต CPE · คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>
+      </div>
+      <button class="odm-close" onclick="closeArtRegModal()">✕</button>
+    </div>
+    <div class="odm-body">
+      <table class="odf-table">
+        <tr>
+          <td>สถาบันหลัก</td>
+          <td><span class="odf-static">คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</span></td>
+        </tr>
+        <tr>
+          <td>ชื่อผู้เขียน <span class="req-star">*</span></td>
+          <td><input type="text" id="art-reg-author" placeholder="ชื่อ-นามสกุลผู้เขียนบทความ"></td>
+        </tr>
+        <tr>
+          <td>ชื่อบทความ <span class="req-star">*</span></td>
+          <td><input type="text" id="art-reg-title" placeholder="ชื่อบทความวิชาการ (ภาษาไทยหรืออังกฤษ)"></td>
+        </tr>
+      </table>
+
+      <!-- File upload -->
+      <div style="margin-top:18px">
+        <div style="font-size:.84rem;font-weight:600;color:var(--text);margin-bottom:10px">
+          📎 แนบไฟล์บทความวิชาการ <span class="req-star">*</span>
+          <span style="font-size:.75rem;font-weight:400;color:var(--sub)">&nbsp;(.docx หรือ .pdf · ไม่เกิน 20 MB)</span>
+        </div>
+        <div class="file-zone" id="art-reg-zone"
+             onclick="document.getElementById('art-reg-file').click()"
+             ondragover="event.preventDefault();this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="handleArtRegDrop(event)">
+          <input type="file" id="art-reg-file" accept=".pdf,.doc,.docx" style="display:none" onchange="handleArtRegFileSelect(this)">
+          <div class="fz-icon">📄</div>
+          <div class="fz-label">คลิกหรือลากไฟล์ Word / PDF มาวางที่นี่</div>
+          <div class="fz-sub">.docx หรือ .pdf · ขนาดไม่เกิน 20 MB</div>
+        </div>
+        <div class="file-attached" id="art-reg-attached" style="display:none">
+          <span class="fa-icon">📄</span>
+          <div class="fa-info">
+            <div class="fa-name" id="art-reg-fname"></div>
+            <div class="fa-size" id="art-reg-fsize"></div>
+          </div>
+          <button class="fa-remove" onclick="clearArtRegFile()">✕</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;padding:10px 12px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:8px;font-size:.78rem;color:#6a6d77">
+        หลังจากส่งบทความแล้ว ทีมงานจะตรวจสอบและแจ้งผลทางอีเมลของท่าน
+      </div>
+    </div>
+    <div class="odm-footer">
+      <button class="btn btn-primary" onclick="submitArtRegister()" id="art-reg-submit-btn">📤 ส่งบทความวิชาการ</button>
+      <button class="btn btn-outline" onclick="closeArtRegModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -4015,12 +4095,11 @@ function renderArticleForm(key, art){
   submitSec.style.display    = 'none';
   revSec.style.display       = 'none';
   completeSec.style.display  = 'none';
+  document.getElementById('art-register-card').style.display = 'none';
 
   if(!art || art === null){
-    // No article yet → show submit form
-    submitSec.style.display = 'block';
-    document.getElementById('art-submit-title').textContent = '📤 ส่งบทความวิชาการ';
-    document.getElementById('art-submit-desc').textContent  = 'อัปโหลดไฟล์บทความวิชาการที่กรอกข้อมูลแล้ว (ไฟล์ Word หรือ PDF)';
+    // No article yet → show register card
+    document.getElementById('art-register-card').style.display = 'block';
   } else if(st === 'submitted' || st === 'sent_to_experts' || st === 'user_revised_r1' || st === 'user_final_revised' || st === 'pending_ccpe'){
     // Waiting states — no action needed from user
     // Show nothing extra (stepper shows status)
@@ -4215,6 +4294,100 @@ async function uploadArtFile(file, slot){
   }
 }
 
+/* ── Article Registration Modal ── */
+var _artRegFile = null;
+
+function showArtRegModal(){
+  _artRegFile = null;
+  document.getElementById('art-reg-file').value = '';
+  document.getElementById('art-reg-attached').style.display = 'none';
+  document.getElementById('art-reg-zone').style.display = '';
+  document.getElementById('art-reg-author').value = '';
+  document.getElementById('art-reg-title').value  = '';
+  // Pre-fill author name from logged-in user
+  var user = getUser();
+  if(user && user.name) document.getElementById('art-reg-author').value = user.name;
+  document.getElementById('art-reg-modal').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('art-reg-author').focus(); }, 80);
+}
+
+function closeArtRegModal(){
+  document.getElementById('art-reg-modal').style.display = 'none';
+}
+
+function handleArtRegFileSelect(input){
+  var f = input.files[0]; if(!f) return;
+  _artRegFile = f;
+  document.getElementById('art-reg-fname').textContent = f.name;
+  document.getElementById('art-reg-fsize').textContent = (f.size/1024).toFixed(1)+' KB';
+  document.getElementById('art-reg-attached').style.display = 'flex';
+  document.getElementById('art-reg-zone').style.display     = 'none';
+}
+
+function handleArtRegDrop(e){
+  e.preventDefault();
+  document.getElementById('art-reg-zone').classList.remove('drag');
+  var f = e.dataTransfer.files[0]; if(!f) return;
+  var ext = f.name.split('.').pop().toLowerCase();
+  if(!['pdf','doc','docx'].includes(ext)){ showToast('รองรับเฉพาะ .pdf .doc .docx เท่านั้น','warn'); return; }
+  _artRegFile = f;
+  document.getElementById('art-reg-fname').textContent = f.name;
+  document.getElementById('art-reg-fsize').textContent = (f.size/1024).toFixed(1)+' KB';
+  document.getElementById('art-reg-attached').style.display = 'flex';
+  document.getElementById('art-reg-zone').style.display     = 'none';
+}
+
+function clearArtRegFile(){
+  _artRegFile = null;
+  document.getElementById('art-reg-file').value = '';
+  document.getElementById('art-reg-attached').style.display = 'none';
+  document.getElementById('art-reg-zone').style.display     = '';
+}
+
+async function submitArtRegister(){
+  var author = (document.getElementById('art-reg-author').value||'').trim();
+  var title  = (document.getElementById('art-reg-title').value||'').trim();
+  if(!author){ showToast('กรุณากรอกชื่อผู้เขียนบทความ','warn'); return; }
+  if(!title){  showToast('กรุณากรอกชื่อบทความวิชาการ','warn'); return; }
+  if(!_artRegFile){ showToast('กรุณาแนบไฟล์บทความก่อน','warn'); return; }
+  if(_artRegFile.size > 20*1024*1024){ showToast('ไฟล์ใหญ่เกิน 20 MB','err'); return; }
+
+  var btn = document.getElementById('art-reg-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง...';
+
+  try {
+    var uploaded  = await uploadToGDrive(_artRegFile, 'บทความวิชาการ', 'initial_submission');
+    var userEmail = getCanonicalEmail();
+    var userKey   = emailToFbKey(userEmail || '');
+    var user      = getUser();
+    var now       = new Date().toISOString();
+    var articleData = {
+      userEmail     : userEmail,
+      userName      : user ? (user.name || userEmail) : userEmail,
+      articleAuthor : author,
+      articleTitle  : title,
+      submittedAt   : now,
+      status        : 'submitted',
+      files         : { userSubmission: { url: uploaded.url, name: uploaded.name, uploadedAt: now } }
+    };
+    var userRef  = db.ref('pharma-form/'+userKey+'/articles').push();
+    var adminRef = db.ref('pharma-form/_all_articles/'+userRef.key);
+    articleData.id      = userRef.key;
+    articleData.userKey = userKey;
+    await userRef.set(articleData);
+    await adminRef.set(articleData);
+    _artKey    = userRef.key;
+    _myArticle = articleData;
+    closeArtRegModal();
+    showToast('✅ ส่งบทความเรียบร้อยแล้ว! เจ้าหน้าที่จะตรวจสอบและติดต่อกลับ');
+    renderArticleForm(_artKey, _myArticle);
+  } catch(e){
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '📤 ส่งบทความวิชาการ';
+  }
+}
+
 /* ── Submit new article ── */
 async function submitArticle(){
   var file = _artFiles.main;
@@ -4382,9 +4555,10 @@ function loadAdminArticles(){
         + '<div class="art-card-head">'
         +   '<div style="flex:1;min-width:0">'
         +     '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'
-        +       '<span style="font-size:.85rem;font-weight:700;color:#1a202c">'+(a.userName||a.userEmail||'-')+'</span>'
+        +       '<span style="font-size:.85rem;font-weight:700;color:#1a202c">'+(a.articleTitle||a.userName||a.userEmail||'-')+'</span>'
         +       '<span class="art-pipe-badge" style="background:'+sl[1]+';color:'+sl[2]+';border:1px solid '+sl[3]+'">'+sl[0]+'</span>'
         +     '</div>'
+        +     (a.articleAuthor ? '<div style="font-size:.75rem;color:#374151;margin-bottom:2px">✍️ '+a.articleAuthor+'</div>' : '')
         +     '<div style="font-size:.72rem;color:#6b7280">📧 '+(a.userEmail||'-')+' · ส่งเมื่อ '+fd(a.submittedAt)+'</div>'
         +   '</div>'
         +   (actionBtn ? '<div>'+actionBtn+'</div>' : '')
