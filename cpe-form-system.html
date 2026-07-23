@@ -317,6 +317,113 @@ body::after{display:none}
 .mtab:hover{ background:rgba(200,210,230,.35);color:#374151; }
 .mtab.active{ background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.1);color:#4f46e5;font-weight:700; }
 </style>
+
+<!-- ══════ SIDEBAR + ARTICLE STYLES ══════ -->
+<style>
+/* ── Left Sidebar ── */
+.l-sidebar{
+  position:fixed;left:0;top:0;height:100vh;width:220px;
+  background:rgba(248,250,255,.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-right:1px solid rgba(200,210,230,.55);z-index:100;
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
+  transition:transform .22s cubic-bezier(.4,0,.2,1);
+  box-shadow:2px 0 20px -6px rgba(90,123,255,.12);
+}
+.l-sidebar.closed{transform:translateX(-220px)}
+.sb-logo{padding:10px 14px 8px;border-bottom:1px solid rgba(200,210,230,.4);
+  display:flex;align-items:center;gap:10px;min-height:58px;flex-shrink:0}
+.sb-logo img{height:32px;width:auto;object-fit:contain}
+.sb-logo-text{font-size:.72rem;font-weight:700;color:var(--txt);line-height:1.3}
+.sb-logo-sub{font-size:.6rem;color:var(--sub);font-weight:400}
+.sidebar-section-label{font-size:.59rem;font-weight:700;color:var(--sub);letter-spacing:.1em;
+  text-transform:uppercase;padding:14px 14px 4px;opacity:.65;flex-shrink:0}
+.sidebar-item{display:flex;align-items:center;gap:9px;width:calc(100% - 12px);margin:1px 6px;
+  padding:9px 12px;text-align:left;background:none;border:none;border-radius:9px;
+  cursor:pointer;font-family:var(--font);font-size:.81rem;font-weight:500;
+  color:var(--txt);transition:.13s;flex-shrink:0}
+.sidebar-item:hover{background:rgba(90,123,255,.09);color:#5a7bff}
+.sidebar-item.active{background:rgba(90,123,255,.13);color:#5a7bff;font-weight:700}
+.sidebar-item .si-icon{font-size:.9rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar-item .si-badge{margin-left:auto;background:#ef4444;color:#fff;border-radius:99px;
+  font-size:.58rem;font-weight:700;padding:1px 7px;display:none}
+.sidebar-item .si-badge.show{display:inline-block}
+.sidebar-divider{height:1px;background:rgba(200,210,230,.4);margin:5px 12px;flex-shrink:0}
+.sidebar-bottom{padding:12px 14px;margin-top:auto;border-top:1px solid rgba(200,210,230,.3);
+  font-size:.62rem;color:var(--sub);line-height:1.5;text-align:center;flex-shrink:0}
+/* Hamburger toggle in navbar */
+.btn-sidebar-toggle{background:rgba(255,255,255,.42);border:1px solid rgba(200,210,230,.55);
+  border-radius:9px;color:var(--txt);font-family:var(--font);font-size:.85rem;font-weight:600;
+  padding:6px 9px;cursor:pointer;transition:var(--tr);backdrop-filter:blur(10px);flex-shrink:0;
+  line-height:1;display:flex;align-items:center;justify-content:center}
+.btn-sidebar-toggle:hover{background:rgba(255,255,255,.82)}
+/* Mobile overlay */
+#sb-overlay{display:none;position:fixed;inset:0;z-index:99;background:rgba(16,18,30,.35);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#sb-overlay.show{display:block}
+/* Main wrap layout */
+#main-wrap{transition:margin-left .22s cubic-bezier(.4,0,.2,1)}
+@media(min-width:769px){
+  body.sb-open #main-wrap{margin-left:220px}
+}
+@media(max-width:768px){
+  .l-sidebar{z-index:400}
+  .l-sidebar.closed{transform:translateX(-220px)}
+  #sb-overlay{z-index:399}
+  body.sb-open #main-wrap{margin-left:0}
+}
+
+/* ── Article View Styles ── */
+.art-download-btn{display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,rgba(90,123,255,.1),rgba(8,145,178,.07));
+  border:1.5px solid rgba(90,123,255,.28);border-radius:11px;
+  padding:11px 20px;font-family:var(--font);font-size:.88rem;font-weight:700;
+  color:#4f46e5;cursor:pointer;text-decoration:none;transition:.2s}
+.art-download-btn:hover{background:linear-gradient(135deg,rgba(90,123,255,.18),rgba(8,145,178,.13));transform:translateY(-1px);box-shadow:0 6px 20px rgba(90,123,255,.2)}
+
+/* Status stepper */
+.art-stepper{display:flex;flex-direction:column;gap:0;position:relative}
+.art-stepper::before{content:'';position:absolute;left:15px;top:20px;bottom:20px;
+  width:2px;background:rgba(200,210,230,.5);z-index:0}
+.art-step{display:flex;gap:14px;align-items:flex-start;padding:10px 0;position:relative;z-index:1}
+.art-step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;flex-shrink:0;transition:.25s}
+.art-step-dot.done{background:linear-gradient(135deg,#059669,#34d399);color:#fff;box-shadow:0 3px 12px rgba(5,150,105,.3)}
+.art-step-dot.active{background:linear-gradient(135deg,#5a7bff,#0891b2);color:#fff;box-shadow:0 3px 12px rgba(90,123,255,.3);animation:pulse-dot 1.4s ease infinite}
+.art-step-dot.pending{background:rgba(200,210,230,.4);color:#9ca3af;border:1.5px solid rgba(200,210,230,.6)}
+.art-step-body{flex:1;padding-top:5px}
+.art-step-title{font-size:.9rem;font-weight:700;color:var(--txt);margin-bottom:2px}
+.art-step-title.active{color:#5a7bff}
+.art-step-title.done{color:#059669}
+.art-step-desc{font-size:.77rem;color:var(--sub);line-height:1.6}
+.art-step-file{margin-top:7px;display:flex;align-items:center;gap:8px;
+  background:rgba(90,123,255,.07);border:1px solid rgba(90,123,255,.2);
+  border-radius:8px;padding:7px 12px;font-size:.77rem}
+.art-step-file a{color:#4f46e5;text-decoration:none;font-weight:600}
+.art-step-file a:hover{text-decoration:underline}
+.art-step-file.green-file{background:rgba(5,150,105,.07);border-color:rgba(5,150,105,.2)}
+.art-step-file.green-file a{color:#059669}
+
+/* Admin article pipeline */
+.art-admin-card{background:#fff;border:1px solid rgba(200,210,230,.45);
+  border-radius:11px;overflow:hidden;margin-bottom:8px}
+.art-pipe-badge{font-size:.63rem;font-weight:700;border-radius:20px;padding:2px 8px;white-space:nowrap}
+.art-card-head{padding:10px 14px;display:flex;align-items:flex-start;gap:10px;
+  border-bottom:1px solid rgba(200,210,230,.2)}
+.art-card-files{padding:10px 14px;display:flex;flex-direction:column;gap:8px;
+  border-bottom:1px solid rgba(200,210,230,.15)}
+.art-card-act{padding:9px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  background:#fafbff}
+.art-file-row-label{font-size:.63rem;font-weight:700;color:#9ca3af;letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:5px}
+.art-file-link{display:inline-flex;align-items:center;gap:5px;background:rgba(90,123,255,.09);
+  color:#4f46e5;border:1px solid rgba(90,123,255,.3);border-radius:7px;padding:4px 10px;
+  font-size:.73rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.art-file-link:hover{background:rgba(90,123,255,.18)}
+.art-file-missing{font-size:.72rem;color:#d1d5db}
+.art-upload-lbl{cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;font-size:.73rem;font-weight:700;white-space:nowrap;border-radius:7px;border:1px dashed;transition:.15s}
+.art-upload-lbl:hover{opacity:.8}
+</style>
 </head>
 <body>
 
@@ -326,8 +433,38 @@ body::after{display:none}
 <div id="au-cursor" aria-hidden="true"></div>
 <div id="mouse-nebula" aria-hidden="true"></div>
 
+<!-- ══ Left Sidebar ══ -->
+<div id="l-sidebar" class="l-sidebar closed">
+  <!-- Logo area -->
+  <div class="sb-logo">
+    <img src="mainlogo2.gif" alt="logo">
+    <div>
+      <div class="sb-logo-text">ระบบ CPE</div>
+      <div class="sb-logo-sub">คณะเภสัชศาสตร์ มบูรพา</div>
+    </div>
+  </div>
+  <!-- Nav items -->
+  <div class="sidebar-section-label">ระบบ CPE</div>
+  <button class="sidebar-item active" id="si-main" onclick="sidebarGo('main')">
+    <span class="si-icon">🏥</span> หน้าหลัก CPE
+  </button>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">บริการ</div>
+  <button class="sidebar-item" id="si-article" onclick="sidebarGo('article')">
+    <span class="si-icon">📝</span> บทความวิชาการ
+    <span class="si-badge" id="art-sidebar-badge"></span>
+  </button>
+  <!-- Bottom -->
+  <div class="sidebar-bottom">คณะเภสัชศาสตร์<br>มหาวิทยาลัยบูรพา</div>
+</div>
+<div id="sb-overlay" onclick="toggleSidebar()"></div>
+
+<!-- ══ Main Wrap ══ -->
+<div id="main-wrap">
+
 <!-- Navbar -->
 <nav class="navbar">
+  <button class="btn-sidebar-toggle" onclick="toggleSidebar()" title="เปิด/ปิดเมนู" id="nav-sb-btn">☰</button>
   <img src="mainlogo2.gif" alt="คณะเภสัชศาสตร์" style="height:34px;width:auto;object-fit:contain;flex-shrink:0">
   <div class="navbar-info">
     <h1>ระบบแบบฟอร์ม CPE</h1>
@@ -803,6 +940,144 @@ body::after{display:none}
 </div>
 </div>
 
+<!-- ════════════════════════════════
+     VIEW: บทความวิชาการ
+════════════════════════════════ -->
+<div id="view-article" style="display:none">
+<div class="container">
+  <div class="hero">
+    <h2>📝 บทความวิชาการ</h2>
+    <p>ระบบนำส่งบทความวิชาการเพื่อขอรับหน่วยกิต CPE ทางเภสัชศาสตร์</p>
+  </div>
+
+  <!-- ══ USER SECTION ══ -->
+  <div id="art-user-section">
+
+    <!-- Step 1: Download template -->
+    <div class="fsec">
+      <div class="fsec-title">📋 แบบฟอร์มบทความวิชาการ</div>
+      <p style="font-size:.85rem;color:var(--sub);margin-bottom:14px;line-height:1.7">
+        ดาวน์โหลดแบบฟอร์มบทความวิชาการ กรอกข้อมูลให้ครบถ้วน แล้วนำส่งในขั้นตอนถัดไป
+      </p>
+      <a id="art-template-link"
+         href="https://drive.google.com/uc?export=download&id=TEMPLATE_FILE_ID"
+         target="_blank" rel="noopener" class="art-download-btn">
+        📥 ดาวน์โหลดแบบฟอร์มบทความวิชาการ (.docx)
+      </a>
+    </div>
+
+    <!-- Current article status (shows when user has submitted) -->
+    <div id="art-status-card" class="fsec" style="display:none">
+      <div class="fsec-title" style="margin-bottom:18px">📊 สถานะบทความวิชาการของคุณ</div>
+      <div id="art-stepper-wrap" class="art-stepper"></div>
+    </div>
+
+    <!-- Submit / Re-upload section (Step 2 or revision) -->
+    <div id="art-submit-section" class="fsec">
+      <div class="fsec-title" id="art-submit-title">📤 ส่งบทความวิชาการ</div>
+      <div style="font-size:.84rem;color:var(--sub);margin-bottom:14px;line-height:1.65" id="art-submit-desc">
+        อัปโหลดไฟล์บทความวิชาการที่กรอกข้อมูลแล้ว (ไฟล์ Word หรือ PDF)
+      </div>
+      <div class="file-zone" id="art-upload-zone"
+           onclick="document.getElementById('art-file-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="handleArtDrop('main',event)">
+        <input type="file" id="art-file-input" accept=".pdf,.doc,.docx"
+               style="display:none" onchange="handleArtFileSelect('main',this)">
+        <div class="fz-icon">📄</div>
+        <div class="fz-label">คลิกหรือลากไฟล์ Word / PDF มาวางที่นี่</div>
+        <div class="fz-sub">.docx หรือ .pdf · ขนาดไม่เกิน 20 MB</div>
+      </div>
+      <div class="file-attached" id="art-file-attached">
+        <span class="fa-icon">📄</span>
+        <div class="fa-info">
+          <div class="fa-name" id="art-file-name"></div>
+          <div class="fa-size" id="art-file-size"></div>
+        </div>
+        <button class="fa-remove" onclick="clearArtFile('main')">✕</button>
+      </div>
+      <div class="upload-progress" id="art-up-prog"><div class="up-bar" id="art-up-bar"></div></div>
+      <div class="up-text" id="art-up-text"></div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="submitArticle()" id="art-submit-btn">
+          ✅ ส่งบทความวิชาการ
+        </button>
+      </div>
+    </div>
+
+    <!-- Revision upload (shows after admin uploads expert feedback) -->
+    <div id="art-revision-section" class="fsec" style="display:none">
+      <div class="fsec-title" id="art-rev-title">✏️ อัปโหลดบทความที่แก้ไขแล้ว</div>
+      <div style="font-size:.84rem;color:var(--sub);margin-bottom:12px;line-height:1.65" id="art-rev-desc">
+        กรุณาดาวน์โหลดเอกสารจากผู้ทรงคุณวุฒิ แก้ไขบทความ แล้วอัปโหลดกลับมา
+      </div>
+      <!-- Admin attachment download (expert feedback / certification doc) -->
+      <div id="art-admin-attach-wrap" style="margin-bottom:12px"></div>
+      <!-- Credit units (round 2) -->
+      <div id="art-credit-box" style="display:none;background:rgba(90,123,255,.07);border:1.5px solid rgba(90,123,255,.22);border-radius:12px;padding:14px 18px;margin-bottom:14px">
+        <div style="font-size:.75rem;font-weight:700;color:#4f46e5;margin-bottom:4px">💎 หน่วยกิตที่ผู้ทรงคุณวุฒิรับรอง</div>
+        <div style="font-size:1.6rem;font-weight:800;color:#4f46e5;line-height:1" id="art-credit-display">—</div>
+        <div style="font-size:.72rem;color:var(--sub);margin-top:2px">หน่วยกิต CPE</div>
+      </div>
+      <div class="file-zone" id="art-rev-zone"
+           onclick="document.getElementById('art-rev-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="handleArtDrop('rev',event)">
+        <input type="file" id="art-rev-input" accept=".pdf,.doc,.docx"
+               style="display:none" onchange="handleArtFileSelect('rev',this)">
+        <div class="fz-icon">📝</div>
+        <div class="fz-label">อัปโหลดบทความที่แก้ไขแล้ว (.docx / .pdf)</div>
+      </div>
+      <div class="file-attached" id="art-rev-attached">
+        <span class="fa-icon">📄</span>
+        <div class="fa-info">
+          <div class="fa-name" id="art-rev-name"></div>
+          <div class="fa-size" id="art-rev-size"></div>
+        </div>
+        <button class="fa-remove" onclick="clearArtFile('rev')">✕</button>
+      </div>
+      <div class="upload-progress" id="art-rev-prog"><div class="up-bar" id="art-rev-bar"></div></div>
+      <div class="up-text" id="art-rev-text"></div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="submitArtRevision()" id="art-rev-btn">
+          📤 ส่งบทความที่แก้ไขแล้ว
+        </button>
+      </div>
+    </div>
+
+    <!-- Completed card -->
+    <div id="art-complete-card" class="fsec" style="display:none">
+      <div style="background:linear-gradient(135deg,rgba(5,150,105,.07),rgba(16,185,129,.05));border:1.5px solid rgba(5,150,105,.28);border-radius:14px;padding:24px;text-align:center">
+        <div style="font-size:2.2rem;margin-bottom:10px">🎉</div>
+        <div style="font-size:1.05rem;font-weight:800;color:#059669;margin-bottom:6px">บทความวิชาการถูกนำเข้าระบบ CCPE เรียบร้อยแล้ว!</div>
+        <div style="font-size:.84rem;color:#4b5563;margin-bottom:18px;line-height:1.7">
+          ท่านสามารถตรวจสอบบทความวิชาการของท่านได้ที่เว็บไซต์ CCPE
+        </div>
+        <a href="https://ccpe.pharmacycouncil.org/index.php?option=article&subpage=article"
+           target="_blank" rel="noopener"
+           style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#059669,#34d399);color:#fff;padding:11px 22px;border-radius:11px;font-family:var(--font);font-size:.88rem;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(5,150,105,.3)">
+          🌐 ตรวจสอบบทความที่ระบบ CCPE →
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /art-user-section -->
+
+  <!-- ══ ADMIN SECTION ══ -->
+  <div id="art-admin-section" style="display:none" class="fsec">
+    <div class="fsec-title">📊 ข้อมูลบทความวิชาการที่ได้รับ (Admin)</div>
+    <div id="art-admin-wrap">
+      <div style="font-size:.82rem;color:#9ca3af;padding:8px 0">กำลังโหลด...</div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+</div><!-- /view-article -->
+
+</div><!-- /main-wrap -->
+
 <!-- REGISTRATION MODAL -->
 <div id="reg-modal" style="display:none" onclick="if(event.target===this)closeRegisterModal()">
   <div id="reg-panel">
@@ -1165,7 +1440,7 @@ function switchTab(id){
 }
 
 function showView(id, orgKey, orgName){
-  ['status','renew','conference','admin-renewals'].forEach(v=>document.getElementById('view-'+v).style.display='none');
+  ['status','renew','conference','admin-renewals','article'].forEach(v=>document.getElementById('view-'+v).style.display='none');
   // ซ่อน renew success prompt เมื่อออกจากหน้า renew
   if(id !== 'renew'){ var _rcp=document.getElementById('renew-conf-prompt'); if(_rcp) _rcp.style.display='none'; }
   // reset conference status card เมื่อออกจากหน้า conference
@@ -1187,6 +1462,7 @@ function showView(id, orgKey, orgName){
     document.getElementById('conf-org-label').textContent='หน่วยงาน: '+orgName;
   }
   if(id==='admin-renewals') loadAllRenewals();
+  if(id==='article') loadArticleView();
 }
 
 /* ════════════════════════════════
@@ -3607,6 +3883,736 @@ function submitPaymentInfo(confId){
   };
   reader.readAsDataURL(_payFile);
 }
+
+/* ════════════════════════════════
+   SIDEBAR
+════════════════════════════════ */
+(function initSidebar(){
+  // Desktop: open sidebar by default
+  if(window.innerWidth >= 769){
+    document.getElementById('l-sidebar').classList.remove('closed');
+    document.body.classList.add('sb-open');
+  }
+})();
+
+function toggleSidebar(){
+  var sb  = document.getElementById('l-sidebar');
+  var ov  = document.getElementById('sb-overlay');
+  var isOpen = !sb.classList.contains('closed');
+  if(isOpen){
+    sb.classList.add('closed');
+    ov.classList.remove('show');
+    document.body.classList.remove('sb-open');
+  } else {
+    sb.classList.remove('closed');
+    document.body.classList.add('sb-open');
+    if(window.innerWidth < 769) ov.classList.add('show');
+  }
+}
+
+function sidebarGo(section){
+  document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
+  if(section === 'main'){
+    document.getElementById('si-main').classList.add('active');
+    showView('status');
+  } else if(section === 'article'){
+    document.getElementById('si-article').classList.add('active');
+    showView('article');
+  }
+  // Close sidebar on mobile after navigation
+  if(window.innerWidth < 769){
+    document.getElementById('l-sidebar').classList.add('closed');
+    document.getElementById('sb-overlay').classList.remove('show');
+    document.body.classList.remove('sb-open');
+  }
+}
+
+/* Sync sidebar active state when view changes via other buttons */
+function syncSidebarActive(viewId){
+  document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
+  if(viewId === 'status' || viewId === 'renew' || viewId === 'conference' || viewId === 'admin-renewals'){
+    var el = document.getElementById('si-main'); if(el) el.classList.add('active');
+  } else if(viewId === 'article'){
+    var el = document.getElementById('si-article'); if(el) el.classList.add('active');
+  }
+}
+
+/* Patch showView to also sync sidebar */
+(function(){
+  var _origShowView = showView;
+  showView = function(id, orgKey, orgName){
+    _origShowView(id, orgKey, orgName);
+    syncSidebarActive(id);
+  };
+})();
+
+/* ════════════════════════════════
+   ARTICLE VIEW — STATE
+════════════════════════════════ */
+var _artFile  = null;   // file object for new submission
+var _artRevFile = null; // file object for revision upload
+var _myArticle = null;  // current user's article data from Firebase
+var _artKey    = null;  // Firebase key for current user's article
+var _artAdminRef = null; // admin listener
+
+/* Helper: article status label */
+function artStatusLabel(st){
+  var M = {
+    'submitted'         : 'อยู่ระหว่างการพิจารณาตรวจสอบบทความวิชาการ',
+    'sent_to_experts'   : 'อยู่ในระหว่างการพิจารณาจากผู้ทรงคุณวุฒิ',
+    'expert_feedback_r1': 'ผู้ทรงคุณวุฒิส่งข้อเสนอแนะมาแล้ว — กรุณาแก้ไขบทความ',
+    'user_revised_r1'   : 'อยู่ระหว่างการพิจารณาจากผู้ทรงคุณวุฒิ (รอบ 2)',
+    'expert_certified'  : 'ผู้ทรงคุณวุฒิรับรองแล้ว — กรุณาแก้ไขขั้นสุดท้าย',
+    'user_final_revised': 'อยู่ระหว่างการนำข้อมูลเข้าระบบ CPE',
+    'pending_ccpe'      : 'อยู่ระหว่างการนำข้อมูลเข้าระบบ CPE',
+    'completed'         : 'นำเข้าระบบ CCPE เรียบร้อยแล้ว'
+  };
+  return M[st] || st;
+}
+
+/* ── Load article view (user + admin) ── */
+function loadArticleView(){
+  var userKey = emailToFbKey(getCanonicalEmail() || '');
+
+  // Admin section
+  if(isAdmin){
+    document.getElementById('art-admin-section').style.display = 'block';
+    loadAdminArticles();
+  }
+
+  // User section: load their own article
+  if(!userKey) return;
+  db.ref('pharma-form/'+userKey+'/articles').orderByChild('submittedAt').limitToLast(1)
+    .once('value', function(snap){
+      var data = snap.val();
+      if(!data){ renderArticleForm(null, null); return; }
+      var keys = Object.keys(data);
+      _artKey = keys[0];
+      _myArticle = data[_artKey];
+      renderArticleForm(_artKey, _myArticle);
+    });
+}
+
+/* ── Render user-facing article form / status ── */
+function renderArticleForm(key, art){
+  var st = art ? (art.status || 'submitted') : null;
+
+  // Show status stepper if article exists
+  var statusCard = document.getElementById('art-status-card');
+  if(art){
+    statusCard.style.display = 'block';
+    renderArtStepper(st, art);
+  } else {
+    statusCard.style.display = 'none';
+  }
+
+  // Submit section: show for new or when no pending article
+  var submitSec = document.getElementById('art-submit-section');
+  var revSec    = document.getElementById('art-revision-section');
+  var completeSec = document.getElementById('art-complete-card');
+
+  // Reset all
+  submitSec.style.display    = 'none';
+  revSec.style.display       = 'none';
+  completeSec.style.display  = 'none';
+
+  if(!art || art === null){
+    // No article yet → show submit form
+    submitSec.style.display = 'block';
+    document.getElementById('art-submit-title').textContent = '📤 ส่งบทความวิชาการ';
+    document.getElementById('art-submit-desc').textContent  = 'อัปโหลดไฟล์บทความวิชาการที่กรอกข้อมูลแล้ว (ไฟล์ Word หรือ PDF)';
+  } else if(st === 'submitted' || st === 'sent_to_experts' || st === 'user_revised_r1' || st === 'user_final_revised' || st === 'pending_ccpe'){
+    // Waiting states — no action needed from user
+    // Show nothing extra (stepper shows status)
+  } else if(st === 'expert_feedback_r1'){
+    // Admin uploaded expert round-1 feedback → user needs to revise
+    revSec.style.display = 'block';
+    document.getElementById('art-rev-title').textContent = '✏️ แก้ไขบทความตามข้อเสนอแนะ (รอบ 1)';
+    document.getElementById('art-rev-desc').textContent  = 'กรุณาดาวน์โหลดเอกสารจากผู้ทรงคุณวุฒิด้านล่าง แก้ไขบทความ แล้วอัปโหลดกลับมา';
+    document.getElementById('art-credit-box').style.display = 'none';
+    renderAdminAttachForUser(art, 'expertFeedback1', '📋 เอกสารผู้ทรงคุณวุฒิ (รอบ 1)');
+  } else if(st === 'expert_certified'){
+    // Admin uploaded expert certification + credit units → user does final revision
+    revSec.style.display = 'block';
+    document.getElementById('art-rev-title').textContent = '✏️ แก้ไขบทความขั้นสุดท้าย';
+    document.getElementById('art-rev-desc').textContent  = 'ผู้ทรงคุณวุฒิรับรองบทความของท่านแล้ว กรุณาดาวน์โหลดเอกสาร แก้ไข แล้วนำส่งกลับมา';
+    if(art.creditUnits){
+      document.getElementById('art-credit-box').style.display   = 'block';
+      document.getElementById('art-credit-display').textContent = art.creditUnits;
+    }
+    renderAdminAttachForUser(art, 'expertCertification', '📜 เอกสารรับรองจากผู้ทรงคุณวุฒิ');
+  } else if(st === 'completed'){
+    completeSec.style.display = 'block';
+  }
+}
+
+/* Render admin attachment download row for user */
+function renderAdminAttachForUser(art, fileKey, label){
+  var wrap = document.getElementById('art-admin-attach-wrap');
+  if(!wrap) return;
+  var f = art.files && art.files[fileKey];
+  if(f && f.url){
+    wrap.innerHTML = '<div class="art-step-file" style="margin-bottom:0;font-size:.82rem">'
+      + label + ': <a href="'+f.url+'" target="_blank">📥 ดาวน์โหลด ('+escHtml(f.name||'ไฟล์')+')</a></div>';
+  } else {
+    wrap.innerHTML = '<div style="font-size:.78rem;color:var(--sub)">⏳ รอเจ้าหน้าที่แนบเอกสาร...</div>';
+  }
+}
+
+/* ── Render status stepper ── */
+function renderArtStepper(st, art){
+  var wrap = document.getElementById('art-stepper-wrap');
+  if(!wrap) return;
+
+  // Define 5 steps
+  var steps = [
+    { key:'step1', label:'ส่งบทความวิชาการ', desc:'อัปโหลดแบบฟอร์มบทความที่กรอกข้อมูลแล้ว' },
+    { key:'step2', label:'พิจารณาโดยผู้ทรงคุณวุฒิ (รอบ 1)', desc:'Admin ส่งเอกสารให้ผู้ทรงคุณวุฒิพิจารณา' },
+    { key:'step3', label:'แก้ไขตามข้อเสนอแนะ (รอบ 1)', desc:'แก้ไขบทความตามคำแนะนำแล้วส่งกลับ' },
+    { key:'step4', label:'ผู้ทรงคุณวุฒิรับรอง (รอบ 2)', desc:'ผู้ทรงคุณวุฒิพิจารณาและรับรองหน่วยกิต' },
+    { key:'step5', label:'นำเข้าระบบ CCPE', desc:'Admin นำบทความเข้าสู่ระบบ CCPE เรียบร้อยแล้ว' }
+  ];
+
+  // Map status → active step index (0-based)
+  var activeStep = {
+    'submitted'         : 0,
+    'sent_to_experts'   : 1,
+    'expert_feedback_r1': 1,
+    'user_revised_r1'   : 2,
+    'expert_certified'  : 3,
+    'user_final_revised': 3,
+    'pending_ccpe'      : 4,
+    'completed'         : 5
+  }[st] || 0;
+
+  function fd(iso){ return iso ? new Date(iso).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}) : ''; }
+
+  var html = '';
+  steps.forEach(function(step, i){
+    var dotClass = i < activeStep ? 'done' : (i === activeStep ? 'active' : 'pending');
+    var titleClass = i < activeStep ? 'done' : (i === activeStep ? 'active' : '');
+    var dotIcon   = i < activeStep ? '✓' : (i+1);
+
+    // Extra info for each step
+    var extra = '';
+    if(i===0 && art.files && art.files.userSubmission && art.files.userSubmission.url){
+      extra = '<div class="art-step-file"><a href="'+art.files.userSubmission.url+'" target="_blank">📄 '+escHtml(art.files.userSubmission.name||'ไฟล์ที่ส่ง')+'</a></div>';
+    }
+    if(i===1 && art.sentAt){
+      extra = '<div class="art-step-desc" style="margin-top:4px">ส่งเมื่อ '+fd(art.sentAt)
+        +(art.sentToExperts&&art.sentToExperts.length?' · ผู้ทรง: '+art.sentToExperts.join(', '):'')+'</div>';
+    }
+    if(i===2 && art.files){
+      if(art.files.expertFeedback1 && art.files.expertFeedback1.url)
+        extra += '<div class="art-step-file"><span style="color:#6b7280">ผู้ทรงฯ: </span><a href="'+art.files.expertFeedback1.url+'" target="_blank">📋 เอกสารรอบ 1</a></div>';
+      if(art.files.userRevision1 && art.files.userRevision1.url)
+        extra += '<div class="art-step-file green-file"><a href="'+art.files.userRevision1.url+'" target="_blank">📄 บทความที่แก้ไข (รอบ 1)</a></div>';
+    }
+    if(i===3 && art.files){
+      if(art.files.expertCertification && art.files.expertCertification.url)
+        extra += '<div class="art-step-file"><a href="'+art.files.expertCertification.url+'" target="_blank">📜 ใบรับรอง</a></div>';
+      if(art.creditUnits)
+        extra += '<div style="margin-top:5px;font-size:.8rem;font-weight:700;color:#4f46e5">💎 '+art.creditUnits+' หน่วยกิต CPE</div>';
+      if(art.files.userFinalRevision && art.files.userFinalRevision.url)
+        extra += '<div class="art-step-file green-file"><a href="'+art.files.userFinalRevision.url+'" target="_blank">📄 บทความฉบับสุดท้าย</a></div>';
+    }
+    if(i===4 && st==='completed'){
+      extra = '<div class="art-step-file green-file" style="margin-top:6px">'
+        +'<a href="https://ccpe.pharmacycouncil.org/index.php?option=article&subpage=article" target="_blank">🌐 ตรวจสอบบทความที่ระบบ CCPE</a></div>';
+    }
+
+    html += '<div class="art-step">'
+      + '<div class="art-step-dot '+dotClass+'">'+dotIcon+'</div>'
+      + '<div class="art-step-body">'
+      +   '<div class="art-step-title '+titleClass+'">'+step.label+'</div>'
+      +   '<div class="art-step-desc">'+step.desc+'</div>'
+      +   extra
+      + '</div>'
+      + '</div>';
+  });
+  wrap.innerHTML = html;
+
+  // Update status label below stepper
+  var statusLabelEl = wrap.closest('.fsec');
+  if(statusLabelEl){
+    var existing = statusLabelEl.querySelector('.art-status-label');
+    if(!existing){
+      var lbl = document.createElement('div');
+      lbl.className = 'art-status-label';
+      lbl.style.cssText = 'margin-top:14px;font-size:.82rem;font-weight:600;color:'+
+        (st==='completed'?'#059669':'#5a7bff')+';background:'+
+        (st==='completed'?'rgba(5,150,105,.08)':'rgba(90,123,255,.08)')+
+        ';border:1px solid '+(st==='completed'?'rgba(5,150,105,.25)':'rgba(90,123,255,.22)')+
+        ';border-radius:8px;padding:8px 14px;text-align:center';
+      lbl.textContent = artStatusLabel(st);
+      statusLabelEl.appendChild(lbl);
+    } else {
+      existing.textContent = artStatusLabel(st);
+    }
+  }
+}
+
+/* ── File handling (user submission) ── */
+var _artFiles = { main: null, rev: null };
+function handleArtFileSelect(slot, input){
+  var file = input.files[0]; if(!file) return;
+  _artFiles[slot] = file;
+  if(slot === 'main'){
+    document.getElementById('art-file-name').textContent = file.name;
+    document.getElementById('art-file-size').textContent = fmtSize(file.size);
+    document.getElementById('art-file-attached').classList.add('show');
+  } else {
+    document.getElementById('art-rev-name').textContent = file.name;
+    document.getElementById('art-rev-size').textContent = fmtSize(file.size);
+    document.getElementById('art-rev-attached').classList.add('show');
+  }
+}
+function clearArtFile(slot){
+  _artFiles[slot] = null;
+  if(slot === 'main'){
+    document.getElementById('art-file-input').value = '';
+    document.getElementById('art-file-attached').classList.remove('show');
+  } else {
+    document.getElementById('art-rev-input').value = '';
+    document.getElementById('art-rev-attached').classList.remove('show');
+  }
+}
+function handleArtDrop(slot, e){
+  e.preventDefault();
+  var el = slot === 'main' ? document.getElementById('art-upload-zone') : document.getElementById('art-rev-zone');
+  if(el) el.classList.remove('drag');
+  var file = e.dataTransfer.files[0]; if(!file) return;
+  var input = document.getElementById(slot === 'main' ? 'art-file-input' : 'art-rev-input');
+  // Simulate file selection
+  _artFiles[slot] = file;
+  if(slot === 'main'){
+    document.getElementById('art-file-name').textContent = file.name;
+    document.getElementById('art-file-size').textContent = fmtSize(file.size);
+    document.getElementById('art-file-attached').classList.add('show');
+  } else {
+    document.getElementById('art-rev-name').textContent = file.name;
+    document.getElementById('art-rev-size').textContent = fmtSize(file.size);
+    document.getElementById('art-rev-attached').classList.add('show');
+  }
+}
+
+/* ── Upload helper with progress ── */
+async function uploadArtFile(file, slot){
+  var progEl = document.getElementById(slot === 'main' ? 'art-up-prog' : 'art-rev-prog');
+  var barEl  = document.getElementById(slot === 'main' ? 'art-up-bar'  : 'art-rev-bar');
+  var txtEl  = document.getElementById(slot === 'main' ? 'art-up-text' : 'art-rev-text');
+  if(progEl){ progEl.classList.add('show'); }
+  if(txtEl){  txtEl.classList.add('show'); txtEl.textContent = '⏳ กำลังอัพโหลด...'; }
+  if(barEl){  barEl.style.width = '20%'; }
+  try {
+    var result = await uploadToGDrive(file, 'บทความวิชาการ', 'article');
+    if(barEl){ barEl.style.width = '100%'; }
+    if(txtEl){ txtEl.textContent = '✓ อัพโหลดสำเร็จ'; setTimeout(function(){ txtEl.classList.remove('show'); }, 1500); }
+    return result;
+  } catch(e){
+    if(txtEl){ txtEl.textContent = '❌ อัพโหลดไม่สำเร็จ: '+e.message; }
+    throw e;
+  }
+}
+
+/* ── Submit new article ── */
+async function submitArticle(){
+  var file = _artFiles.main;
+  if(!file){ showToast('กรุณาเลือกไฟล์บทความก่อน','warn'); return; }
+  if(file.size > 20*1024*1024){ showToast('ไฟล์ใหญ่เกิน 20 MB','err'); return; }
+
+  var btn = document.getElementById('art-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง...';
+
+  try {
+    var uploaded = await uploadArtFile(file, 'main');
+    var userEmail = getCanonicalEmail();
+    var userKey   = emailToFbKey(userEmail || '');
+    var user      = getUser();
+    var now       = new Date().toISOString();
+    var articleData = {
+      userEmail    : userEmail,
+      userName     : user ? (user.name || userEmail) : userEmail,
+      submittedAt  : now,
+      status       : 'submitted',
+      files        : { userSubmission: { url: uploaded.url, name: uploaded.name, uploadedAt: now } }
+    };
+    // Save to user path + admin path (fan-out)
+    var userRef  = db.ref('pharma-form/'+userKey+'/articles').push();
+    var adminRef = db.ref('pharma-form/_all_articles/'+userRef.key);
+    articleData.id      = userRef.key;
+    articleData.userKey = userKey;
+    await userRef.set(articleData);
+    await adminRef.set(articleData);
+
+    _artKey    = userRef.key;
+    _myArticle = articleData;
+    showToast('✅ ส่งบทความเรียบร้อยแล้ว! เจ้าหน้าที่จะตรวจสอบและติดต่อกลับ');
+    renderArticleForm(_artKey, _myArticle);
+  } catch(e){
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '✅ ส่งบทความวิชาการ';
+  }
+}
+
+/* ── Submit revision (round 1 or final) ── */
+async function submitArtRevision(){
+  var file = _artFiles.rev;
+  if(!file){ showToast('กรุณาเลือกไฟล์บทความที่แก้ไขแล้ว','warn'); return; }
+  if(file.size > 20*1024*1024){ showToast('ไฟล์ใหญ่เกิน 20 MB','err'); return; }
+
+  var btn = document.getElementById('art-rev-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง...';
+
+  try {
+    var uploaded = await uploadArtFile(file, 'rev');
+    var userEmail = getCanonicalEmail();
+    var userKey   = emailToFbKey(userEmail || '');
+    var now       = new Date().toISOString();
+    var curStatus = _myArticle ? _myArticle.status : 'submitted';
+    var fileKey   = curStatus === 'expert_certified' ? 'userFinalRevision' : 'userRevision1';
+    var newStatus = curStatus === 'expert_certified' ? 'user_final_revised' : 'user_revised_r1';
+
+    var updates = {};
+    updates['status'] = newStatus;
+    updates['files/'+fileKey] = { url: uploaded.url, name: uploaded.name, uploadedAt: now };
+
+    await db.ref('pharma-form/'+userKey+'/articles/'+_artKey).update(updates);
+    await db.ref('pharma-form/_all_articles/'+_artKey).update(updates);
+
+    if(_myArticle){ _myArticle.status = newStatus; }
+    showToast('✅ ส่งบทความที่แก้ไขแล้วเรียบร้อย!');
+    // Reload view
+    loadArticleView();
+  } catch(e){
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '📤 ส่งบทความที่แก้ไขแล้ว';
+  }
+}
+
+/* ════════════════════════════════
+   ADMIN: บทความวิชาการ
+════════════════════════════════ */
+function loadAdminArticles(){
+  if(!isAdmin) return;
+  var wrap = document.getElementById('art-admin-wrap');
+  db.ref('pharma-form/_all_articles').on('value', function(snap){
+    var data = snap.val() || {};
+    var articles = Object.entries(data).sort(function(a,b){
+      return (b[1].submittedAt||'').localeCompare(a[1].submittedAt||'');
+    });
+
+    // Update sidebar badge
+    var needAction = articles.filter(function(e){
+      var s = e[1].status||'';
+      return ['submitted','expert_feedback_r1','user_revised_r1','expert_certified','user_final_revised'].includes(s);
+    });
+    var badge = document.getElementById('art-sidebar-badge');
+    if(badge){
+      badge.textContent = needAction.length;
+      badge.classList.toggle('show', needAction.length > 0);
+    }
+
+    if(!wrap) return;
+    if(articles.length === 0){
+      wrap.innerHTML = '<div style="font-size:.82rem;color:#9ca3af;padding:8px 0">ยังไม่มีบทความที่ส่งเข้ามา</div>';
+      return;
+    }
+
+    // Pipeline grouping
+    var _need=[], _waiting=[], _done=[];
+    articles.forEach(function(e){
+      var s = e[1].status||'submitted';
+      if(['submitted','expert_feedback_r1','user_revised_r1','expert_certified','user_final_revised'].includes(s)) _need.push(e);
+      else if(['sent_to_experts','pending_ccpe'].includes(s)) _waiting.push(e);
+      else if(s==='completed') _done.push(e);
+      else _need.push(e);
+    });
+
+    function fd(iso){ return iso?new Date(iso).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}):'-'; }
+
+    function fileLink(label, url, icon, color){
+      color=color||'#4f46e5';
+      if(!url) return '<span class="art-file-missing">'+icon+' ไม่มีไฟล์</span>';
+      return '<a href="'+url+'" target="_blank" class="art-file-link" style="color:'+color+';border-color:'+color+'30;background:'+color+'10">'+icon+' '+label+'</a>';
+    }
+
+    function buildArtCard(e){
+      var aid=e[0], a=e[1];
+      var safeId = aid.replace(/[^a-zA-Z0-9_-]/g,'_');
+      var st = a.status||'submitted';
+      var stLabels = {
+        'submitted'          :['ขั้นที่ 1 · รับเรื่อง','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
+        'sent_to_experts'    :['ขั้นที่ 2 · รอผู้ทรง','rgba(14,165,233,.1)','#0369a1','rgba(14,165,233,.3)'],
+        'expert_feedback_r1' :['ขั้นที่ 3 · ส่งผลรอบ 1','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
+        'user_revised_r1'    :['ขั้นที่ 4 · รอผู้ทรง รอบ 2','rgba(14,165,233,.1)','#0369a1','rgba(14,165,233,.3)'],
+        'expert_certified'   :['ขั้นที่ 5 · ส่งใบรับรอง','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
+        'user_final_revised' :['ขั้นที่ 6 · นำเข้า CCPE','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
+        'pending_ccpe'       :['กำลังนำเข้า CCPE','rgba(14,165,233,.1)','#0369a1','rgba(14,165,233,.3)'],
+        'completed'          :['เสร็จสิ้น','rgba(5,150,105,.1)','#059669','rgba(5,150,105,.25)']
+      };
+      var sl = stLabels[st]||stLabels['submitted'];
+
+      // Determine action button based on status
+      var actionBtn = '';
+      if(st==='submitted'){
+        actionBtn='<button onclick="artAdminSendToExperts(\''+safeId+'\',\''+aid+'\')" style="font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit">📧 ส่งผู้ทรงฯ</button>';
+      } else if(st==='expert_feedback_r1'){
+        actionBtn='<button onclick="artAdminUploadFeedback(\''+safeId+'\',\''+aid+'\',\'r1\')" style="font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit">📤 แนบเอกสารรอบ 1 ให้ User</button>';
+      } else if(st==='user_revised_r1'){
+        actionBtn='<button onclick="artAdminSendToExperts(\''+safeId+'\',\''+aid+'\')" style="font-size:.72rem;font-weight:700;color:#0369a1;background:none;border:1px solid rgba(14,165,233,.4);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit">📧 ส่งผู้ทรงฯ รอบ 2</button>';
+      } else if(st==='expert_certified'){
+        actionBtn='<button onclick="artAdminUploadCert(\''+safeId+'\',\''+aid+'\')" style="font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit">📜 แนบใบรับรอง + หน่วยกิต</button>';
+      } else if(st==='user_final_revised'){
+        actionBtn='<button onclick="artAdminMarkCcpe(\''+aid+'\')" style="font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit">🌐 นำเข้าระบบ CCPE</button>';
+      }
+
+      return '<div class="art-admin-card">'
+        + '<div class="art-card-head">'
+        +   '<div style="flex:1;min-width:0">'
+        +     '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'
+        +       '<span style="font-size:.85rem;font-weight:700;color:#1a202c">'+(a.userName||a.userEmail||'-')+'</span>'
+        +       '<span class="art-pipe-badge" style="background:'+sl[0]+';color:'+sl[1]+';border:1px solid '+sl[2]+'">'+sl[0]+'</span>'
+        +     '</div>'
+        +     '<div style="font-size:.72rem;color:#6b7280">📧 '+(a.userEmail||'-')+' · ส่งเมื่อ '+fd(a.submittedAt)+'</div>'
+        +   '</div>'
+        +   (actionBtn ? '<div>'+actionBtn+'</div>' : '')
+        + '</div>'
+        + '<div class="art-card-files">'
+        +   '<div class="art-file-row-label">เอกสารจาก User</div>'
+        +   '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +     fileLink('บทความเริ่มต้น', a.files&&a.files.userSubmission&&a.files.userSubmission.url, '📄')
+        +     (a.files&&a.files.userRevision1&&a.files.userRevision1.url ? fileLink('แก้ไข รอบ 1',a.files.userRevision1.url,'📝','#059669') : '')
+        +     (a.files&&a.files.userFinalRevision&&a.files.userFinalRevision.url ? fileLink('ฉบับสุดท้าย',a.files.userFinalRevision.url,'📝','#059669') : '')
+        +   '</div>'
+        +   (a.files&&(a.files.expertFeedback1||a.files.expertCertification) ? (
+              '<div class="art-file-row-label" style="margin-top:8px">เอกสาร Admin / ผู้ทรงฯ</div>'
+              + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+              + (a.files.expertFeedback1&&a.files.expertFeedback1.url ? fileLink('เอกสารรอบ 1',a.files.expertFeedback1.url,'📋','#d97706') : '')
+              + (a.files.expertCertification&&a.files.expertCertification.url ? fileLink('ใบรับรอง',a.files.expertCertification.url,'📜','#7c3aed') : '')
+              + '</div>'
+            ) : '')
+        + '</div>'
+        // Upload inline forms
+        + '<div id="art-inline-'+safeId+'" style="display:none;padding:12px 14px;border-top:1px solid rgba(200,210,230,.25);background:#fafbff"></div>'
+        + (st==='completed'?
+            '<div class="art-card-act"><span style="font-size:.72rem;font-weight:700;color:#059669">✅ นำเข้าระบบ CCPE แล้ว</span>'+(a.creditUnits?'<span style="font-size:.72rem;color:#6b7280;margin-left:6px">💎 '+a.creditUnits+' หน่วยกิต</span>':'')+'</div>'
+          : '')
+        + '</div>';
+    }
+
+    function buildSection(title, color, bg, bd, items){
+      if(!items.length) return '';
+      return '<div style="margin-bottom:16px">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
+        +   '<span style="width:3px;height:15px;background:'+color+';border-radius:2px;display:inline-block"></span>'
+        +   '<span style="font-size:.78rem;font-weight:700;color:'+color+'">'+title+'</span>'
+        +   '<span style="font-size:.66rem;font-weight:700;background:'+bg+';color:'+color+';border:1px solid '+bd+';border-radius:20px;padding:1px 8px">'+items.length+' รายการ</span>'
+        + '</div>'
+        + items.map(function(e){ return buildArtCard(e); }).join('')
+        + '</div>';
+    }
+
+    var html = buildSection('ต้องดำเนินการ','#b45309','rgba(217,119,6,.1)','rgba(217,119,6,.3)',_need)
+             + buildSection('กำลังดำเนินการ','#0369a1','rgba(14,165,233,.1)','rgba(14,165,233,.3)',_waiting);
+
+    if(_done.length){
+      var doneId = 'artDone'+Date.now();
+      html += '<div style="margin-bottom:16px">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
+        +   '<span style="width:3px;height:15px;background:#059669;border-radius:2px;display:inline-block"></span>'
+        +   '<span style="font-size:.78rem;font-weight:700;color:#059669">เสร็จสิ้น</span>'
+        +   '<span style="font-size:.66rem;font-weight:700;background:rgba(5,150,105,.1);color:#059669;border:1px solid rgba(5,150,105,.25);border-radius:20px;padding:1px 8px">'+_done.length+' รายการ</span>'
+        +   '<button onclick="var s=document.getElementById(\''+doneId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer">ซ่อน / แสดง ▾</button>'
+        + '</div>'
+        + '<div id="'+doneId+'" style="display:none">'+_done.map(buildArtCard).join('')+'</div>'
+        + '</div>';
+    }
+
+    wrap.innerHTML = html || '<div style="font-size:.82rem;color:#9ca3af;padding:8px 0">ยังไม่มีบทความวิชาการ</div>';
+  });
+}
+
+/* ── Admin: Send to Experts (round 1 or 2) ── */
+function artAdminSendToExperts(safeId, aid){
+  var inline = document.getElementById('art-inline-'+safeId);
+  if(!inline) return;
+  if(inline.style.display !== 'none'){ inline.style.display='none'; return; }
+
+  var data = {}; try { data = db.ref(); } catch(e){}
+  inline.style.display = 'block';
+  inline.innerHTML =
+    '<div style="font-size:.83rem;font-weight:700;color:#4338ca;margin-bottom:8px">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+    +   '<span style="font-size:.77rem;color:#6b7280;min-width:80px;flex-shrink:0">ท่านที่ 1</span>'
+    +   '<input type="email" id="artex1-'+safeId+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 1" style="flex:1;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.82rem;outline:none">'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+    +   '<span style="font-size:.77rem;color:#6b7280;min-width:80px;flex-shrink:0">ท่านที่ 2</span>'
+    +   '<input type="email" id="artex2-'+safeId+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 2" style="flex:1;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.82rem;outline:none">'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    +   '<button onclick="artConfirmSendToExperts(\''+safeId+'\',\''+aid+'\')" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit">📤 ยืนยันส่ง</button>'
+    +   '<button onclick="document.getElementById(\'art-inline-'+safeId+'\').style.display=\'none\'" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer;font-family:inherit">ยกเลิก</button>'
+    + '</div>';
+}
+
+async function artConfirmSendToExperts(safeId, aid){
+  var ex1 = (document.getElementById('artex1-'+safeId)||{}).value||'';
+  var ex2 = (document.getElementById('artex2-'+safeId)||{}).value||'';
+  var experts = [ex1,ex2].filter(function(e){ return e.trim(); });
+  if(!experts.length){ showToast('กรุณาใส่อีเมลผู้ทรงคุณวุฒิอย่างน้อย 1 ท่าน','warn'); return; }
+
+  var now = new Date().toISOString();
+  var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+  var a = snap.val();
+  if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+  var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+
+  var updates = { status:'sent_to_experts', sentAt:now, sentToExperts:experts };
+  await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+  if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+
+  document.getElementById('art-inline-'+safeId).style.display = 'none';
+  showToast('✅ อัพเดตสถานะแล้ว — กรุณาส่งอีเมลให้ผู้ทรงคุณวุฒิ');
+}
+
+/* ── Admin: Upload expert feedback to user (round 1) ── */
+function artAdminUploadFeedback(safeId, aid, round){
+  var inline = document.getElementById('art-inline-'+safeId);
+  if(!inline) return;
+  if(inline.style.display !== 'none'){ inline.style.display='none'; return; }
+  inline.style.display = 'block';
+  inline.innerHTML =
+    '<div style="font-size:.83rem;font-weight:700;color:#b45309;margin-bottom:10px">📤 แนบเอกสารจากผู้ทรงฯ ให้ User</div>'
+    + '<label for="art-fb-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#fff7ed;color:#c2410c;border:1.5px dashed #fed7aa;border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700">'
+    +   '📎 เลือกไฟล์เอกสารผู้ทรงฯ'
+    + '</label>'
+    + '<input type="file" id="art-fb-'+safeId+'" accept=".pdf,.doc,.docx" style="display:none">'
+    + '<div id="art-fb-name-'+safeId+'" style="font-size:.75rem;color:#059669;margin-top:6px"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    +   '<button onclick="artConfirmFeedback(\''+safeId+'\',\''+aid+'\',\''+round+'\')" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit">📤 ส่งให้ User</button>'
+    +   '<button onclick="document.getElementById(\'art-inline-'+safeId+'\').style.display=\'none\'" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer;font-family:inherit">ยกเลิก</button>'
+    + '</div>';
+  // File preview
+  setTimeout(function(){
+    var inp = document.getElementById('art-fb-'+safeId);
+    if(inp) inp.onchange = function(){
+      var f = inp.files[0];
+      var nm = document.getElementById('art-fb-name-'+safeId);
+      if(nm) nm.textContent = f ? '✓ '+f.name : '';
+    };
+  }, 50);
+}
+
+async function artConfirmFeedback(safeId, aid, round){
+  var inp = document.getElementById('art-fb-'+safeId);
+  var file = inp ? inp.files[0] : null;
+  if(!file){ showToast('กรุณาเลือกไฟล์เอกสารผู้ทรงฯ','warn'); return; }
+
+  showToast('⏳ กำลังอัพโหลด...');
+  try {
+    var uploaded = await uploadToGDrive(file, 'บทความวิชาการ', 'expert_feedback');
+    var now = new Date().toISOString();
+    var fileKey  = 'expertFeedback1';
+    var newStatus = 'expert_feedback_r1';
+
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+
+    var updates = { status: newStatus };
+    updates['files/'+fileKey] = { url: uploaded.url, name: uploaded.name, uploadedAt: now };
+
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+
+    document.getElementById('art-inline-'+safeId).style.display = 'none';
+    showToast('✅ ส่งเอกสารให้ User เรียบร้อย');
+  } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
+}
+
+/* ── Admin: Upload expert certification + credit units ── */
+function artAdminUploadCert(safeId, aid){
+  var inline = document.getElementById('art-inline-'+safeId);
+  if(!inline) return;
+  if(inline.style.display !== 'none'){ inline.style.display='none'; return; }
+  inline.style.display = 'block';
+  inline.innerHTML =
+    '<div style="font-size:.83rem;font-weight:700;color:#7c3aed;margin-bottom:10px">📜 แนบใบรับรองจากผู้ทรงฯ</div>'
+    + '<div style="margin-bottom:10px">'
+    +   '<div style="font-size:.74rem;font-weight:700;color:#6b7280;margin-bottom:5px">หน่วยกิต CPE ที่ผู้ทรงฯ รับรอง</div>'
+    +   '<input type="number" id="art-cred-'+safeId+'" placeholder="จำนวนหน่วยกิต เช่น 3" min="0" max="20" style="border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.9rem;font-weight:700;color:#4f46e5;width:140px;outline:none">'
+    + '</div>'
+    + '<label for="art-cert-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#f5f3ff;color:#6d28d9;border:1.5px dashed #ddd6fe;border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700">'
+    +   '📎 เลือกไฟล์ใบรับรอง (PDF/Word)'
+    + '</label>'
+    + '<input type="file" id="art-cert-'+safeId+'" accept=".pdf,.doc,.docx" style="display:none">'
+    + '<div id="art-cert-name-'+safeId+'" style="font-size:.75rem;color:#059669;margin-top:6px"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    +   '<button onclick="artConfirmCert(\''+safeId+'\',\''+aid+'\')" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit">📜 ส่งให้ User</button>'
+    +   '<button onclick="document.getElementById(\'art-inline-'+safeId+'\').style.display=\'none\'" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer;font-family:inherit">ยกเลิก</button>'
+    + '</div>';
+  setTimeout(function(){
+    var inp = document.getElementById('art-cert-'+safeId);
+    if(inp) inp.onchange = function(){
+      var f = inp.files[0];
+      var nm = document.getElementById('art-cert-name-'+safeId);
+      if(nm) nm.textContent = f ? '✓ '+f.name : '';
+    };
+  }, 50);
+}
+
+async function artConfirmCert(safeId, aid){
+  var creditInput = document.getElementById('art-cred-'+safeId);
+  var creditUnits = creditInput ? parseFloat(creditInput.value)||0 : 0;
+  if(!creditUnits){ showToast('กรุณาใส่จำนวนหน่วยกิต','warn'); return; }
+
+  var inp = document.getElementById('art-cert-'+safeId);
+  var file = inp ? inp.files[0] : null;
+  if(!file){ showToast('กรุณาเลือกไฟล์ใบรับรองจากผู้ทรงฯ','warn'); return; }
+
+  showToast('⏳ กำลังอัพโหลด...');
+  try {
+    var uploaded = await uploadToGDrive(file, 'บทความวิชาการ', 'expert_cert');
+    var now = new Date().toISOString();
+
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+
+    var updates = { status:'expert_certified', creditUnits: creditUnits };
+    updates['files/expertCertification'] = { url: uploaded.url, name: uploaded.name, uploadedAt: now };
+
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+
+    document.getElementById('art-inline-'+safeId).style.display = 'none';
+    showToast('✅ ส่งใบรับรองและหน่วยกิตให้ User เรียบร้อย');
+  } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
+}
+
+/* ── Admin: Mark as completed (submitted to CCPE) ── */
+async function artAdminMarkCcpe(aid){
+  if(!confirm('ยืนยันว่าได้นำบทความนี้เข้าระบบ CCPE เรียบร้อยแล้ว?')) return;
+  try {
+    var now = new Date().toISOString();
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+
+    var updates = { status:'completed', completedAt: now };
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+
+    showToast('✅ บทความถูกนำเข้าระบบ CCPE เรียบร้อยแล้ว!');
+  } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
+}
+
+/* Utility: escape HTML */
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ════════════════════════════════
    AURA REACTIVE MOUSE
