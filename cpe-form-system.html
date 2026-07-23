@@ -4482,6 +4482,7 @@ function artAdminSendToExperts(safeId, aid){
   // Reset inputs
   document.getElementById('art-expert-modal-e1').value = '';
   document.getElementById('art-expert-modal-e2').value = '';
+  document.getElementById('art-expert-modal-e3').value = '';
   // Populate info box from Firebase
   var infoEl = document.getElementById('art-expert-modal-info');
   var subEl  = document.getElementById('art-expert-modal-sub');
@@ -4517,7 +4518,8 @@ async function artConfirmSendToExperts(){
   var aid = _artExpertAid;
   var ex1 = (document.getElementById('art-expert-modal-e1')||{}).value||'';
   var ex2 = (document.getElementById('art-expert-modal-e2')||{}).value||'';
-  var experts = [ex1,ex2].filter(function(e){ return e.trim(); });
+  var ex3 = (document.getElementById('art-expert-modal-e3')||{}).value||'';
+  var experts = [ex1,ex2,ex3].filter(function(e){ return e.trim(); });
   if(!experts.length){ showToast('กรุณาใส่อีเมลผู้ทรงคุณวุฒิอย่างน้อย 1 ท่าน','warn'); return; }
 
   showToast('⏳ กำลังดำเนินการ...');
@@ -4884,6 +4886,12 @@ document.addEventListener('keydown',function(e){
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:.77rem;color:#6b7280;min-width:64px;flex-shrink:0">ท่านที่ 2</span>
           <input type="email" id="art-expert-modal-e2" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 2"
+            style="flex:1;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;transition:border .2s"
+            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:.77rem;color:#6b7280;min-width:64px;flex-shrink:0">ท่านที่ 3</span>
+          <input type="email" id="art-expert-modal-e3" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 3"
             style="flex:1;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;transition:border .2s"
             onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
         </div>
