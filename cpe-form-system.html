@@ -4609,7 +4609,7 @@ async function submitArtRevision(){
 /* ════════════════════════════════
    ADMIN: บทความวิชาการ
 ════════════════════════════════ */
-function toggleArtCard(sid){
+window.toggleArtCard = function(sid){
   var body  = document.getElementById('art-body-'+sid);
   var arrow = document.getElementById('art-tog-arrow-'+sid);
   var btn   = document.getElementById('art-tog-'+sid);
@@ -4621,7 +4621,7 @@ function toggleArtCard(sid){
     var txt = btn.childNodes[0];
     if(txt) txt.nodeValue = open ? 'รายละเอียด ' : 'ซ่อน ';
   }
-}
+};
 
 function loadAdminArticles(){
   if(!isAdmin) return;
