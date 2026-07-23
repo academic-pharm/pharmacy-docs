@@ -4342,15 +4342,16 @@ function loadAdminArticles(){
       var aid=e[0], a=e[1];
       var safeId = aid.replace(/[^a-zA-Z0-9_-]/g,'_');
       var st = a.status||'submitted';
+      // stLabels: [label, background, textColor, borderColor]
       var stLabels = {
-        'submitted'          :['ขั้นที่ 1 · รับเรื่อง','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
-        'sent_to_experts'    :['ขั้นที่ 2 · รอผู้ทรง','rgba(14,165,233,.1)','#0369a1','rgba(14,165,233,.3)'],
-        'expert_feedback_r1' :['ขั้นที่ 3 · ส่งผลรอบ 1','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
-        'user_revised_r1'    :['ขั้นที่ 4 · รอผู้ทรง รอบ 2','rgba(14,165,233,.1)','#0369a1','rgba(14,165,233,.3)'],
-        'expert_certified'   :['ขั้นที่ 5 · ส่งใบรับรอง','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
-        'user_final_revised' :['ขั้นที่ 6 · นำเข้า CCPE','rgba(217,119,6,.1)','#b45309','rgba(217,119,6,.3)'],
-        'pending_ccpe'       :['กำลังนำเข้า CCPE','rgba(14,165,233,.1)','#0369a1','rgba(14,165,233,.3)'],
-        'completed'          :['เสร็จสิ้น','rgba(5,150,105,.1)','#059669','rgba(5,150,105,.25)']
+        'submitted'          :['ขั้นที่ 1 · รับเรื่อง',     '#fef3c7','#92400e','#fcd34d'],
+        'sent_to_experts'    :['ขั้นที่ 2 · รอผู้ทรง',      '#dbeafe','#1d4ed8','#93c5fd'],
+        'expert_feedback_r1' :['ขั้นที่ 3 · ส่งผลรอบ 1',    '#fef3c7','#92400e','#fcd34d'],
+        'user_revised_r1'    :['ขั้นที่ 4 · รอผู้ทรง รอบ 2','#dbeafe','#1d4ed8','#93c5fd'],
+        'expert_certified'   :['ขั้นที่ 5 · ส่งใบรับรอง',   '#fef3c7','#92400e','#fcd34d'],
+        'user_final_revised' :['ขั้นที่ 6 · นำเข้า CCPE',   '#fef3c7','#92400e','#fcd34d'],
+        'pending_ccpe'       :['กำลังนำเข้า CCPE',           '#dbeafe','#1d4ed8','#93c5fd'],
+        'completed'          :['เสร็จสิ้น',                  '#d1fae5','#065f46','#6ee7b7']
       };
       var sl = stLabels[st]||stLabels['submitted'];
 
@@ -4373,7 +4374,7 @@ function loadAdminArticles(){
         +   '<div style="flex:1;min-width:0">'
         +     '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'
         +       '<span style="font-size:.85rem;font-weight:700;color:#1a202c">'+(a.userName||a.userEmail||'-')+'</span>'
-        +       '<span class="art-pipe-badge" style="background:'+sl[0]+';color:'+sl[1]+';border:1px solid '+sl[2]+'">'+sl[0]+'</span>'
+        +       '<span class="art-pipe-badge" style="background:'+sl[1]+';color:'+sl[2]+';border:1px solid '+sl[3]+'">'+sl[0]+'</span>'
         +     '</div>'
         +     '<div style="font-size:.72rem;color:#6b7280">📧 '+(a.userEmail||'-')+' · ส่งเมื่อ '+fd(a.submittedAt)+'</div>'
         +   '</div>'
@@ -4386,13 +4387,29 @@ function loadAdminArticles(){
         +     (a.files&&a.files.userRevision1&&a.files.userRevision1.url ? fileLink('แก้ไข รอบ 1',a.files.userRevision1.url,'📝','#059669') : '')
         +     (a.files&&a.files.userFinalRevision&&a.files.userFinalRevision.url ? fileLink('ฉบับสุดท้าย',a.files.userFinalRevision.url,'📝','#059669') : '')
         +   '</div>'
-        +   (a.files&&(a.files.expertFeedback1||a.files.expertCertification) ? (
+        +   (a.files&&(a.files.adminDoc_pdf||a.files.adminDoc_word||a.files.expertFeedback1||a.files.expertCertification) ? (
               '<div class="art-file-row-label" style="margin-top:8px">เอกสาร Admin / ผู้ทรงฯ</div>'
-              + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+              + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+              + (a.files.adminDoc_pdf&&a.files.adminDoc_pdf.url ? fileLink('เอกสารแนบ PDF',a.files.adminDoc_pdf.url,'📄','#c2410c') : '')
+              + (a.files.adminDoc_word&&a.files.adminDoc_word.url ? fileLink('เอกสารแนบ Word',a.files.adminDoc_word.url,'📝','#1d4ed8') : '')
+              + '<label for="adoc-pdf-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#fff7ed;color:#c2410c;border:1px dashed #fed7aa;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'
+              +   (a.files.adminDoc_pdf&&a.files.adminDoc_pdf.url?'🔄':'⬆') +' PDF</label>'
+              + '<input type="file" id="adoc-pdf-'+safeId+'" accept=".pdf" style="display:none" onchange="uploadAdminDoc(\''+safeId+'\',\''+aid+'\',this,\'pdf\')">'
+              + '<label for="adoc-word-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1d4ed8;border:1px dashed #bfdbfe;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'
+              +   (a.files.adminDoc_word&&a.files.adminDoc_word.url?'🔄':'⬆') +' Word</label>'
+              + '<input type="file" id="adoc-word-'+safeId+'" accept=".doc,.docx" style="display:none" onchange="uploadAdminDoc(\''+safeId+'\',\''+aid+'\',this,\'word\')">'
               + (a.files.expertFeedback1&&a.files.expertFeedback1.url ? fileLink('เอกสารรอบ 1',a.files.expertFeedback1.url,'📋','#d97706') : '')
               + (a.files.expertCertification&&a.files.expertCertification.url ? fileLink('ใบรับรอง',a.files.expertCertification.url,'📜','#7c3aed') : '')
               + '</div>'
-            ) : '')
+            ) : (
+              '<div class="art-file-row-label" style="margin-top:8px">เอกสาร Admin (แนบให้ผู้ทรงฯ)</div>'
+              + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+              + '<label for="adoc-pdf-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#fff7ed;color:#c2410c;border:1px dashed #fed7aa;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">⬆ PDF</label>'
+              + '<input type="file" id="adoc-pdf-'+safeId+'" accept=".pdf" style="display:none" onchange="uploadAdminDoc(\''+safeId+'\',\''+aid+'\',this,\'pdf\')">'
+              + '<label for="adoc-word-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1d4ed8;border:1px dashed #bfdbfe;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">⬆ Word</label>'
+              + '<input type="file" id="adoc-word-'+safeId+'" accept=".doc,.docx" style="display:none" onchange="uploadAdminDoc(\''+safeId+'\',\''+aid+'\',this,\'word\')">'
+              + '</div>'
+            ))
         + '</div>'
         // Upload inline forms
         + '<div id="art-inline-'+safeId+'" style="display:none;padding:12px 14px;border-top:1px solid rgba(200,210,230,.25);background:#fafbff"></div>'
@@ -4439,23 +4456,41 @@ function artAdminSendToExperts(safeId, aid){
   var inline = document.getElementById('art-inline-'+safeId);
   if(!inline) return;
   if(inline.style.display !== 'none'){ inline.style.display='none'; return; }
-
-  var data = {}; try { data = db.ref(); } catch(e){}
   inline.style.display = 'block';
   inline.innerHTML =
-    '<div style="font-size:.83rem;font-weight:700;color:#4338ca;margin-bottom:8px">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>'
+    '<div style="font-size:.83rem;font-weight:700;color:#4338ca;margin-bottom:10px">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>'
+    // อีเมล
     + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
     +   '<span style="font-size:.77rem;color:#6b7280;min-width:80px;flex-shrink:0">ท่านที่ 1</span>'
-    +   '<input type="email" id="artex1-'+safeId+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 1" style="flex:1;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.82rem;outline:none">'
+    +   '<input type="email" id="artex1-'+safeId+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 1" style="flex:1;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.82rem;outline:none;font-family:inherit">'
     + '</div>'
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
     +   '<span style="font-size:.77rem;color:#6b7280;min-width:80px;flex-shrink:0">ท่านที่ 2</span>'
-    +   '<input type="email" id="artex2-'+safeId+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 2" style="flex:1;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.82rem;outline:none">'
+    +   '<input type="email" id="artex2-'+safeId+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 2" style="flex:1;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:7px 12px;font-size:.82rem;outline:none;font-family:inherit">'
     + '</div>'
-    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    // เอกสารแนบ
+    + '<div style="font-size:.75rem;font-weight:700;color:#6b7280;margin-bottom:8px">📎 เอกสารแนบสำหรับผู้ทรงคุณวุฒิ (PDF และ/หรือ Word)</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+    +   '<label for="artex-pdf-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:#fff7ed;color:#c2410c;border:1.5px dashed #fed7aa;border-radius:8px;padding:6px 13px;font-size:.78rem;font-weight:700;white-space:nowrap">📄 แนบ PDF</label>'
+    +   '<input type="file" id="artex-pdf-'+safeId+'" accept=".pdf" style="display:none">'
+    +   '<span id="artex-pdf-name-'+safeId+'" style="font-size:.72rem;color:#059669"></span>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">'
+    +   '<label for="artex-word-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;border:1.5px dashed #bfdbfe;border-radius:8px;padding:6px 13px;font-size:.78rem;font-weight:700;white-space:nowrap">📝 แนบ Word</label>'
+    +   '<input type="file" id="artex-word-'+safeId+'" accept=".doc,.docx" style="display:none">'
+    +   '<span id="artex-word-name-'+safeId+'" style="font-size:.72rem;color:#059669"></span>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
     +   '<button onclick="artConfirmSendToExperts(\''+safeId+'\',\''+aid+'\')" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit">📤 ยืนยันส่ง</button>'
     +   '<button onclick="document.getElementById(\'art-inline-'+safeId+'\').style.display=\'none\'" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer;font-family:inherit">ยกเลิก</button>'
     + '</div>';
+  // file preview listeners
+  setTimeout(function(){
+    var pdfInp  = document.getElementById('artex-pdf-'+safeId);
+    var wordInp = document.getElementById('artex-word-'+safeId);
+    if(pdfInp)  pdfInp.onchange  = function(){ var nm=document.getElementById('artex-pdf-name-'+safeId);  if(nm) nm.textContent = pdfInp.files[0]  ? '✓ '+pdfInp.files[0].name  : ''; };
+    if(wordInp) wordInp.onchange = function(){ var nm=document.getElementById('artex-word-name-'+safeId); if(nm) nm.textContent = wordInp.files[0] ? '✓ '+wordInp.files[0].name : ''; };
+  }, 50);
 }
 
 async function artConfirmSendToExperts(safeId, aid){
@@ -4464,6 +4499,12 @@ async function artConfirmSendToExperts(safeId, aid){
   var experts = [ex1,ex2].filter(function(e){ return e.trim(); });
   if(!experts.length){ showToast('กรุณาใส่อีเมลผู้ทรงคุณวุฒิอย่างน้อย 1 ท่าน','warn'); return; }
 
+  var pdfInp  = document.getElementById('artex-pdf-'+safeId);
+  var wordInp = document.getElementById('artex-word-'+safeId);
+  var pdfFile  = pdfInp  ? pdfInp.files[0]  : null;
+  var wordFile = wordInp ? wordInp.files[0] : null;
+
+  showToast('⏳ กำลังดำเนินการ...');
   var now = new Date().toISOString();
   var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
   var a = snap.val();
@@ -4471,11 +4512,45 @@ async function artConfirmSendToExperts(safeId, aid){
   var userKey = a.userKey || emailToFbKey(a.userEmail||'');
 
   var updates = { status:'sent_to_experts', sentAt:now, sentToExperts:experts };
+
+  // Upload PDF if provided
+  if(pdfFile){
+    try {
+      var pdfUp = await uploadToGDrive(pdfFile, 'บทความวิชาการ', 'admin_doc_pdf');
+      updates['files/adminDoc_pdf'] = { url:pdfUp.url, name:pdfUp.name, uploadedAt:now };
+    } catch(e){ showToast('อัพโหลด PDF ไม่สำเร็จ: '+e.message,'err'); return; }
+  }
+  // Upload Word if provided
+  if(wordFile){
+    try {
+      var wordUp = await uploadToGDrive(wordFile, 'บทความวิชาการ', 'admin_doc_word');
+      updates['files/adminDoc_word'] = { url:wordUp.url, name:wordUp.name, uploadedAt:now };
+    } catch(e){ showToast('อัพโหลด Word ไม่สำเร็จ: '+e.message,'err'); return; }
+  }
+
   await db.ref('pharma-form/_all_articles/'+aid).update(updates);
   if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
 
   document.getElementById('art-inline-'+safeId).style.display = 'none';
-  showToast('✅ อัพเดตสถานะแล้ว — กรุณาส่งอีเมลให้ผู้ทรงคุณวุฒิ');
+  showToast('✅ อัพเดตสถานะและเอกสารแนบแล้ว');
+}
+
+/* ── Admin: Upload adminDoc PDF/Word directly from card ── */
+async function uploadAdminDoc(safeId, aid, input, type){
+  var file = input.files[0]; if(!file) return;
+  showToast('⏳ กำลังอัพโหลด...');
+  try {
+    var up  = await uploadToGDrive(file, 'บทความวิชาการ', 'admin_doc_'+type);
+    var now = new Date().toISOString();
+    var key = type === 'pdf' ? 'adminDoc_pdf' : 'adminDoc_word';
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+    var updates = {}; updates['files/'+key] = { url:up.url, name:up.name, uploadedAt:now };
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+    showToast('✅ อัพโหลดเอกสารแนบสำเร็จ');
+  } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); input.value=''; }
 }
 
 /* ── Admin: Upload expert feedback to user (round 1) ── */
