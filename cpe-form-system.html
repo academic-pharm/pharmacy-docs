@@ -1547,6 +1547,9 @@ function switchTab(id){
     if(_ht) _ht.textContent = _hv[0];
     if(_hs) _hs.textContent = _hv[1];
   }
+  // ซ่อน reg-card เมื่ออยู่ใน my-requests (ไม่จำเป็นต้องลงทะเบียนอีก)
+  var _rc = document.querySelector('.reg-card');
+  if(_rc) _rc.style.display = (id === 'my-requests') ? 'none' : '';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
