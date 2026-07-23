@@ -4876,6 +4876,7 @@ async function artConfirmSendToExperts(){
   var ex1 = (document.getElementById('art-expert-modal-e1')||{}).value||'';
   var ex2 = (document.getElementById('art-expert-modal-e2')||{}).value||'';
   var ex3 = (document.getElementById('art-expert-modal-e3')||{}).value||'';
+  var deadline = (document.getElementById('art-expert-modal-deadline')||{}).value||'';
   var experts = [ex1,ex2,ex3].filter(function(e){ return e.trim(); });
   if(!experts.length){ showToast('กรุณาใส่อีเมลผู้ทรงคุณวุฒิอย่างน้อย 1 ท่าน','warn'); return; }
 
@@ -4900,8 +4901,12 @@ async function artConfirmSendToExperts(){
       body: JSON.stringify({
         action          : 'send_article_expert_email',
         expertEmails    : experts,
-        userName        : a.userName  || '',
-        userEmail       : a.userEmail || '',
+        articleTitle    : a.articleTitle   || '',
+        articleAuthor   : a.articleAuthor  || a.userName || '',
+        submittedAt     : a.submittedAt    || '',
+        userName        : a.userName       || '',
+        userEmail       : a.userEmail      || '',
+        deadline        : deadline,
         formattedDocUrl : fmtPdf || fmtWord || '',
         adminDocPdfUrl  : (a.files&&a.files.adminDoc_pdf&&a.files.adminDoc_pdf.url)   || '',
         adminDocWordUrl : (a.files&&a.files.adminDoc_word&&a.files.adminDoc_word.url) || ''
@@ -5252,6 +5257,13 @@ document.addEventListener('keydown',function(e){
             style="flex:1;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;transition:border .2s"
             onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
         </div>
+      </div>
+      <!-- Deadline -->
+      <div style="margin-bottom:20px">
+        <div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">📅 Deadline — วันที่ให้ผู้ทรงฯ ส่งมติกลับ</div>
+        <input type="date" id="art-expert-modal-deadline"
+          style="width:100%;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;box-sizing:border-box;transition:border .2s"
+          onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
       </div>
       <!-- Actions -->
       <div style="display:flex;gap:10px">

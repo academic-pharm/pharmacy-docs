@@ -639,10 +639,22 @@ function sendArticleExpertEmail(data) {
   html += '<p>เรียน ผู้ทรงคุณวุฒิ</p>';
   html += '<p>ขอความอนุเคราะห์ผู้ทรงคุณวุฒิพิจารณาบทความวิชาการที่ส่งเข้ามาในระบบ CPE ดังนี้</p>';
 
+  // แปลงวันที่ส่ง (ISO หรือ Firestore string) เป็นวันที่ไทย
+  var submittedStr = '-';
+  if (data.submittedAt) {
+    try {
+      var sd = new Date(data.submittedAt);
+      if (!isNaN(sd)) {
+        submittedStr = Utilities.formatDate(sd, 'Asia/Bangkok', 'dd/MM/yyyy HH:mm');
+      }
+    } catch(e) { submittedStr = data.submittedAt; }
+  }
+
   html += '<table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f8fafc;border-radius:8px;overflow:hidden">';
-  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;width:130px;border-bottom:1px solid #e5e7eb">ผู้เขียนบทความ</td><td style="padding:9px 14px;font-size:.88rem;font-weight:700;border-bottom:1px solid #e5e7eb">' + (data.userName || '-') + '</td></tr>';
+  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;width:160px;border-bottom:1px solid #e5e7eb">ชื่อบทความวิชาการ</td><td style="padding:9px 14px;font-size:.88rem;font-weight:700;border-bottom:1px solid #e5e7eb">' + (data.articleTitle || '-') + '</td></tr>';
+  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">ผู้เขียนบทความ</td><td style="padding:9px 14px;font-size:.88rem;font-weight:700;border-bottom:1px solid #e5e7eb">' + (data.articleAuthor || data.userName || '-') + '</td></tr>';
   html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280;border-bottom:1px solid #e5e7eb">อีเมลผู้เขียน</td><td style="padding:9px 14px;font-size:.88rem;border-bottom:1px solid #e5e7eb">' + (data.userEmail || '-') + '</td></tr>';
-  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280">วันที่ส่ง</td><td style="padding:9px 14px;font-size:.88rem">' + sendTimeStr + '</td></tr>';
+  html += '<tr><td style="padding:9px 14px;font-size:.82rem;color:#6b7280">วันที่ส่ง</td><td style="padding:9px 14px;font-size:.88rem">' + submittedStr + '</td></tr>';
   html += '</table>';
 
   html += '<table style="width:100%;border-collapse:collapse;margin:20px 0">';
@@ -652,14 +664,31 @@ function sendArticleExpertEmail(data) {
     html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.formattedDocUrl + '" style="color:#6d28d9;font-weight:700">เปิดเอกสาร</a></td></tr>';
   }
   if (data.adminDocPdfUrl) {
-    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">เอกสาร Admin (PDF)</td>';
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">เอกสารพิจารณาบทความวิชาการ (PDF)</td>';
     html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.adminDocPdfUrl + '" style="color:#6d28d9;font-weight:700">เปิดเอกสาร</a></td></tr>';
   }
   if (data.adminDocWordUrl) {
-    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">เอกสาร Admin (Word)</td>';
+    html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">เอกสารพิจารณาบทความวิชาการ (Word)</td>';
     html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.adminDocWordUrl + '" style="color:#6d28d9;font-weight:700">เปิดเอกสาร</a></td></tr>';
   }
   html += '</table>';
+
+  // แปลงวันที่ deadline เป็น วัน เดือน พ.ศ.
+  if (data.deadline) {
+    var thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    try {
+      var dl = new Date(data.deadline + 'T00:00:00+07:00');
+      var dlDay   = dl.getDate();
+      var dlMonth = thaiMonths[dl.getMonth()];
+      var dlYear  = dl.getFullYear() + 543;
+      html += '<div style="margin:20px 0;padding:14px 18px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0">';
+      html += '<p style="margin:0;font-size:.88rem;color:#92400e;font-weight:600">ขอความกรุณาท่านส่งมติกลับมา ภายในวันที่ ' + dlDay + ' เดือน' + dlMonth + ' พ.ศ.' + dlYear + ' เวลา 14.00 น.</p>';
+      html += '</div>';
+    } catch(e) {
+      html += '<p style="font-size:.88rem;color:#374151;margin-top:16px">ขอความกรุณาท่านส่งมติกลับมา ภายในวันที่ ' + data.deadline + ' เวลา 14.00 น.</p>';
+    }
+  }
 
   html += '<p style="font-size:.85rem;color:#6b7280;margin-top:20px">หากมีข้อสงสัยกรุณาติดต่อ คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>';
   html += '</div></div>';
