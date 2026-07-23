@@ -4354,6 +4354,12 @@ function loadAdminArticles(){
         'completed'          :['เสร็จสิ้น',                  '#d1fae5','#065f46','#6ee7b7']
       };
       var sl = stLabels[st]||stLabels['submitted'];
+      // Resolve which formatted doc file exists (PDF preferred over Word)
+      var fmtDoc = (a.files&&a.files.formattedDoc_pdf&&a.files.formattedDoc_pdf.url)
+        ? {url:a.files.formattedDoc_pdf.url, name:(a.files.formattedDoc_pdf.name||'เอกสาร PDF'), icon:'📄'}
+        : (a.files&&a.files.formattedDoc_word&&a.files.formattedDoc_word.url)
+        ? {url:a.files.formattedDoc_word.url, name:(a.files.formattedDoc_word.name||'เอกสาร Word'), icon:'📝'}
+        : null;
 
       // Determine action button based on status
       var actionBtn = '';
@@ -4390,17 +4396,16 @@ function loadAdminArticles(){
         +   '</div>'
         // ── Divider ──
         +   '<div style="border-top:2px solid #a5b4fc;margin:10px 0 8px;border-radius:2px"></div>'
-        // ── Section 2: Formatted doc (sent to experts) ──
+        // ── Section 2: Formatted doc (sent to experts) — single upload button ──
         +   '<div class="art-file-row-label">เอกสารที่จัดรูปแบบแล้ว <span style="font-size:.65rem;background:#ede9fe;color:#6d28d9;border-radius:4px;padding:1px 6px;margin-left:4px;font-weight:600">ส่งผู้ทรงฯ</span></div>'
         +   '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-        +   (a.files&&a.files.formattedDoc_pdf&&a.files.formattedDoc_pdf.url ? fileLink('PDF จัดรูปแบบ',a.files.formattedDoc_pdf.url,'📄','#6d28d9') : '')
-        +   (a.files&&a.files.formattedDoc_word&&a.files.formattedDoc_word.url ? fileLink('Word จัดรูปแบบ',a.files.formattedDoc_word.url,'📝','#6d28d9') : '')
-        +   '<label for="fdoc-pdf-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#6d28d9;border:1px dashed #c4b5fd;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'
-        +     (a.files&&a.files.formattedDoc_pdf&&a.files.formattedDoc_pdf.url?'🔄':'⬆') +' PDF</label>'
-        +   '<input type="file" id="fdoc-pdf-'+safeId+'" accept=".pdf" style="display:none" onchange="uploadFormattedDoc(\''+safeId+'\',\''+aid+'\',this,\'pdf\')">'
-        +   '<label for="fdoc-word-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#6d28d9;border:1px dashed #c4b5fd;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">'
-        +     (a.files&&a.files.formattedDoc_word&&a.files.formattedDoc_word.url?'🔄':'⬆') +' Word</label>'
-        +   '<input type="file" id="fdoc-word-'+safeId+'" accept=".doc,.docx" style="display:none" onchange="uploadFormattedDoc(\''+safeId+'\',\''+aid+'\',this,\'word\')">'
+        +   (fmtDoc
+              ? fileLink(fmtDoc.name, fmtDoc.url, fmtDoc.icon, '#6d28d9')
+                + '<label for="fdoc-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#6d28d9;border:1px dashed #c4b5fd;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">🔄 เปลี่ยน</label>'
+                + '<button onclick="deleteFormattedDoc(\''+safeId+'\',\''+aid+'\')" style="display:inline-flex;align-items:center;gap:3px;background:#fef2f2;color:#dc2626;border:1px dashed #fca5a5;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap;cursor:pointer;font-family:inherit">✕ ลบ</button>'
+              : '<label for="fdoc-'+safeId+'" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#6d28d9;border:1px dashed #c4b5fd;border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;white-space:nowrap">⬆ แนบไฟล์ (PDF / Word)</label>'
+           )
+        +   '<input type="file" id="fdoc-'+safeId+'" accept=".pdf,.doc,.docx" style="display:none" onchange="uploadFormattedDoc(\''+safeId+'\',\''+aid+'\',this)">'
         +   '</div>'
         // ── Section 3: Admin docs for experts ──
         +   '<div class="art-file-row-label" style="margin-top:8px">เอกสาร Admin <span style="font-size:.65rem;background:#fff7ed;color:#c2410c;border-radius:4px;padding:1px 6px;margin-left:4px;font-weight:600">แนบให้ผู้ทรงฯ</span></div>'
@@ -4559,22 +4564,41 @@ async function uploadAdminDoc(safeId, aid, input, type){
   } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); input.value=''; }
 }
 
-/* ── Admin: Upload formatted doc PDF/Word directly from card ── */
-async function uploadFormattedDoc(safeId, aid, input, type){
+/* ── Admin: Upload formatted doc (single button, PDF or Word auto-detected) ── */
+async function uploadFormattedDoc(safeId, aid, input){
   var file = input.files[0]; if(!file) return;
+  var ext = file.name.split('.').pop().toLowerCase();
+  var isPdf = ext === 'pdf';
+  var type = isPdf ? 'pdf' : 'word';
   showToast('⏳ กำลังอัพโหลด...');
   try {
     var up  = await uploadToGDrive(file, 'บทความวิชาการ', 'formatted_doc_'+type);
     var now = new Date().toISOString();
-    var key = type === 'pdf' ? 'formattedDoc_pdf' : 'formattedDoc_word';
     var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
     var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
     var userKey = a.userKey || emailToFbKey(a.userEmail||'');
-    var updates = {}; updates['files/'+key] = { url:up.url, name:up.name, uploadedAt:now };
+    // Write the new key, clear the other
+    var updates = {};
+    updates['files/formattedDoc_'+type]    = { url:up.url, name:up.name, uploadedAt:now };
+    updates['files/formattedDoc_'+(isPdf?'word':'pdf')] = null;
     await db.ref('pharma-form/_all_articles/'+aid).update(updates);
     if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
     showToast('✅ อัพโหลดเอกสารที่จัดรูปแบบแล้วสำเร็จ');
   } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); input.value=''; }
+}
+
+/* ── Admin: Delete formatted doc ── */
+async function deleteFormattedDoc(safeId, aid){
+  if(!confirm('ต้องการลบเอกสารที่จัดรูปแบบแล้วใช่ไหมครับ?')) return;
+  try {
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a) return;
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+    var updates = { 'files/formattedDoc_pdf': null, 'files/formattedDoc_word': null };
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+    showToast('🗑️ ลบเอกสารแล้ว');
+  } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
 }
 
 /* ── Admin: Upload expert feedback to user (round 1) ── */
