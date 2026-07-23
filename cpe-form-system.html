@@ -456,9 +456,22 @@ body::after{display:none}
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">บริการ</div>
+  <button class="sidebar-item" id="si-conf" onclick="sidebarGo('conf')">
+    <span class="si-icon">🎓</span> ประชุมวิชาการ
+    <span id="tab-dot-admin-conf" style="display:none;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;margin-left:auto;animation:pulse-dot 1.4s ease infinite;animation-delay:.3s"></span>
+  </button>
   <button class="sidebar-item" id="si-article" onclick="sidebarGo('article')">
     <span class="si-icon">📝</span> บทความวิชาการ
     <span class="si-badge" id="art-sidebar-badge"></span>
+  </button>
+  <button class="sidebar-item" id="si-search" onclick="sidebarGo('search')">
+    <span class="si-icon">🔍</span> ค้นหาหน่วยงาน
+  </button>
+  <!-- Admin items (shown after admin login) -->
+  <div id="sb-admin-divider" class="sidebar-divider" style="display:none"></div>
+  <div id="sb-admin-label" class="sidebar-section-label" style="display:none">Admin</div>
+  <button class="sidebar-item" id="si-requests" onclick="sidebarGo('my-requests')" style="display:none">
+    <span class="si-icon">📋</span> คำขอของฉัน
   </button>
   <!-- Bottom -->
   <div class="sidebar-bottom">คณะเภสัชศาสตร์<br>มหาวิทยาลัยบูรพา</div>
@@ -503,9 +516,6 @@ body::after{display:none}
   <!-- Main Tab Bar (shown after login) -->
   <div id="main-tab-bar" style="display:none" class="main-tab-bar">
     <button id="tab-btn-admin-manage" onclick="switchTab('admin-manage')" class="mtab" style="display:none">⚡ จัดการหน่วยงาน <span id="tab-dot-admin-manage" style="display:none;width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:pulse-dot 1.4s ease infinite"></span></button>
-    <button id="tab-btn-admin-conf"   onclick="switchTab('admin-conf')"   class="mtab" style="display:none">🎓 ประชุมวิชาการ <span id="tab-dot-admin-conf" style="display:none;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;animation:pulse-dot 1.4s ease infinite;animation-delay:.3s"></span></button>
-    <button id="tab-btn-my-requests"  onclick="switchTab('my-requests')"  class="mtab" style="display:none">📋 คำขอของฉัน</button>
-    <button id="tab-btn-search"       onclick="switchTab('search')"       class="mtab active">🔍 ค้นหาหน่วยงาน</button>
   </div>
 
   <!-- My Registration Status -->
@@ -1453,16 +1463,18 @@ var currentUser=null, isAdmin=false;
       <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
     </div>`;
   }
-  // Show tab bar for all logged-in users
-  document.getElementById('main-tab-bar').style.display = 'flex';
   if(isAdmin){
-    document.getElementById('tab-btn-admin-conf').style.display   = 'flex';
+    // Show admin tab bar (จัดการหน่วยงาน) + admin section in sidebar
+    document.getElementById('main-tab-bar').style.display = 'flex';
     document.getElementById('tab-btn-admin-manage').style.display = 'flex';
+    document.getElementById('sb-admin-divider').style.display = 'block';
+    document.getElementById('sb-admin-label').style.display   = 'block';
+    document.getElementById('si-requests').style.display      = 'flex';
     switchTab('admin-manage');
     loadOrgRequests();
     loadAllCpeConferences();
   } else {
-    switchTab('search');
+    sidebarGo('search');
   }
   loadMyOrgRequests();
   loadMyConferences();
@@ -1990,12 +2002,12 @@ function loadMyOrgRequests(){
     var section = document.getElementById('my-requests-section');
     var wrap    = document.getElementById('my-requests-wrap');
     if(!section||!wrap) return;
-    var tabBtn = document.getElementById('tab-btn-my-requests');
-    if(myReqs.length === 0){ if(tabBtn) tabBtn.style.display='none'; return; }
-    // Show the "คำขอของฉัน" tab button
-    if(tabBtn) tabBtn.style.display = 'flex';
-    // For non-admin users, auto-switch to this tab (admin stays on their default)
-    if(!isAdmin) switchTab('my-requests');
+    if(myReqs.length === 0){ return; }
+    // Show คำขอของฉัน in sidebar (both admin and non-admin)
+    var siReq = document.getElementById('si-requests');
+    if(siReq) siReq.style.display = 'flex';
+    // For non-admin users, auto-navigate to my-requests
+    if(!isAdmin) sidebarGo('my-requests');
 
     // ตรวจสอบหมดอายุของออร์กที่อนุมัติแล้ว (แสดงครั้งเดียวต่อ session)
     if(!window._expiryNoticeDone){
@@ -3998,14 +4010,27 @@ function toggleSidebar(){
 }
 
 function sidebarGo(section){
-  document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
+  // Navigate first (showView triggers syncSidebarActive which may reset active)
   if(section === 'main'){
-    document.getElementById('si-main').classList.add('active');
     showView('status');
+    switchTab('search');
   } else if(section === 'article'){
-    document.getElementById('si-article').classList.add('active');
     showView('article');
+  } else if(section === 'conf'){
+    showView('status');
+    switchTab('admin-conf');
+  } else if(section === 'search'){
+    showView('status');
+    switchTab('search');
+  } else if(section === 'my-requests'){
+    showView('status');
+    switchTab('my-requests');
   }
+  // Set active AFTER showView so syncSidebarActive doesn't overwrite
+  var idMap = { 'main':'si-main','article':'si-article','conf':'si-conf','search':'si-search','my-requests':'si-requests' };
+  document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
+  var target = document.getElementById(idMap[section]);
+  if(target) target.classList.add('active');
   // Close sidebar on mobile after navigation
   if(window.innerWidth < 769){
     document.getElementById('l-sidebar').classList.add('closed');
