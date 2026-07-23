@@ -503,8 +503,8 @@ body::after{display:none}
 <div id="view-status">
 <div class="container">
   <div class="hero">
-    <h2>💊 สถานะหน่วยงาน CPE</h2>
-    <p>ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรอง CPE</p>
+    <h2 id="hero-title">🏥 สถานะหน่วยงาน CPE</h2>
+    <p id="hero-sub">ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรอง CPE</p>
   </div>
 
   <!-- Registration Card (ทุกคนเห็น) -->
@@ -4009,6 +4009,23 @@ function toggleSidebar(){
   }
 }
 
+var _heroMap = {
+  'main'        : { icon:'🏥', title:'สถานะหน่วยงาน CPE',  sub:'ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรอง CPE' },
+  'manage'      : { icon:'⚡', title:'จัดการหน่วยงาน',      sub:'เพิ่ม แก้ไข และจัดการข้อมูลหน่วยงาน CPE ทั้งหมด' },
+  'conf'        : { icon:'🎓', title:'ประชุมวิชาการ',        sub:'ข้อมูลการจัดประชุมวิชาการที่ได้รับการยื่นคำขอในระบบ CPE' },
+  'article'     : { icon:'📝', title:'บทความวิชาการ',        sub:'ระบบนำส่งบทความวิชาการเพื่อขอรับหน่วยกิต CPE ทางเภสัชศาสตร์' },
+  'search'      : { icon:'🔍', title:'ค้นหาหน่วยงาน',       sub:'ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรองหน่วยกิต CPE' },
+  'my-requests' : { icon:'📋', title:'คำขอของฉัน',           sub:'ติดตามสถานะคำขอลงทะเบียนหน่วยงาน CPE ของท่าน' }
+};
+
+function _updateHero(section){
+  var h = _heroMap[section]; if(!h) return;
+  var t = document.getElementById('hero-title');
+  var s = document.getElementById('hero-sub');
+  if(t) t.textContent = h.icon + ' ' + h.title;
+  if(s) s.textContent = h.sub;
+}
+
 function sidebarGo(section){
   // Navigate first (showView triggers syncSidebarActive which may reset active)
   if(section === 'main'){
@@ -4034,6 +4051,8 @@ function sidebarGo(section){
   document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
   var target = document.getElementById(idMap[section]);
   if(target) target.classList.add('active');
+  // อัปเดต hero title/sub
+  _updateHero(section);
   // Close sidebar on mobile after navigation
   if(window.innerWidth < 769){
     document.getElementById('l-sidebar').classList.add('closed');
