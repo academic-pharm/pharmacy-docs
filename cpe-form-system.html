@@ -4031,6 +4031,9 @@ function sidebarGo(section){
   document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
   var target = document.getElementById(idMap[section]);
   if(target) target.classList.add('active');
+  // แสดง tab bar (จัดการหน่วยงาน) เฉพาะตอนอยู่หน้า main เท่านั้น
+  var _tb = document.getElementById('main-tab-bar');
+  if(_tb) _tb.style.display = (section === 'main' && isAdmin) ? 'flex' : 'none';
   // Close sidebar on mobile after navigation
   if(window.innerWidth < 769){
     document.getElementById('l-sidebar').classList.add('closed');
