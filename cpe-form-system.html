@@ -462,6 +462,7 @@ body::after{display:none}
   </button>
   <button class="sidebar-item" id="si-renew-status" onclick="sidebarGo('renew-status')">
     <span class="si-icon">📊</span> สถานะการต่ออายุ
+    <span id="tab-dot-renew-status" style="display:none;width:8px;height:8px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:auto;animation:pulse-dot 1.4s ease infinite;animation-delay:.2s"></span>
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">บริการ</div>
@@ -2111,6 +2112,8 @@ function loadMyOrgRequests(){
     _myApprovedOrgs = myReqs.filter(function(e){ return e[1].status === 'อนุมัติแล้ว'; }).map(function(e){
       return { orgKey: e[1].orgKey||'', orgName: e[1].name||'' };
     });
+    // อัปเดต dot แจ้งเตือนสถานะต่ออายุ
+    if(_myApprovedOrgs.length) updateRenewStatusDot(_myApprovedOrgs[0].orgKey);
 
     var section = document.getElementById('my-requests-section');
     var wrap    = document.getElementById('my-requests-wrap');
@@ -2886,6 +2889,9 @@ async function submitRenewalDocs(){
   renewFileStore = { letter:null, form59:null, payment:null };
   ['letter','form59','payment'].forEach(function(t){ clearRenewFile(t); });
   if(isAdmin){ loadRenewSubmissions(orgKey); return; }
+  // แสดง dot แจ้งเตือนทันที
+  var _dotEl = document.getElementById('tab-dot-renew-status');
+  if(_dotEl) _dotEl.style.display='inline-block';
   // แสดง success prompt + ซ่อน upload form
   var confPrompt = document.getElementById('renew-conf-prompt');
   var upSec = document.getElementById('renew-upload-section');
@@ -3026,6 +3032,25 @@ function loadRenewSubmissions(orgKey){
 }
 
 /* ════════════════════════════════
+   RENEWAL STATUS DOT (sidebar badge)
+════════════════════════════════ */
+function updateRenewStatusDot(orgKey){
+  var dot = document.getElementById('tab-dot-renew-status');
+  if(!dot || isAdmin) return;
+  if(!orgKey){ dot.style.display='none'; return; }
+  try{
+    db.ref('pharma-form/_cpe_renewals/'+orgKey).orderByKey().limitToLast(1).once('value',function(snap){
+      var data=snap.val();
+      if(!data||!Object.keys(data).length){ dot.style.display='none'; return; }
+      var latest=Object.values(data)[0];
+      var status=latest.status||'';
+      // แสดง dot เมื่อมีการต่ออายุที่ยังไม่เสร็จ
+      dot.style.display=(status==='รอตรวจสอบ'||status==='กำลังดำเนินการ')?'inline-block':'none';
+    });
+  }catch(e){ dot.style.display='none'; }
+}
+
+/* ════════════════════════════════
    RENEWAL STATUS VIEW (USER)
 ════════════════════════════════ */
 function loadRenewStatusView(orgKey){
@@ -3093,6 +3118,8 @@ function loadRenewStatusView(orgKey){
     } else if(status==='กำลังดำเนินการ'){
       msg='<div style="padding:10px 14px;background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.25);border-radius:10px;font-size:.83rem;color:#1e40af">📋 กำลังดำเนินการต่ออายุ — อยู่ระหว่างจัดทำเอกสารรับรอง</div>';
     } else if(status==='ต่ออายุแล้ว'){
+      // ต่ออายุสำเร็จ — ซ่อน dot
+      var _d=document.getElementById('tab-dot-renew-status'); if(_d) _d.style.display='none';
       if(certWrap) certWrap.style.display='block';
       var certLinks='';
       if(latest&&latest.certPdf&&latest.certPdf.url)
