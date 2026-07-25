@@ -2953,13 +2953,22 @@ function loadAllRenewals(){
             statusBadge='<span style="font-size:.72rem;font-weight:700;color:#1d4ed8;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.3);border-radius:20px;padding:3px 10px">📋 กำลังดำเนินการ</span>';
           else if(status==='ต่ออายุแล้ว')
             statusBadge='<span style="font-size:.72rem;font-weight:700;color:#065f46;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.3);border-radius:20px;padding:3px 10px">✅ ต่ออายุแล้ว</span>';
+          else if(status==='ถูกยกเลิก')
+            statusBadge='<span style="font-size:.72rem;font-weight:700;color:#991b1b;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:3px 10px">❌ ยกเลิกแล้ว</span>';
 
           // Admin action area
           var actionHtml='';
           var safeTs=ts.replace(/[^a-z0-9_]/gi,'_');
           if(status==='รอตรวจสอบ'){
-            actionHtml='<div style="margin-top:10px">'
-              +'<button class="btn btn-green btn-sm" onclick="adminConfirmRenewal(\''+orgKey+'\',\''+ts+'\')">✅ ยืนยันรับเอกสาร</button>'
+            actionHtml='<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'
+              +'<button class="btn btn-green btn-sm" onclick="adminConfirmRenewal(\''+orgKey+'\',\''+ts+'\')">✅ ยืนยัน</button>'
+              +'<button class="btn btn-danger btn-sm" onclick="adminRejectRenewal(\''+orgKey+'\',\''+ts+'\')">✕ ยกเลิก</button>'
+              +'</div>';
+          } else if(status==='ถูกยกเลิก'){
+            var rejAt=v.rejectedAt?'ยกเลิกเมื่อ: '+new Date(v.rejectedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+            actionHtml='<div style="margin-top:10px;padding:10px 14px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.2);border-radius:10px">'
+              +(rejAt?'<div style="font-size:.72rem;color:#6a6d77;margin-bottom:4px">'+rejAt+'</div>':'')
+              +'<div style="font-size:.82rem;color:#991b1b">เอกสารถูกยกเลิก — รอ user ส่งเอกสารใหม่</div>'
               +'</div>';
           } else if(status==='กำลังดำเนินการ'){
             var confAt=v.confirmedAt?'รับเอกสารเมื่อ: '+new Date(v.confirmedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
@@ -3044,8 +3053,8 @@ function updateRenewStatusDot(orgKey){
       if(!data||!Object.keys(data).length){ dot.style.display='none'; return; }
       var latest=Object.values(data)[0];
       var status=latest.status||'';
-      // แสดง dot เมื่อมีการต่ออายุที่ยังไม่เสร็จ
-      dot.style.display=(status==='รอตรวจสอบ'||status==='กำลังดำเนินการ')?'inline-block':'none';
+      // แสดง dot เมื่อมีการต่ออายุที่ยังไม่เสร็จ หรือถูกยกเลิก (ต้องส่งใหม่)
+      dot.style.display=(status==='รอตรวจสอบ'||status==='กำลังดำเนินการ'||status==='ถูกยกเลิก')?'inline-block':'none';
     });
   }catch(e){ dot.style.display='none'; }
 }
@@ -3066,8 +3075,9 @@ function loadRenewStatusView(orgKey){
   if(certWrap) certWrap.style.display='none';
   if(goUpload) goUpload.style.display='none';
 
-  function _dot(done, active){
+  function _dot(done, active, rejected){
     if(done) return '<div style="width:28px;height:28px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0">✓</div>';
+    if(rejected) return '<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0">✕</div>';
     if(active) return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(217,119,6,.12);border:2px solid #d97706;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span></div>';
     return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(200,210,230,.3);border:2px solid rgba(200,210,230,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:rgba(150,160,180,.4);display:inline-block"></span></div>';
   }
@@ -3079,9 +3089,12 @@ function loadRenewStatusView(orgKey){
   }
 
   function _render(status, latest){
-    var s1done  = !!status;
+    var rejected = status==='ถูกยกเลิก';
+    var s1done  = !!status && !rejected;
+    var s1done_rej = rejected; // submitted but rejected
     var s2done  = status==='กำลังดำเนินการ' || status==='ต่ออายุแล้ว';
     var s2active= status==='รอตรวจสอบ';
+    var s2rej   = rejected;
     var s3done  = status==='ต่ออายุแล้ว';
     var s3active= status==='กำลังดำเนินการ';
     var s4done  = status==='ต่ออายุแล้ว';
@@ -3089,22 +3102,22 @@ function loadRenewStatusView(orgKey){
     stepper.innerHTML=
       '<div style="display:flex;align-items:center;padding:10px 4px 4px">'+
         '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s1done,!s1done)+
-          '<div style="font-size:9px;color:'+(s1done?'#059669':'#b45309')+';text-align:center;line-height:1.4;font-weight:700">ส่งเอกสาร</div>'+
+          _dot(s1done||s1done_rej, !status && !rejected, false)+
+          '<div style="font-size:9px;color:'+((s1done||s1done_rej)?'#059669':'#b45309')+';text-align:center;line-height:1.4;font-weight:700">ส่งเอกสาร</div>'+
         '</div>'+
         _line(s2done)+
         '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s2done,s2active)+
-          '<div style="font-size:9px;color:'+(s2done?'#059669':(s2active?'#b45309':'#94a3b8'))+';text-align:center;line-height:1.4;font-weight:'+(s2done||s2active?'700':'400')+'">รอการ<br>ยืนยัน</div>'+
+          _dot(s2done, s2active, s2rej)+
+          '<div style="font-size:9px;color:'+(s2done?'#059669':(s2rej?'#ef4444':(s2active?'#b45309':'#94a3b8')))+';text-align:center;line-height:1.4;font-weight:'+(s2done||s2active||s2rej?'700':'400')+'">รอการ<br>ยืนยัน</div>'+
         '</div>'+
         _line(s3done)+
         '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s3done,s3active)+
+          _dot(s3done, s3active, false)+
           '<div style="font-size:9px;color:'+(s3done?'#059669':(s3active?'#b45309':'#94a3b8'))+';text-align:center;line-height:1.4;font-weight:'+(s3done||s3active?'700':'400')+'">กำลัง<br>ดำเนินการ</div>'+
         '</div>'+
         _line(s4done)+
         '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s4done,false)+
+          _dot(s4done, false, false)+
           '<div style="font-size:9px;color:'+(s4done?'#059669':'#94a3b8')+';text-align:center;line-height:1.4;font-weight:'+(s4done?'700':'400')+'">ต่ออายุ<br>แล้ว</div>'+
         '</div>'+
       '</div>';
@@ -3113,6 +3126,13 @@ function loadRenewStatusView(orgKey){
     var msg='';
     if(!status){
       if(goUpload) goUpload.style.display='block';
+    } else if(status==='ถูกยกเลิก'){
+      // dot ยังคงกระพริบ (user ต้องส่งใหม่)
+      msg='<div style="padding:12px 16px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.3);border-radius:10px">'
+        +'<div style="font-size:.88rem;font-weight:700;color:#991b1b;margin-bottom:6px">❌ เอกสารไม่ถูกต้อง กรุณาส่งเอกสารใหม่อีกครั้ง</div>'
+        +'<div style="font-size:.8rem;color:#b91c1c;margin-bottom:12px">เจ้าหน้าที่ตรวจสอบแล้วพบว่าเอกสารที่ส่งมาไม่ถูกต้องหรือไม่ครบถ้วน กรุณาตรวจสอบและส่งเอกสารใหม่อีกครั้ง</div>'
+        +'<button class="btn btn-primary btn-sm" onclick="sidebarGo(\'renewal\')">📤 ส่งเอกสารใหม่ →</button>'
+        +'</div>';
     } else if(status==='รอตรวจสอบ'){
       msg='<div style="padding:10px 14px;background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.25);border-radius:10px;font-size:.83rem;color:#92400e">⏳ ส่งเอกสารแล้ว — อยู่ระหว่างรอเจ้าหน้าที่ยืนยันรับเอกสาร</div>';
     } else if(status==='กำลังดำเนินการ'){
@@ -3166,13 +3186,25 @@ function loadRenewProgress(orgKey){
    RENEWAL ADMIN ACTIONS
 ════════════════════════════════ */
 async function adminConfirmRenewal(orgKey, ts){
-  if(!confirm('ยืนยันว่าได้รับเอกสารต่ออายุจากหน่วยงานนี้แล้ว?')) return;
+  if(!confirm('ยืนยันว่าเอกสารของหน่วยงานนี้ถูกต้องเรียบร้อย?')) return;
   try{
     await db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).update({
       status: 'กำลังดำเนินการ',
       confirmedAt: new Date().toISOString()
     });
-    showToast('✅ ยืนยันรับเอกสารแล้ว');
+    showToast('✅ ยืนยันเอกสารแล้ว');
+    loadAllRenewals();
+  }catch(e){ showToast('❌ '+e.message,'err'); }
+}
+
+async function adminRejectRenewal(orgKey, ts){
+  if(!confirm('ยืนยันการยกเลิก? ระบบจะแจ้ง user ให้ส่งเอกสารใหม่')) return;
+  try{
+    await db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).update({
+      status: 'ถูกยกเลิก',
+      rejectedAt: new Date().toISOString()
+    });
+    showToast('❌ ยกเลิกเอกสารแล้ว — user จะได้รับแจ้งให้ส่งใหม่');
     loadAllRenewals();
   }catch(e){ showToast('❌ '+e.message,'err'); }
 }
