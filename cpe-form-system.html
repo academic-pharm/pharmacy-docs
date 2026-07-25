@@ -3347,9 +3347,10 @@ function _buildRenewalSteps(v, orgKey, ts, safeTs){
       +'<button class="btn btn-outline btn-sm" style="border-color:rgba(90,123,255,.5);color:#5a7bff" onclick="openCouncilModal(\''+orgKey+'\',\''+ts+'\')">🏛️ ส่งสภาเภสัชกรรม</button>';
   } else {
     var cAt=v.councilSentAt?new Date(v.councilSentAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-    b2='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
-      +'<div style="'+T+'">ขั้นตอนที่ 2 — ส่งสภาเภสัชกรรม</div>'
-      +'<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 8px">✓ ส่งแล้ว'+(cAt?' · '+cAt:'')+'</span>'
+    b2='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      +'<div style="'+T+';flex:1;min-width:0">ขั้นตอนที่ 2 — ส่งสภาเภสัชกรรม</div>'
+      +'<button onclick="openCouncilModal(\''+orgKey+'\',\''+ts+'\')" style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:500;color:var(--sub);border:1px solid rgba(200,210,230,.6);border-radius:20px;padding:2px 9px;background:transparent;cursor:pointer;flex-shrink:0">🔄 ส่งอีเมลใหม่</button>'
+      +'<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 8px;flex-shrink:0;white-space:nowrap">✓ ส่งแล้ว'+(cAt?' · '+cAt:'')+'</span>'
       +'</div>';
   }
 
