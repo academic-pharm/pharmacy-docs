@@ -3015,47 +3015,8 @@ function loadAllRenewals(){
             statusBadge='<span style="font-size:.72rem;font-weight:700;color:#991b1b;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:3px 10px">❌ ยกเลิกแล้ว</span>';
 
           // Admin action area
-          var actionHtml='';
           var safeTs=ts.replace(/[^a-z0-9_]/gi,'_');
-          if(status==='รอตรวจสอบ'){
-            actionHtml='<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'
-              +'<button class="btn btn-green btn-sm" onclick="adminConfirmRenewal(\''+orgKey+'\',\''+ts+'\')">✅ ยืนยัน</button>'
-              +'<button class="btn btn-danger btn-sm" onclick="adminRejectRenewal(\''+orgKey+'\',\''+ts+'\')">✕ ยกเลิก</button>'
-              +'</div>';
-          } else if(status==='ถูกยกเลิก'){
-            var rejAt=v.rejectedAt?'ยกเลิกเมื่อ: '+new Date(v.rejectedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-            actionHtml='<div style="margin-top:10px;padding:10px 14px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.2);border-radius:10px">'
-              +(rejAt?'<div style="font-size:.72rem;color:#6a6d77;margin-bottom:4px">'+rejAt+'</div>':'')
-              +'<div style="font-size:.82rem;color:#991b1b">เอกสารถูกยกเลิก — รอ user ส่งเอกสารใหม่</div>'
-              +'</div>';
-          } else if(status==='กำลังดำเนินการ'){
-            var confAt=v.confirmedAt?'รับเอกสารเมื่อ: '+new Date(v.confirmedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-            actionHtml='<div style="margin-top:10px;padding:12px 14px;background:rgba(99,102,241,.04);border:1px solid rgba(99,102,241,.2);border-radius:10px">'
-              +(confAt?'<div style="font-size:.72rem;color:#6a6d77;margin-bottom:8px">'+confAt+'</div>':'')
-              +'<div style="font-weight:600;font-size:.82rem;color:var(--txt);margin-bottom:10px">📜 เอกสารรับรองการต่ออายุ</div>'
-              +'<div style="margin-bottom:8px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ PDF</label>'
-              +'<input type="file" id="rcert-pdf-'+safeTs+'" accept=".pdf" style="font-size:.8rem" onchange="handleRenewCertFile(\'pdf\',\''+ts+'\',this)">'
-              +'<div id="rcert-pdf-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
-              +'<div style="margin-bottom:10px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ Word</label>'
-              +'<input type="file" id="rcert-word-'+safeTs+'" accept=".doc,.docx" style="font-size:.8rem" onchange="handleRenewCertFile(\'word\',\''+ts+'\',this)">'
-              +'<div id="rcert-word-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
-              +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
-              +'<button class="btn btn-primary btn-sm" onclick="adminCompleteRenewal(\''+orgKey+'\',\''+ts+'\')">📤 ส่งเอกสารรับรองให้ user</button>'
-              +'<button class="btn btn-outline btn-sm" style="border-color:rgba(90,123,255,.4);color:#5a7bff" onclick="openCouncilModal(\''+orgKey+'\',\''+ts+'\')">🏛️ ส่งสภาเภสัชกรรม</button>'
-              +'</div>'
-              +'</div>';
-          } else if(status==='ต่ออายุแล้ว'){
-            var certLinks='';
-            if(v.certPdf&&v.certPdf.url) certLinks+='<a href="'+v.certPdf.url+'" target="_blank" style="font-size:.75rem;color:#5a7bff;text-decoration:none;padding:4px 8px;border:1px solid rgba(90,123,255,.3);border-radius:6px">📄 เอกสาร PDF</a>';
-            if(v.certWord&&v.certWord.url) certLinks+=' <a href="'+v.certWord.url+'" target="_blank" style="font-size:.75rem;color:#5a7bff;text-decoration:none;padding:4px 8px;border:1px solid rgba(90,123,255,.3);border-radius:6px">📝 เอกสาร Word</a>';
-            var compAt=v.completedAt?'ดำเนินการต่ออายุเมื่อ: '+new Date(v.completedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-            if(certLinks||compAt){
-              actionHtml='<div style="margin-top:10px;padding:8px 12px;background:rgba(5,150,105,.04);border:1px solid rgba(5,150,105,.2);border-radius:8px">'
-                +(compAt?'<div style="font-size:.72rem;color:#6a6d77;margin-bottom:6px">'+compAt+'</div>':'')
-                +(certLinks?'<div style="display:flex;flex-wrap:wrap;gap:6px">'+certLinks+'</div>':'')
-                +'</div>';
-            }
-          }
+          var actionHtml=_buildRenewalSteps(v, orgKey, ts, safeTs);
 
           return '<div style="padding:14px 16px;border:1px solid rgba(200,210,230,.4);border-radius:12px;margin-bottom:10px">'
             +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:8px">'
@@ -3304,6 +3265,116 @@ async function adminCompleteRenewal(orgKey, ts){
 }
 
 /* ════════════════════════════════
+   RENEWAL 3-STEP ADMIN STEPPER
+════════════════════════════════ */
+function _buildRenewalSteps(v, orgKey, ts, safeTs){
+  var status = v.status||'รอตรวจสอบ';
+  var councilSent = !!v.councilSentAt;
+  var completed = status==='ต่ออายุแล้ว';
+
+  if(status==='ถูกยกเลิก'){
+    var rejAt=v.rejectedAt?'ยกเลิกเมื่อ: '+new Date(v.rejectedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    return '<div style="margin-top:10px;padding:10px 14px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.2);border-radius:10px">'
+      +(rejAt?'<div style="font-size:.72rem;color:#6a6d77;margin-bottom:4px">'+rejAt+'</div>':'')
+      +'<div style="font-size:.82rem;color:#991b1b">เอกสารถูกยกเลิก — รอ user ส่งเอกสารใหม่</div>'
+      +'</div>';
+  }
+
+  var s1 = (status==='รอตรวจสอบ') ? 'active' : 'done';
+  var s2 = (status==='รอตรวจสอบ') ? 'locked' : (!councilSent&&!completed) ? 'active' : 'done';
+  var s3 = (status==='รอตรวจสอบ'||(!councilSent&&!completed)) ? 'locked' : (completed ? 'done' : 'active');
+
+  function _circ(n, st){
+    var bg,col,bdr;
+    if(st==='done'){bg='rgba(5,150,105,.1)';col='#059669';bdr='1.5px solid rgba(5,150,105,.4)';}
+    else if(st==='active'){bg='rgba(37,99,235,.1)';col='#1d4ed8';bdr='1.5px solid rgba(37,99,235,.4)';}
+    else{bg='rgba(200,210,230,.2)';col='#9ca3af';bdr='1px solid rgba(200,210,230,.6)';}
+    return '<div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;background:'+bg+';color:'+col+';border:'+bdr+'">'+(st==='done'?'✓':n)+'</div>';
+  }
+  function _conn(st){
+    return '<div style="width:1.5px;flex:1;min-height:14px;background:'+(st==='done'?'rgba(5,150,105,.4)':'rgba(200,210,230,.5)')+';margin:3px 0 3px 12.25px"></div>';
+  }
+  function _row(circ, conn, body, last){
+    return '<div style="display:flex;gap:10px">'
+      +'<div style="display:flex;flex-direction:column;align-items:center">'+circ+(last?'':conn)+'</div>'
+      +'<div style="flex:1;padding-bottom:'+(last?'0':'14px')+'">'+body+'</div>'
+      +'</div>';
+  }
+
+  var T='font-size:.84rem;font-weight:700;color:var(--txt);margin-bottom:2px';
+  var TL='font-size:.84rem;font-weight:700;color:#9ca3af;margin-bottom:2px';
+  var D='font-size:.76rem;color:var(--sub);margin-bottom:8px';
+  var DL='font-size:.76rem;color:#c0c4d0;margin-bottom:8px';
+
+  // Step 1
+  var b1='';
+  if(s1==='active'){
+    b1='<div style="'+T+'">ขั้นตอนที่ 1 — ยืนยันเอกสารของหน่วยงาน</div>'
+      +'<div style="'+D+'">ตรวจสอบเอกสารที่ user นำส่ง แล้วยืนยันหรือยกเลิก</div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-green btn-sm" onclick="adminConfirmRenewal(\''+orgKey+'\',\''+ts+'\')">✅ ยืนยัน</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="adminRejectRenewal(\''+orgKey+'\',\''+ts+'\')">✕ ยกเลิก</button>'
+      +'</div>';
+  } else {
+    var confAt=v.confirmedAt?new Date(v.confirmedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    b1='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 1 — ยืนยันเอกสารของหน่วยงาน</div>'
+      +'<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 8px">✓ ยืนยันแล้ว'+(confAt?' · '+confAt:'')+'</span>'
+      +'</div>';
+  }
+
+  // Step 2
+  var b2='';
+  if(s2==='locked'){
+    b2='<div style="'+TL+'">ขั้นตอนที่ 2 — ส่งสภาเภสัชกรรม</div>'
+      +'<div style="'+DL+'">ปลดล็อกเมื่อยืนยันเอกสารแล้ว</div>';
+  } else if(s2==='active'){
+    b2='<div style="'+T+'">ขั้นตอนที่ 2 — ส่งสภาเภสัชกรรม</div>'
+      +'<div style="'+D+'">รวมเอกสารทั้งหมดและส่งไปยังสภาเภสัชกรรม</div>'
+      +'<button class="btn btn-outline btn-sm" style="border-color:rgba(90,123,255,.5);color:#5a7bff" onclick="openCouncilModal(\''+orgKey+'\',\''+ts+'\')">🏛️ ส่งสภาเภสัชกรรม</button>';
+  } else {
+    var cAt=v.councilSentAt?new Date(v.councilSentAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    b2='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 2 — ส่งสภาเภสัชกรรม</div>'
+      +'<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 8px">✓ ส่งแล้ว'+(cAt?' · '+cAt:'')+'</span>'
+      +'</div>';
+  }
+
+  // Step 3
+  var b3='';
+  if(s3==='locked'){
+    b3='<div style="'+TL+'">ขั้นตอนที่ 3 — ส่งเอกสารรับรองให้ user</div>'
+      +'<div style="'+DL+'">ปลดล็อกเมื่อส่งสภาเภสัชกรรมแล้ว</div>';
+  } else if(s3==='active'){
+    b3='<div style="'+T+'">ขั้นตอนที่ 3 — ส่งเอกสารรับรองให้ user</div>'
+      +'<div style="'+D+'">อัปโหลดเอกสารรับรองการต่ออายุ แล้วส่งให้หน่วยงาน</div>'
+      +'<div style="margin-bottom:8px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ PDF</label>'
+      +'<input type="file" id="rcert-pdf-'+safeTs+'" accept=".pdf" style="font-size:.8rem" onchange="handleRenewCertFile(\'pdf\',\''+ts+'\',this)">'
+      +'<div id="rcert-pdf-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
+      +'<div style="margin-bottom:10px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ Word</label>'
+      +'<input type="file" id="rcert-word-'+safeTs+'" accept=".doc,.docx" style="font-size:.8rem" onchange="handleRenewCertFile(\'word\',\''+ts+'\',this)">'
+      +'<div id="rcert-word-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
+      +'<button class="btn btn-primary btn-sm" onclick="adminCompleteRenewal(\''+orgKey+'\',\''+ts+'\')">📤 ส่งเอกสารรับรองให้ user</button>';
+  } else {
+    var certLinks='';
+    if(v.certPdf&&v.certPdf.url) certLinks+='<a href="'+v.certPdf.url+'" target="_blank" style="font-size:.75rem;color:#5a7bff;text-decoration:none;padding:4px 8px;border:1px solid rgba(90,123,255,.3);border-radius:6px">📄 เอกสาร PDF</a>';
+    if(v.certWord&&v.certWord.url) certLinks+=' <a href="'+v.certWord.url+'" target="_blank" style="font-size:.75rem;color:#5a7bff;text-decoration:none;padding:4px 8px;border:1px solid rgba(90,123,255,.3);border-radius:6px">📝 เอกสาร Word</a>';
+    var compAt=v.completedAt?new Date(v.completedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    b3='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 3 — ส่งเอกสารรับรองให้ user</div>'
+      +'<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 8px">✓ ส่งแล้ว'+(compAt?' · '+compAt:'')+'</span>'
+      +'</div>'
+      +(certLinks?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">'+certLinks+'</div>':'');
+  }
+
+  return '<div style="margin-top:10px;padding:12px 14px;background:rgba(99,102,241,.03);border:1px solid rgba(200,210,230,.4);border-radius:10px">'
+    +_row(_circ(1,s1),_conn(s1),b1,false)
+    +_row(_circ(2,s2),_conn(s2),b2,false)
+    +_row(_circ(3,s3),_conn(s3),b3,true)
+    +'</div>';
+}
+
+/* ════════════════════════════════
    COUNCIL MODAL
 ════════════════════════════════ */
 var _councilExtraFile = null;
@@ -3443,8 +3514,17 @@ async function sendToCouncil(){
     });
     var result = await resp.json();
     if(result.status === 'ok' || result.result === 'success'){
+      // Save councilSentAt to Firebase so step 3 unlocks
+      var _orgKey = modal._orgKey || '';
+      var _ts = modal._ts || '';
+      if(_orgKey && _ts){
+        try{ await db.ref('pharma-form/_cpe_renewals/'+_orgKey+'/'+_ts).update({ councilSentAt: new Date().toISOString(), councilEmail: email }); }
+        catch(e2){ /* non-fatal */ }
+      }
       statusEl.textContent = '✅ ส่งเอกสารทั้งหมดไปยัง ' + email + ' เรียบร้อยแล้ว';
       statusEl.style.color = '#059669';
+      // Refresh admin list after short delay so user sees the success message
+      setTimeout(function(){ closeCouncilModal(); loadAllRenewals(); }, 1800);
     } else {
       throw new Error(result.message || 'ไม่สามารถส่งอีเมลได้');
     }
