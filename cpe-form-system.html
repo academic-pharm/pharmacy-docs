@@ -486,9 +486,6 @@ body::after{display:none}
   <!-- Admin items (shown after admin login) -->
   <div id="sb-admin-divider" class="sidebar-divider" style="display:none"></div>
   <div id="sb-admin-label" class="sidebar-section-label" style="display:none">Admin</div>
-  <button class="sidebar-item" id="si-requests" onclick="sidebarGo('my-requests')" style="display:none">
-    <span class="si-icon">📋</span> คำขอของฉัน
-  </button>
   <!-- Bottom -->
   <div class="sidebar-bottom">คณะเภสัชศาสตร์<br>มหาวิทยาลัยบูรพา</div>
 </div>
@@ -847,6 +844,41 @@ body::after{display:none}
     </div>
     <div style="margin-top:12px">
       <button class="btn btn-outline" onclick="sidebarGo('renewal')">🔄 ไปยื่นเอกสารต่ออายุ →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════
+     VIEW SEARCH : ค้นหาหน่วยงาน
+════════════════════════════════ -->
+<div id="view-search" style="display:none">
+<div class="container">
+  <div class="hero">
+    <h2>🔍 ค้นหาหน่วยงาน</h2>
+    <p>ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรองหน่วยกิต CPE</p>
+  </div>
+  <div class="fsec">
+    <div class="search-wrap">
+      <input type="text" id="org-search" placeholder="พิมพ์ชื่อหน่วยงาน..." oninput="searchOrgs(this.value)" autocomplete="off">
+      <span class="s-icon">🔍</span>
+      <div class="search-results" id="search-results"></div>
+    </div>
+    <div class="status-card" id="status-card">
+      <div class="sc-org" id="sc-org-name"></div>
+      <div class="sc-row">
+        <span class="sc-label">วันที่ลงทะเบียน</span>
+        <span class="sc-val" id="sc-reg-date"></span>
+      </div>
+      <div class="sc-row">
+        <span class="sc-label">วันหมดอายุ</span>
+        <span class="sc-val" id="sc-exp-date"></span>
+      </div>
+      <div class="sc-row">
+        <span class="sc-label">สถานะ</span>
+        <span class="sc-badge" id="sc-badge"></span>
+      </div>
+      <div class="sc-btns" id="sc-btns"></div>
     </div>
   </div>
 </div>
@@ -1605,7 +1637,6 @@ var currentUser=null, isAdmin=false;
     // Show admin section in sidebar
     document.getElementById('sb-admin-divider').style.display = 'block';
     document.getElementById('sb-admin-label').style.display   = 'block';
-    document.getElementById('si-requests').style.display      = 'flex';
     sidebarGo('main');
     loadOrgRequests();
     loadAllCpeConferences();
@@ -1706,7 +1737,7 @@ function switchTab(id){
 }
 
 function showView(id, orgKey, orgName){
-  ['status','renew','renew-status','conference','admin-renewals','article'].forEach(v=>document.getElementById('view-'+v).style.display='none');
+  ['status','search','renew','renew-status','conference','admin-renewals','article'].forEach(v=>{ var _v=document.getElementById('view-'+v); if(_v) _v.style.display='none'; });
   // ซ่อน renew success prompt เมื่อออกจากหน้า renew
   if(id !== 'renew'){ var _rcp=document.getElementById('renew-conf-prompt'); if(_rcp) _rcp.style.display='none'; }
   // reset conference status card เมื่อออกจากหน้า conference
@@ -2198,9 +2229,6 @@ function loadMyOrgRequests(){
     if(myReqs.length === 0){ return; }
     // Show section directly (no longer a switchTab tab)
     section.style.display = 'block';
-    // Show คำขอของฉัน in sidebar
-    var siReq = document.getElementById('si-requests');
-    if(siReq) siReq.style.display = 'flex';
 
     // ตรวจสอบหมดอายุของออร์กที่อนุมัติแล้ว (แสดงครั้งเดียวต่อ session)
     if(!window._expiryNoticeDone){
@@ -4973,7 +5001,7 @@ function sidebarGo(section){
   // Navigate first (showView triggers syncSidebarActive which may reset active)
   if(section === 'main'){
     showView('status');
-    switchTab(isAdmin ? 'admin-manage' : 'search');
+    if(isAdmin) switchTab('admin-manage');
   } else if(section === 'manage'){
     showView('status');
     switchTab('admin-manage');
@@ -4983,11 +5011,7 @@ function sidebarGo(section){
     showView('status');
     if(isAdmin){ switchTab('admin-conf'); } else { switchTab('user-conf'); renderUserConfPanel(); }
   } else if(section === 'search'){
-    showView('status');
-    switchTab('search');
-  } else if(section === 'my-requests'){
-    showView('status');
-    switchTab('my-requests');
+    showView('search');
   } else if(section === 'renewal'){
     var _rKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : '');
     var _rName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
@@ -5002,7 +5026,7 @@ function sidebarGo(section){
     }
   }
   // Set active AFTER showView so syncSidebarActive doesn't overwrite
-  var idMap = { 'main':'si-main','manage':'si-manage','article':'si-article','conf':'si-conf','search':'si-search','my-requests':'si-requests','renewal':'si-renewal','renew-status':'si-renew-status' };
+  var idMap = { 'main':'si-main','manage':'si-manage','article':'si-article','conf':'si-conf','search':'si-search','renewal':'si-renewal','renew-status':'si-renew-status' };
   document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
   var target = document.getElementById(idMap[section]);
   if(target) target.classList.add('active');
