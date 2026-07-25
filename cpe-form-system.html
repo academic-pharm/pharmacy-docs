@@ -282,6 +282,11 @@ body::after{display:none}
   display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
 #reg-panel{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);
   width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:odm-up .22s cubic-bezier(.32,.72,0,1)}
+/* ── Council Send Modal ── */
+#council-modal{position:fixed;inset:0;z-index:9200;background:rgba(10,12,24,.6);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
+#council-panel{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);
+  width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:odm-up .22s cubic-bezier(.32,.72,0,1)}
 /* ── Article Registration Modal ── */
 #art-reg-modal{position:fixed;inset:0;z-index:9100;background:rgba(10,12,24,.6);backdrop-filter:blur(5px);
   display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
@@ -1165,6 +1170,59 @@ body::after{display:none}
 </div><!-- /view-article -->
 
 </div><!-- /main-wrap -->
+
+<!-- COUNCIL SEND MODAL -->
+<div id="council-modal" style="display:none" onclick="if(event.target===this)closeCouncilModal()">
+  <div id="council-panel">
+    <div class="odm-header">
+      <div>
+        <div class="odm-title">📨 ส่งเอกสารต่ออายุไปยังสภาเภสัชกรรม</div>
+        <div class="odm-sub" id="council-modal-org-label">รวมและส่งเอกสารทั้งหมดทางอีเมล</div>
+      </div>
+      <button class="odm-close" onclick="closeCouncilModal()">✕</button>
+    </div>
+    <div class="odm-body" style="overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+
+      <!-- เอกสารที่ user ส่งมา -->
+      <div>
+        <div style="font-size:.72rem;font-weight:700;color:#6a6d77;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">เอกสารของหน่วยงาน</div>
+        <div id="council-modal-docs" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+
+      <!-- อัปโหลดเอกสารเพิ่มเติม -->
+      <div>
+        <div style="font-size:.72rem;font-weight:700;color:#6a6d77;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">แนบเอกสารเพิ่มเติม (PDF) — ถ้ามี</div>
+        <div class="file-zone rsc-zone" id="council-extra-zone"
+             onclick="document.getElementById('council-extra-file').click()"
+             ondragover="event.preventDefault();this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="handleCouncilExtraDrop(event)">
+          <input type="file" id="council-extra-file" accept=".pdf" style="display:none" onchange="handleCouncilExtraFile(this)">
+          <div class="fz-icon">📄</div>
+          <div class="fz-label">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
+        </div>
+        <div id="council-extra-bar" style="display:none;margin-top:8px;display:none;align-items:center;gap:8px;padding:8px 12px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2);border-radius:8px">
+          <span style="color:#059669;font-size:.9rem">✓</span>
+          <span id="council-extra-name" style="font-size:.83rem;color:var(--txt);flex:1"></span>
+          <button onclick="clearCouncilExtra()" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:.8rem;padding:2px 6px">✕</button>
+        </div>
+      </div>
+
+      <!-- อีเมลผู้รับ -->
+      <div>
+        <label style="font-size:.72rem;font-weight:700;color:#6a6d77;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px">อีเมลผู้รับ</label>
+        <input type="email" id="council-email-input" placeholder="email@pharmacycouncil.or.th" style="width:100%;box-sizing:border-box">
+      </div>
+
+      <!-- ปุ่ม -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="sendToCouncil()">📨 ส่งเอกสารทั้งหมด</button>
+        <button class="btn btn-outline" onclick="closeCouncilModal()">ยกเลิก</button>
+      </div>
+      <div id="council-send-status" style="font-size:.84rem"></div>
+    </div>
+  </div>
+</div>
 
 <!-- REGISTRATION MODAL -->
 <div id="reg-modal" style="display:none" onclick="if(event.target===this)closeRegisterModal()">
@@ -2981,7 +3039,10 @@ function loadAllRenewals(){
               +'<div style="margin-bottom:10px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ Word</label>'
               +'<input type="file" id="rcert-word-'+safeTs+'" accept=".doc,.docx" style="font-size:.8rem" onchange="handleRenewCertFile(\'word\',\''+ts+'\',this)">'
               +'<div id="rcert-word-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
-              +'<button class="btn btn-primary btn-sm" onclick="adminCompleteRenewal(\''+orgKey+'\',\''+ts+'\')">📤 ส่งเอกสารรับรองการต่ออายุ</button>'
+              +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+              +'<button class="btn btn-primary btn-sm" onclick="adminCompleteRenewal(\''+orgKey+'\',\''+ts+'\')">📤 ส่งเอกสารรับรองให้ user</button>'
+              +'<button class="btn btn-outline btn-sm" style="border-color:rgba(90,123,255,.4);color:#5a7bff" onclick="openCouncilModal(\''+orgKey+'\',\''+ts+'\')">🏛️ ส่งสภาเภสัชกรรม</button>'
+              +'</div>'
               +'</div>';
           } else if(status==='ต่ออายุแล้ว'){
             var certLinks='';
@@ -3240,6 +3301,157 @@ async function adminCompleteRenewal(orgKey, ts){
     delete _renewCertStore[ts];
     loadAllRenewals();
   }catch(e){ showToast('❌ '+e.message,'err'); }
+}
+
+/* ════════════════════════════════
+   COUNCIL MODAL
+════════════════════════════════ */
+var _councilExtraFile = null;
+
+function openCouncilModal(orgKey, ts){
+  var modal = document.getElementById('council-modal');
+  if(!modal) return;
+  _councilExtraFile = null;
+  document.getElementById('council-extra-bar').style.display = 'none';
+  document.getElementById('council-extra-name').textContent = '';
+  document.getElementById('council-email-input').value = '';
+  document.getElementById('council-send-status').textContent = '';
+  var extraZone = document.getElementById('council-extra-zone');
+  if(extraZone){ extraZone.querySelector('.fz-label').textContent = 'คลิกหรือลากไฟล์ PDF มาวางที่นี่'; }
+
+  // Store context
+  modal._orgKey = orgKey;
+  modal._ts = ts;
+
+  // Set org label
+  var labelEl = document.getElementById('council-modal-org-label');
+  if(labelEl) labelEl.textContent = 'รวมและส่งเอกสารทั้งหมดทางอีเมล — ' + orgKey;
+
+  // Fetch Firebase record and populate docs
+  var docsEl = document.getElementById('council-modal-docs');
+  if(docsEl) docsEl.innerHTML = '<span style="font-size:.8rem;color:var(--sub)">กำลังโหลด...</span>';
+
+  firebase.auth().onAuthStateChanged(function(user){
+    if(!user) return;
+    db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).once('value', function(snap){
+      var rec = snap.val()||{};
+      var chips = '';
+      // User-submitted docs
+      if(rec.doc1 && rec.doc1.url) chips += _councilDocChip(rec.doc1.url, rec.doc1.name||'เอกสาร 1');
+      if(rec.doc2 && rec.doc2.url) chips += _councilDocChip(rec.doc2.url, rec.doc2.name||'เอกสาร 2');
+      if(rec.doc3 && rec.doc3.url) chips += _councilDocChip(rec.doc3.url, rec.doc3.name||'เอกสาร 3');
+      // Admin cert docs
+      if(rec.certPdf && rec.certPdf.url) chips += _councilDocChip(rec.certPdf.url, rec.certPdf.name||'เอกสารรับรอง PDF');
+      if(rec.certWord && rec.certWord.url) chips += _councilDocChip(rec.certWord.url, rec.certWord.name||'เอกสารรับรอง Word');
+
+      // Org name for label
+      if(labelEl && rec.orgName) labelEl.textContent = 'รวมและส่งเอกสารทั้งหมดทางอีเมล — ' + rec.orgName;
+
+      if(docsEl) docsEl.innerHTML = chips || '<span style="font-size:.8rem;color:var(--sub)">ไม่พบเอกสาร</span>';
+
+      // Store URLs for sendToCouncil
+      modal._docUrls = [];
+      if(rec.doc1 && rec.doc1.url) modal._docUrls.push({url:rec.doc1.url, name:rec.doc1.name||'เอกสาร 1'});
+      if(rec.doc2 && rec.doc2.url) modal._docUrls.push({url:rec.doc2.url, name:rec.doc2.name||'เอกสาร 2'});
+      if(rec.doc3 && rec.doc3.url) modal._docUrls.push({url:rec.doc3.url, name:rec.doc3.name||'เอกสาร 3'});
+      if(rec.certPdf && rec.certPdf.url) modal._docUrls.push({url:rec.certPdf.url, name:rec.certPdf.name||'เอกสารรับรอง PDF'});
+      if(rec.certWord && rec.certWord.url) modal._docUrls.push({url:rec.certWord.url, name:rec.certWord.name||'เอกสารรับรอง Word'});
+    });
+  });
+
+  modal.style.display = 'flex';
+  requestAnimationFrame(function(){ modal.style.opacity='1'; });
+}
+
+function _councilDocChip(url, name){
+  return '<a href="'+url+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:.75rem;color:#5a7bff;text-decoration:none;padding:5px 10px;border:1px solid rgba(90,123,255,.3);border-radius:8px;background:rgba(90,123,255,.05)">'
+    +'📄 '+name+'</a>';
+}
+
+function closeCouncilModal(){
+  var modal = document.getElementById('council-modal');
+  if(modal) modal.style.display = 'none';
+}
+
+function handleCouncilExtraFile(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  _councilExtraFile = file;
+  document.getElementById('council-extra-name').textContent = file.name;
+  document.getElementById('council-extra-bar').style.display = 'flex';
+  var zone = document.getElementById('council-extra-zone');
+  if(zone) zone.querySelector('.fz-label').textContent = file.name;
+}
+
+function handleCouncilExtraDrop(event){
+  event.preventDefault();
+  var zone = document.getElementById('council-extra-zone');
+  if(zone) zone.classList.remove('drag');
+  var file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+  if(!file) return;
+  if(file.type !== 'application/pdf'){ showToast('กรุณาอัปโหลดไฟล์ PDF เท่านั้น','err'); return; }
+  _councilExtraFile = file;
+  document.getElementById('council-extra-name').textContent = file.name;
+  document.getElementById('council-extra-bar').style.display = 'flex';
+  if(zone) zone.querySelector('.fz-label').textContent = file.name;
+}
+
+function clearCouncilExtra(){
+  _councilExtraFile = null;
+  document.getElementById('council-extra-name').textContent = '';
+  document.getElementById('council-extra-bar').style.display = 'none';
+  document.getElementById('council-extra-file').value = '';
+  var zone = document.getElementById('council-extra-zone');
+  if(zone) zone.querySelector('.fz-label').textContent = 'คลิกหรือลากไฟล์ PDF มาวางที่นี่';
+}
+
+async function sendToCouncil(){
+  var modal = document.getElementById('council-modal');
+  var emailInput = document.getElementById('council-email-input');
+  var statusEl = document.getElementById('council-send-status');
+  var email = emailInput ? emailInput.value.trim() : '';
+  if(!email || !email.includes('@')){
+    statusEl.textContent = '❌ กรุณากรอกอีเมลให้ถูกต้อง';
+    statusEl.style.color = '#ef4444';
+    return;
+  }
+  statusEl.textContent = '⏳ กำลังส่งเอกสาร...';
+  statusEl.style.color = 'var(--sub)';
+
+  var docUrls = (modal._docUrls || []).map(function(d){ return d.url; });
+
+  try{
+    // Upload extra PDF if provided
+    if(_councilExtraFile){
+      statusEl.textContent = '⏳ กำลังอัปโหลดเอกสารเพิ่มเติม...';
+      var orgKey = modal._orgKey || '';
+      var r = await uploadToGDrive(_councilExtraFile, orgKey, 'เอกสารเพิ่มเติม-สภา');
+      docUrls.push(r.url);
+    }
+
+    // Send email via Apps Script
+    var payload = {
+      action: 'send_council_email',
+      to: email,
+      orgKey: modal._orgKey || '',
+      ts: modal._ts || '',
+      docUrls: docUrls
+    };
+    var resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    var result = await resp.json();
+    if(result.status === 'ok' || result.result === 'success'){
+      statusEl.textContent = '✅ ส่งเอกสารทั้งหมดไปยัง ' + email + ' เรียบร้อยแล้ว';
+      statusEl.style.color = '#059669';
+    } else {
+      throw new Error(result.message || 'ไม่สามารถส่งอีเมลได้');
+    }
+  } catch(e){
+    statusEl.textContent = '❌ ' + e.message;
+    statusEl.style.color = '#ef4444';
+  }
 }
 
 /* ════════════════════════════════
