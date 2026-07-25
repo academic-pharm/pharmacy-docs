@@ -285,8 +285,9 @@ body::after{display:none}
 /* ── Council Send Modal ── */
 #council-modal{position:fixed;inset:0;z-index:9200;background:rgba(10,12,24,.6);backdrop-filter:blur(5px);
   display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
-#council-panel{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);
+#council-panel,#cert-panel{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);
   width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:odm-up .22s cubic-bezier(.32,.72,0,1)}
+#cert-panel{max-width:440px}
 /* ── Article Registration Modal ── */
 #art-reg-modal{position:fixed;inset:0;z-index:9100;background:rgba(10,12,24,.6);backdrop-filter:blur(5px);
   display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease}
@@ -1233,6 +1234,42 @@ body::after{display:none}
         <button class="btn btn-outline" onclick="closeCouncilModal()">ยกเลิก</button>
       </div>
       <div id="council-send-status" style="font-size:.84rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CERT SEND MODAL -->
+<div id="cert-modal" style="display:none" onclick="if(event.target===this)closeCertModal()">
+  <div id="cert-panel">
+    <div class="odm-header">
+      <div>
+        <div class="odm-title">📜 ส่งเอกสารรับรองการต่ออายุ</div>
+        <div class="odm-sub" id="cert-modal-org-label">อัปโหลดใบรับรองและส่งให้หน่วยงาน</div>
+      </div>
+      <button class="odm-close" onclick="closeCertModal()">✕</button>
+    </div>
+    <div style="padding:18px 20px;overflow-y:auto">
+      <!-- Single file zone -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:.75rem;font-weight:600;color:#6a6d77;margin-bottom:6px">เอกสารรับรอง (.pdf / .doc / .docx)</div>
+        <label id="cert-drop-zone" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px dashed rgba(200,210,230,.6);border-radius:10px;background:rgba(248,250,255,.5);cursor:pointer;transition:border-color .15s">
+          <input type="file" id="cert-file-input" accept=".pdf,.doc,.docx" style="display:none" onchange="handleCertFileSelect(this)">
+          <div id="cert-file-icon" style="width:34px;height:34px;border-radius:8px;background:rgba(200,210,230,.2);border:1px solid rgba(200,210,230,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📎</div>
+          <div id="cert-file-info" style="flex:1;min-width:0">
+            <div id="cert-file-name" style="font-size:.8rem;font-weight:500;color:#94a3b8">คลิกเพื่อเลือกไฟล์</div>
+            <div id="cert-file-size" style="font-size:.7rem;color:#b0b8c9;margin-top:1px">.pdf / .doc / .docx</div>
+          </div>
+          <div id="cert-file-remove" style="display:none;font-size:12px;color:#94a3b8;cursor:pointer;padding:4px;flex-shrink:0" onclick="removeCertFile(event)">✕</div>
+        </label>
+      </div>
+      <!-- Email note -->
+      <div style="padding:10px 12px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.2);border-radius:8px;font-size:.75rem;color:#065f46;margin-bottom:18px">
+        ✉️ ระบบจะส่งอีเมลแจ้งเตือนพร้อมลิงก์ดาวน์โหลดให้หน่วยงานโดยอัตโนมัติ
+      </div>
+      <!-- Status -->
+      <div id="cert-status" style="font-size:.82rem;margin-bottom:12px;min-height:20px"></div>
+      <!-- Send button -->
+      <button id="cert-send-btn" onclick="adminCompleteRenewal()" style="width:100%;padding:10px;background:#5a7bff;color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer">📤 ส่งเอกสารรับรองให้ user</button>
     </div>
   </div>
 </div>
@@ -3241,37 +3278,86 @@ async function adminRejectRenewal(orgKey, ts){
   }catch(e){ showToast('❌ '+e.message,'err'); }
 }
 
-var _renewCertStore = {}; // { [ts]: { pdf:{file,name}, word:{file,name} } }
-function handleRenewCertFile(type, ts, input){
-  var file = input.files[0]; if(!file) return;
-  if(!_renewCertStore[ts]) _renewCertStore[ts]={};
-  _renewCertStore[ts][type] = { file:file, name:file.name };
-  var safeTs = ts.replace(/[^a-z0-9_]/gi,'_');
-  var el = document.getElementById('rcert-'+type+'-name-'+safeTs);
-  if(el) el.textContent = '✓ '+file.name;
+/* ═══ CERT MODAL ═══ */
+var _certFile = null; // { file, name }
+
+function openCertModal(orgKey, ts, orgName){
+  var modal = document.getElementById('cert-modal');
+  var panel = document.getElementById('cert-panel');
+  if(!modal) return;
+  modal._orgKey = orgKey;
+  modal._ts = ts;
+  var lbl = document.getElementById('cert-modal-org-label');
+  if(lbl) lbl.textContent = orgName ? 'หน่วยงาน: '+orgName : 'อัปโหลดใบรับรองและส่งให้หน่วยงาน';
+  // reset
+  _certFile = null;
+  _resetCertZone();
+  var st = document.getElementById('cert-status'); if(st) st.textContent='';
+  var btn = document.getElementById('cert-send-btn'); if(btn){ btn.disabled=false; btn.textContent='📤 ส่งเอกสารรับรองให้ user'; }
+  modal.style.cssText='display:flex;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease';
 }
 
-async function adminCompleteRenewal(orgKey, ts){
-  var store = _renewCertStore[ts]||{};
-  if(!store.pdf && !store.word){
-    showToast('กรุณาอัปโหลดเอกสารรับรองอย่างน้อย 1 ไฟล์','err'); return;
-  }
-  showToast('⏳ กำลังอัปโหลดเอกสาร...');
+function closeCertModal(){
+  var modal = document.getElementById('cert-modal');
+  if(modal) modal.style.display='none';
+  _certFile = null;
+  _resetCertZone();
+}
+
+function _resetCertZone(){
+  var inp = document.getElementById('cert-file-input'); if(inp) inp.value='';
+  document.getElementById('cert-file-name').textContent='คลิกเพื่อเลือกไฟล์';
+  document.getElementById('cert-file-size').textContent='.pdf / .doc / .docx';
+  document.getElementById('cert-file-icon').textContent='📎';
+  document.getElementById('cert-file-icon').style.background='rgba(200,210,230,.2)';
+  document.getElementById('cert-file-icon').style.borderColor='rgba(200,210,230,.4)';
+  var rm = document.getElementById('cert-file-remove'); if(rm) rm.style.display='none';
+}
+
+function handleCertFileSelect(input){
+  var file = input.files[0]; if(!file) return;
+  _certFile = { file:file, name:file.name };
+  var ext = file.name.split('.').pop().toLowerCase();
+  var icon = ext==='pdf' ? '📄' : '📝';
+  var iconEl = document.getElementById('cert-file-icon');
+  iconEl.textContent = icon;
+  iconEl.style.background = ext==='pdf'?'rgba(239,68,68,.08)':'rgba(37,99,235,.08)';
+  iconEl.style.borderColor = ext==='pdf'?'rgba(239,68,68,.25)':'rgba(37,99,235,.25)';
+  document.getElementById('cert-file-name').textContent = file.name;
+  document.getElementById('cert-file-size').textContent = (file.size/1024).toFixed(1)+' KB · พร้อมส่ง';
+  document.getElementById('cert-file-name').style.color = 'var(--txt,#1e293b)';
+  var rm = document.getElementById('cert-file-remove'); if(rm) rm.style.display='block';
+}
+
+function removeCertFile(e){
+  e.preventDefault(); e.stopPropagation();
+  _certFile = null;
+  _resetCertZone();
+}
+
+async function adminCompleteRenewal(){
+  var modal = document.getElementById('cert-modal');
+  var orgKey = modal._orgKey||'';
+  var ts = modal._ts||'';
+  if(!_certFile){ showToast('กรุณาเลือกไฟล์เอกสารรับรอง','err'); return; }
+  var btn = document.getElementById('cert-send-btn');
+  var st  = document.getElementById('cert-status');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังอัปโหลด...'; }
+  if(st)  st.textContent='';
   var update = { status:'ต่ออายุแล้ว', completedAt:new Date().toISOString() };
   try{
-    if(store.pdf && store.pdf.file){
-      var r = await uploadToGDrive(store.pdf.file, orgKey, 'เอกสารรับรองต่ออายุ-PDF');
-      update.certPdf = { url:r.url, name:store.pdf.name };
-    }
-    if(store.word && store.word.file){
-      var r2 = await uploadToGDrive(store.word.file, orgKey, 'เอกสารรับรองต่ออายุ-Word');
-      update.certWord = { url:r2.url, name:store.word.name };
-    }
+    var ext = _certFile.name.split('.').pop().toLowerCase();
+    var label = ext==='pdf' ? 'เอกสารรับรองต่ออายุ-PDF' : 'เอกสารรับรองต่ออายุ-Word';
+    var r = await uploadToGDrive(_certFile.file, orgKey, label);
+    if(ext==='pdf') update.certPdf  = { url:r.url, name:_certFile.name };
+    else            update.certWord = { url:r.url, name:_certFile.name };
     await db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).update(update);
-    showToast('✅ ส่งเอกสารรับรองการต่ออายุเรียบร้อยแล้ว');
-    delete _renewCertStore[ts];
-    loadAllRenewals();
-  }catch(e){ showToast('❌ '+e.message,'err'); }
+    if(st){ st.textContent='✅ ส่งเอกสารรับรองเรียบร้อยแล้ว'; st.style.color='#059669'; }
+    setTimeout(function(){ closeCertModal(); loadAllRenewals(); }, 1500);
+  }catch(e){
+    if(st){ st.textContent='❌ '+e.message; st.style.color='#ef4444'; }
+    if(btn){ btn.disabled=false; btn.textContent='📤 ส่งเอกสารรับรองให้ user'; }
+  }
 }
 
 /* ════════════════════════════════
@@ -3357,15 +3443,12 @@ function _buildRenewalSteps(v, orgKey, ts, safeTs){
     b3='<div style="'+TL+'">ขั้นตอนที่ 3 — ส่งเอกสารรับรองให้ user</div>'
       +'<div style="'+DL+'">ปลดล็อกเมื่อส่งสภาเภสัชกรรมแล้ว</div>';
   } else if(s3==='active'){
-    b3='<div style="'+T+'">ขั้นตอนที่ 3 — ส่งเอกสารรับรองให้ user</div>'
-      +'<div style="'+D+'">อัปโหลดเอกสารรับรองการต่ออายุ แล้วส่งให้หน่วยงาน</div>'
-      +'<div style="margin-bottom:8px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ PDF</label>'
-      +'<input type="file" id="rcert-pdf-'+safeTs+'" accept=".pdf" style="font-size:.8rem" onchange="handleRenewCertFile(\'pdf\',\''+ts+'\',this)">'
-      +'<div id="rcert-pdf-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
-      +'<div style="margin-bottom:10px"><label style="font-size:.72rem;font-weight:600;color:#6a6d77;display:block;margin-bottom:4px">ไฟล์ Word</label>'
-      +'<input type="file" id="rcert-word-'+safeTs+'" accept=".doc,.docx" style="font-size:.8rem" onchange="handleRenewCertFile(\'word\',\''+ts+'\',this)">'
-      +'<div id="rcert-word-name-'+safeTs+'" style="font-size:.72rem;color:#059669;margin-top:2px"></div></div>'
-      +'<button class="btn btn-primary btn-sm" onclick="adminCompleteRenewal(\''+orgKey+'\',\''+ts+'\')">📤 ส่งเอกสารรับรองให้ user</button>';
+    var _orgName = v.orgName||orgKey;
+    b3='<div style="display:flex;align-items:center;gap:8px">'
+      +'<div style="'+T+';flex:1">ขั้นตอนที่ 3 — ส่งเอกสารรับรองให้ user</div>'
+      +'<button onclick="openCertModal(\''+orgKey+'\',\''+ts+'\',\''+_orgName+'\')" style="font-size:.72rem;font-weight:500;color:#5a7bff;background:rgba(90,123,255,.08);border:1px solid rgba(90,123,255,.3);border-radius:20px;padding:3px 12px;cursor:pointer;flex-shrink:0">📜 ส่งเอกสารรับรอง</button>'
+      +'</div>'
+      +'<div style="'+D+'">อัปโหลดใบรับรองและส่งให้หน่วยงาน</div>';
   } else {
     var certLinks='';
     if(v.certPdf&&v.certPdf.url) certLinks+='<a href="'+v.certPdf.url+'" target="_blank" style="font-size:.75rem;color:#5a7bff;text-decoration:none;padding:4px 8px;border:1px solid rgba(90,123,255,.3);border-radius:6px">📄 เอกสาร PDF</a>';
