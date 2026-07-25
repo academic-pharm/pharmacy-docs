@@ -3545,17 +3545,24 @@ async function sendToCouncil(){
     });
     var result = await resp.json();
     if(result.status === 'ok' || result.result === 'success'){
-      // Save councilSentAt to Firebase so step 3 unlocks
+      // Write councilSentAt to Firebase so step 2 flips to done + resend button appears
       var _orgKey = modal._orgKey || '';
       var _ts = modal._ts || '';
       if(_orgKey && _ts){
-        try{ await db.ref('pharma-form/_cpe_renewals/'+_orgKey+'/'+_ts).update({ councilSentAt: new Date().toISOString(), councilEmail: email }); }
-        catch(e2){ /* non-fatal */ }
+        try{
+          await db.ref('pharma-form/_cpe_renewals/'+_orgKey+'/'+_ts).update({
+            councilSentAt: new Date().toISOString(),
+            councilEmail: email
+          });
+        }catch(e2){
+          showToast('⚠️ บันทึก councilSentAt ไม่สำเร็จ: '+e2.message,'err');
+        }
       }
       statusEl.textContent = '✅ ส่งเอกสารทั้งหมดไปยัง ' + email + ' เรียบร้อยแล้ว';
       statusEl.style.color = '#059669';
-      // Refresh admin list after short delay so user sees the success message
-      setTimeout(function(){ closeCouncilModal(); loadAllRenewals(); }, 1800);
+      // Refresh list immediately so resend button appears, then close modal
+      if(typeof loadAllRenewals === 'function') loadAllRenewals();
+      setTimeout(function(){ closeCouncilModal(); }, 1500);
     } else {
       throw new Error(result.message || 'ไม่สามารถส่งอีเมลได้');
     }
