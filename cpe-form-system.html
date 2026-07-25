@@ -3428,8 +3428,11 @@ function openCouncilModal(orgKey, ts){
         if(rec[t] && rec[t].url) chips += _councilDocChip(rec[t].url, rec[t].name||docLabels[t]);
       });
 
-      // Org name for label
-      if(labelEl && rec.orgName) labelEl.textContent = 'รวมและส่งเอกสารทั้งหมดทางอีเมล — ' + rec.orgName;
+      // Org name for label + store on modal
+      if(rec.orgName){
+        modal._orgName = rec.orgName;
+        if(labelEl) labelEl.textContent = 'รวมและส่งเอกสารทั้งหมดทางอีเมล — ' + rec.orgName;
+      }
 
       if(docsEl) docsEl.innerHTML = chips || '<span style="font-size:.8rem;color:var(--sub);grid-column:1/-1">ไม่พบเอกสาร</span>';
 
@@ -3531,6 +3534,7 @@ async function sendToCouncil(){
       action: 'send_council_email',
       to: email,
       orgKey: modal._orgKey || '',
+      orgName: modal._orgName || modal._orgKey || '',
       ts: modal._ts || '',
       docUrls: docUrls
     };

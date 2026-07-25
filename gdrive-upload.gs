@@ -1001,33 +1001,43 @@ function sendCouncilEmail(data) {
     return respond({ status: 'error', message: 'กรุณาระบุอีเมลผู้รับให้ถูกต้อง' });
   }
 
-  var orgName    = data.orgName || data.orgKey || 'หน่วยงาน';
-  var docUrls    = data.docUrls || [];   // array of URL strings
+  var orgName = data.orgName || data.orgKey || 'หน่วยงาน';
+  var docUrls = data.docUrls || [];
   var sendTimeStr = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm');
 
-  var subject = '[CPE] เอกสารต่ออายุสถาบันสมทบ: ' + orgName + ' (' + sendTimeStr + ')';
+  // ชื่อเอกสารตามลำดับ (ไฟล์ที่ 1-3 = user, ไฟล์ที่ 4 = admin แนบเพิ่ม)
+  var docLabels = [
+    'หนังสือขอต่ออายุหน่วยงานสมทบ',
+    'แบบฟอร์ม สภ.59',
+    'หลักฐานการชำระค่าต่ออายุ',
+    'หนังสือขอขึ้นทะเบียนหน่วยงานในเครือข่าย'
+  ];
+
+  var subject = 'คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา ขอนำส่งเอกสารการต่ออายุสถาบันสมทบ';
 
   var html = '<div style="font-family:\'Sarabun\',sans-serif;max-width:600px;margin:0 auto;color:#1a202c">';
-  html += '<div style="background:linear-gradient(135deg,#0f6e56,#1d9e75);padding:24px 28px;border-radius:12px 12px 0 0">';
-  html += '<div style="color:#fff;font-size:1.2rem;font-weight:700">🏛️ เอกสารต่ออายุสถาบันสมทบ CPE</div>';
+  html += '<div style="background:#0f6e56;padding:24px 28px;border-radius:12px 12px 0 0">';
+  html += '<div style="color:#fff;font-size:1.1rem;font-weight:700">เอกสารต่ออายุสถาบันสมทบ CPE</div>';
   html += '<div style="color:rgba(255,255,255,.8);font-size:.85rem;margin-top:4px">คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>';
   html += '</div>';
-  html += '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px 28px;border-radius:0 0 12px 12px">';
-  html += '<p style="margin:0 0 8px">เรียน ผู้เกี่ยวข้อง</p>';
-  html += '<p style="margin:0 0 16px">ขอนำส่งเอกสารต่ออายุสถาบันสมทบ CPE ของหน่วยงาน <strong>' + orgName + '</strong> จำนวน ' + docUrls.length + ' ไฟล์ เพื่อพิจารณาดำเนินการต่อไป</p>';
+  html += '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:28px;border-radius:0 0 12px 12px">';
+  html += '<p style="margin:0 0 12px">เรียน ผู้เกี่ยวข้อง</p>';
+  html += '<p style="margin:0 0 20px">คณะขอนำส่งเอกสารต่ออายุสถาบันสมทบ ของหน่วยงาน <strong>' + orgName + '</strong> โดยมีรายละเอียดดังเอกสารแนบ</p>';
 
   if (docUrls.length > 0) {
     html += '<table style="width:100%;border-collapse:collapse;margin:0 0 20px">';
     html += '<tr><td colspan="2" style="padding:10px 0 8px;font-size:.88rem;font-weight:700;color:#1a202c;border-bottom:2px solid #0f6e56">เอกสารแนบ (' + docUrls.length + ' ไฟล์)</td></tr>';
     docUrls.forEach(function(url, i) {
-      var label = 'เอกสาร ' + (i + 1);
+      var label = docLabels[i] || ('เอกสาร ' + (i + 1));
       html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">' + label + '</td>';
-      html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + url + '" style="color:#0f6e56;font-weight:700">เปิดเอกสาร</a></td></tr>';
+      html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb;text-align:right"><a href="' + url + '" style="color:#0f6e56;font-weight:700">เปิดเอกสาร</a></td></tr>';
     });
     html += '</table>';
   }
 
-  html += '<p style="font-size:.82rem;color:#6b7280;margin:16px 0 0">ส่งโดยระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา · ' + sendTimeStr + '</p>';
+  html += '<p style="margin:16px 0 0;font-size:.85rem;color:#374151"><strong>หมายเหตุ</strong> : ทั้งนี้เอกสารฉบับจริง อยู่ระหว่างดำเนินการนำส่งทางไปรษณีย์ต่อไป</p>';
+  html += '<hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">';
+  html += '<p style="font-size:.78rem;color:#9ca3af;margin:0">ส่งโดยระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา · ' + sendTimeStr + '</p>';
   html += '</div></div>';
 
   try {
