@@ -531,8 +531,8 @@ body::after{display:none}
 
   <!-- Main Tab Bar (shown after login) -->
 
-  <!-- My Registration Status -->
-  <div id="my-requests-section" data-tab="my-requests" style="display:none" class="fsec">
+  <!-- My Registration Status — always visible once user has requests -->
+  <div id="my-requests-section" style="display:none" class="fsec">
     <div class="fsec-title">📋 สถานะคำขอลงทะเบียนของฉัน</div>
     <div id="my-requests-wrap"></div>
   </div>
@@ -612,37 +612,8 @@ body::after{display:none}
     </div>
   </div>
 
-  <!-- ค้นหา -->
-  <div class="fsec" id="search-section" data-tab="search" style="display:none">
-    <div class="fsec-title">🔍 ค้นหาหน่วยงาน</div>
-    <div class="search-wrap">
-      <input type="text" id="org-search" placeholder="พิมพ์ชื่อหน่วยงาน..." oninput="searchOrgs(this.value)" autocomplete="off">
-      <span class="s-icon">🔍</span>
-      <div class="search-results" id="search-results"></div>
-    </div>
-
-    <!-- Status card -->
-    <div class="status-card" id="status-card">
-      <div class="sc-org" id="sc-org-name"></div>
-      <div class="sc-row">
-        <span class="sc-label">วันที่ลงทะเบียน</span>
-        <span class="sc-val" id="sc-reg-date"></span>
-      </div>
-      <div class="sc-row">
-        <span class="sc-label">วันหมดอายุ</span>
-        <span class="sc-val" id="sc-exp-date"></span>
-      </div>
-      <div class="sc-row">
-        <span class="sc-label">สถานะ</span>
-        <span class="sc-badge" id="sc-badge"></span>
-      </div>
-      <div class="sc-btns" id="sc-btns"></div>
-    </div>
-
-    <!-- Renewal status banner (user-side) -->
-    <div id="renewal-status-banner" style="display:none;margin-bottom:16px"></div>
-
-  </div>
+  <!-- Renewal status banner (user-side, used by search view) -->
+  <div id="renewal-status-banner" style="display:none;margin-bottom:16px"></div>
 </div>
 </div>
 
@@ -1713,9 +1684,7 @@ function switchTab(id){
   // จัดการ reg-card ตาม tab
   var _rc = document.querySelector('.reg-card');
   if(_rc){
-    if(id === 'my-requests'){
-      _rc.style.display = 'none';
-    } else if(id === 'user-conf'){
+    if(id === 'user-conf'){
       _rc.style.display = '';
       _rc.setAttribute('onclick','openUserConfForm()');
       var _rci=_rc.querySelector('.reg-card-icon'); if(_rci) _rci.textContent='🎓';
@@ -2227,11 +2196,11 @@ function loadMyOrgRequests(){
     var wrap    = document.getElementById('my-requests-wrap');
     if(!section||!wrap) return;
     if(myReqs.length === 0){ return; }
-    // Show คำขอของฉัน in sidebar (both admin and non-admin)
+    // Show section directly (no longer a switchTab tab)
+    section.style.display = 'block';
+    // Show คำขอของฉัน in sidebar
     var siReq = document.getElementById('si-requests');
     if(siReq) siReq.style.display = 'flex';
-    // For non-admin users, auto-navigate to my-requests
-    if(!isAdmin) sidebarGo('my-requests');
 
     // ตรวจสอบหมดอายุของออร์กที่อนุมัติแล้ว (แสดงครั้งเดียวต่อ session)
     if(!window._expiryNoticeDone){
