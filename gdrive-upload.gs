@@ -43,6 +43,11 @@ function doPost(e) {
       return notifyCpeResult(data);
     }
 
+    // action: 'send_council_email' → admin รวมเอกสารต่ออายุส่งไปยังสภาเภสัชกรรม
+    if (data.action === 'send_council_email') {
+      return sendCouncilEmail(data);
+    }
+
     // action: 'log_appt' → บันทึกข้อมูลคำสั่งแต่งตั้งลง Sheet tab "คำสั่งแต่งตั้ง"
     if (data.action === 'log_appt') {
       return logApptToSheet(data);
@@ -987,6 +992,50 @@ function getOrCreate(name, parent) {
   var it = parent ? parent.getFoldersByName(name) : DriveApp.getFoldersByName(name);
   if (it.hasNext()) return it.next();
   return parent ? parent.createFolder(name) : DriveApp.createFolder(name);
+}
+
+/* ─── Send council email — ส่งเอกสารต่ออายุไปยังสภาเภสัชกรรม ─── */
+function sendCouncilEmail(data) {
+  var toEmail = (data.to || '').trim();
+  if (!toEmail || toEmail.indexOf('@') < 0) {
+    return respond({ status: 'error', message: 'กรุณาระบุอีเมลผู้รับให้ถูกต้อง' });
+  }
+
+  var orgName    = data.orgName || data.orgKey || 'หน่วยงาน';
+  var docUrls    = data.docUrls || [];   // array of URL strings
+  var sendTimeStr = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm');
+
+  var subject = '[CPE] เอกสารต่ออายุสถาบันสมทบ: ' + orgName + ' (' + sendTimeStr + ')';
+
+  var html = '<div style="font-family:\'Sarabun\',sans-serif;max-width:600px;margin:0 auto;color:#1a202c">';
+  html += '<div style="background:linear-gradient(135deg,#0f6e56,#1d9e75);padding:24px 28px;border-radius:12px 12px 0 0">';
+  html += '<div style="color:#fff;font-size:1.2rem;font-weight:700">🏛️ เอกสารต่ออายุสถาบันสมทบ CPE</div>';
+  html += '<div style="color:rgba(255,255,255,.8);font-size:.85rem;margin-top:4px">คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</div>';
+  html += '</div>';
+  html += '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px 28px;border-radius:0 0 12px 12px">';
+  html += '<p style="margin:0 0 8px">เรียน ผู้เกี่ยวข้อง</p>';
+  html += '<p style="margin:0 0 16px">ขอนำส่งเอกสารต่ออายุสถาบันสมทบ CPE ของหน่วยงาน <strong>' + orgName + '</strong> จำนวน ' + docUrls.length + ' ไฟล์ เพื่อพิจารณาดำเนินการต่อไป</p>';
+
+  if (docUrls.length > 0) {
+    html += '<table style="width:100%;border-collapse:collapse;margin:0 0 20px">';
+    html += '<tr><td colspan="2" style="padding:10px 0 8px;font-size:.88rem;font-weight:700;color:#1a202c;border-bottom:2px solid #0f6e56">เอกสารแนบ (' + docUrls.length + ' ไฟล์)</td></tr>';
+    docUrls.forEach(function(url, i) {
+      var label = 'เอกสาร ' + (i + 1);
+      html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;border-bottom:1px solid #e5e7eb">' + label + '</td>';
+      html += '<td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + url + '" style="color:#0f6e56;font-weight:700">เปิดเอกสาร</a></td></tr>';
+    });
+    html += '</table>';
+  }
+
+  html += '<p style="font-size:.82rem;color:#6b7280;margin:16px 0 0">ส่งโดยระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา · ' + sendTimeStr + '</p>';
+  html += '</div></div>';
+
+  try {
+    MailApp.sendEmail({ to: toEmail, subject: subject, htmlBody: html });
+    return respond({ status: 'ok', result: 'success', to: toEmail, count: docUrls.length });
+  } catch (e) {
+    return respond({ status: 'error', message: e.toString() });
+  }
 }
 
 function respond(obj) {
