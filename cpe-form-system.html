@@ -465,6 +465,9 @@ body::after{display:none}
     <span class="si-icon">📝</span> บทความวิชาการ
     <span class="si-badge" id="art-sidebar-badge"></span>
   </button>
+  <button class="sidebar-item" id="si-renewal" onclick="sidebarGo('renewal')">
+    <span class="si-icon">🔄</span> ต่ออายุ
+  </button>
   <button class="sidebar-item" id="si-search" onclick="sidebarGo('search')">
     <span class="si-icon">🔍</span> ค้นหาหน่วยงาน
   </button>
@@ -4345,7 +4348,8 @@ var _heroMap = {
   'conf'        : { icon:'🎓', title:'ประชุมวิชาการ',        sub:'ข้อมูลการจัดประชุมวิชาการที่ได้รับการยื่นคำขอในระบบ CPE' },
   'article'     : { icon:'📝', title:'บทความวิชาการ',        sub:'ระบบนำส่งบทความวิชาการเพื่อขอรับหน่วยกิต CPE ทางเภสัชศาสตร์' },
   'search'      : { icon:'🔍', title:'ค้นหาหน่วยงาน',       sub:'ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรองหน่วยกิต CPE' },
-  'my-requests' : { icon:'📋', title:'คำขอของฉัน',           sub:'ติดตามสถานะคำขอลงทะเบียนหน่วยงาน CPE ของท่าน' }
+  'my-requests' : { icon:'📋', title:'คำขอของฉัน',           sub:'ติดตามสถานะคำขอลงทะเบียนหน่วยงาน CPE ของท่าน' },
+  'renewal'     : { icon:'🔄', title:'ต่ออายุ',               sub:'ยื่นเอกสารต่ออายุการรับรองหน่วยงาน CPE' }
 };
 
 function _updateHero(section){
@@ -4376,9 +4380,13 @@ function sidebarGo(section){
   } else if(section === 'my-requests'){
     showView('status');
     switchTab('my-requests');
+  } else if(section === 'renewal'){
+    var _rKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : '');
+    var _rName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
+    showView('renew', _rKey, _rName);
   }
   // Set active AFTER showView so syncSidebarActive doesn't overwrite
-  var idMap = { 'main':'si-main','manage':'si-manage','article':'si-article','conf':'si-conf','search':'si-search','my-requests':'si-requests' };
+  var idMap = { 'main':'si-main','manage':'si-manage','article':'si-article','conf':'si-conf','search':'si-search','my-requests':'si-requests','renewal':'si-renewal' };
   document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
   var target = document.getElementById(idMap[section]);
   if(target) target.classList.add('active');
@@ -4395,8 +4403,10 @@ function sidebarGo(section){
 /* Sync sidebar active state when view changes via other buttons */
 function syncSidebarActive(viewId){
   document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
-  if(viewId === 'status' || viewId === 'renew' || viewId === 'conference' || viewId === 'admin-renewals'){
+  if(viewId === 'status' || viewId === 'conference' || viewId === 'admin-renewals'){
     var el = document.getElementById('si-main'); if(el) el.classList.add('active');
+  } else if(viewId === 'renew'){
+    var el = document.getElementById('si-renewal'); if(el) el.classList.add('active');
   } else if(viewId === 'article'){
     var el = document.getElementById('si-article'); if(el) el.classList.add('active');
   }
