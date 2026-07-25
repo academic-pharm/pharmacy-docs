@@ -3110,70 +3110,67 @@ function loadRenewStatusView(orgKey){
   if(certWrap) certWrap.style.display='none';
   if(goUpload) goUpload.style.display='none';
 
-  function _dot(done, active, rejected){
-    if(done) return '<div style="width:28px;height:28px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0">✓</div>';
-    if(rejected) return '<div style="width:28px;height:28px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0">✕</div>';
-    if(active) return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(217,119,6,.12);border:2px solid #d97706;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span></div>';
-    return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(200,210,230,.3);border:2px solid rgba(200,210,230,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:rgba(150,160,180,.4);display:inline-block"></span></div>';
+  // Vertical stepper helpers
+  function _vCirc(state){
+    if(state==='done')     return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(5,150,105,.12);border:2px solid #059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:#059669">✓</div>';
+    if(state==='active')   return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.1);border:2px solid #3b82f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span></div>';
+    if(state==='rejected') return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,.1);border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:#ef4444">✕</div>';
+    return '<div style="width:28px;height:28px;border-radius:50%;background:rgba(200,210,230,.2);border:2px solid rgba(200,210,230,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:rgba(150,160,180,.35);display:inline-block"></span></div>';
   }
-  function _line(done){
-    return '<div style="flex:1;height:2px;background:'+(done?'#059669':'rgba(200,210,230,.5)')+';margin:0 4px;min-width:20px;border-radius:2px"></div>';
-  }
-  function _label(txt, col, bold){
-    return '<div style="font-size:9px;color:'+col+';text-align:center;line-height:1.4;font-weight:'+(bold?'700':'400')+'">'+txt+'</div>';
+  function _vRow(state, nextState, title, sub, isLast){
+    var titleColor = state==='done'?'#059669' : state==='active'?'var(--txt)' : state==='rejected'?'#b91c1c' : 'var(--sub)';
+    var lineColor  = nextState==='done'?'#059669':'rgba(200,210,230,.45)';
+    return '<div style="display:flex;gap:12px">'
+      +'<div style="display:flex;flex-direction:column;align-items:center">'
+        +_vCirc(state)
+        +(isLast?'':'<div style="width:2px;flex:1;min-height:16px;background:'+lineColor+';margin:3px 0"></div>')
+      +'</div>'
+      +'<div style="flex:1;padding-bottom:'+(isLast?'4':'18')+'px">'
+        +'<div style="font-size:.84rem;font-weight:500;color:'+titleColor+'">'+title+'</div>'
+        +(sub?'<div style="font-size:.75rem;color:var(--sub);margin-top:2px">'+sub+'</div>':'')
+      +'</div>'
+    +'</div>';
   }
 
   function _render(status, latest){
     var rejected = status==='ถูกยกเลิก';
-    var s1done  = !!status && !rejected;
-    var s1done_rej = rejected; // submitted but rejected
-    var s2done  = status==='กำลังดำเนินการ' || status==='ต่ออายุแล้ว';
-    var s2active= status==='รอตรวจสอบ';
-    var s2rej   = rejected;
-    var s3done  = status==='ต่ออายุแล้ว';
-    var s3active= status==='กำลังดำเนินการ';
-    var s4done  = status==='ต่ออายุแล้ว';
+    var noRecord  = !status;
 
-    stepper.innerHTML=
-      '<div style="display:flex;align-items:center;padding:10px 4px 4px">'+
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s1done||s1done_rej, !status && !rejected, false)+
-          '<div style="font-size:9px;color:'+((s1done||s1done_rej)?'#059669':'#b45309')+';text-align:center;line-height:1.4;font-weight:700">ส่งเอกสาร</div>'+
-        '</div>'+
-        _line(s2done)+
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s2done, s2active, s2rej)+
-          '<div style="font-size:9px;color:'+(s2done?'#059669':(s2rej?'#ef4444':(s2active?'#b45309':'#94a3b8')))+';text-align:center;line-height:1.4;font-weight:'+(s2done||s2active||s2rej?'700':'400')+'">รอการ<br>ยืนยัน</div>'+
-        '</div>'+
-        _line(s3done)+
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s3done, s3active, false)+
-          '<div style="font-size:9px;color:'+(s3done?'#059669':(s3active?'#b45309':'#94a3b8'))+';text-align:center;line-height:1.4;font-weight:'+(s3done||s3active?'700':'400')+'">กำลัง<br>ดำเนินการ</div>'+
-        '</div>'+
-        _line(s4done)+
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px">'+
-          _dot(s4done, false, false)+
-          '<div style="font-size:9px;color:'+(s4done?'#059669':'#94a3b8')+';text-align:center;line-height:1.4;font-weight:'+(s4done?'700':'400')+'">ต่ออายุ<br>แล้ว</div>'+
-        '</div>'+
-      '</div>';
+    // Step states
+    var s1 = noRecord ? 'locked' : 'done';
+    var s2 = noRecord ? 'locked' : (status==='รอตรวจสอบ' ? 'active' : (rejected ? 'rejected' : 'done'));
+    var s3 = (noRecord||status==='รอตรวจสอบ'||rejected) ? 'locked' : (status==='กำลังดำเนินการ' ? 'active' : 'done');
+    var s4 = status==='ต่ออายุแล้ว' ? 'done' : 'locked';
 
-    // Status message
+    // Subtitles
+    var sub1 = noRecord ? '' : 'ส่งเอกสารครบ 3 รายการแล้ว';
+    var sub2 = s2==='done' ? 'เอกสารได้รับการยืนยันจากเจ้าหน้าที่'
+             : s2==='active' ? 'อยู่ระหว่างรอเจ้าหน้าที่ตรวจสอบ'
+             : s2==='rejected' ? 'เอกสารไม่ผ่านการตรวจสอบ'
+             : 'รอตรวจสอบเอกสาร';
+    var sub3 = s3==='active' ? 'เจ้าหน้าที่กำลังยื่นเอกสารต่อสภาเภสัชกรรม'
+             : s3==='done' ? 'ยื่นเอกสารต่อสภาเภสัชกรรมแล้ว'
+             : 'รอดำเนินการ';
+    var sub4 = s4==='done' ? 'หน่วยงานได้รับการต่ออายุเรียบร้อยแล้ว' : 'รอดำเนินการ';
+    var title2 = rejected ? 'เอกสารไม่ผ่านการตรวจสอบ' : 'ตรวจสอบเอกสารแล้ว';
+
+    stepper.innerHTML =
+      _vRow(s1, s2, 'ส่งเอกสารเรียบร้อย',     sub1, false) +
+      _vRow(s2, s3, title2,                     sub2, false) +
+      _vRow(s3, s4, 'กำลังดำเนินการ',           sub3, false) +
+      _vRow(s4, null,'ต่ออายุสำเร็จ',            sub4, true);
+
+    // Extra messages / actions
     var msg='';
-    if(!status){
+    if(noRecord){
       if(goUpload) goUpload.style.display='block';
-    } else if(status==='ถูกยกเลิก'){
-      // dot ยังคงกระพริบ (user ต้องส่งใหม่)
-      msg='<div style="padding:12px 16px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.3);border-radius:10px">'
+    } else if(rejected){
+      msg='<div style="padding:12px 16px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.3);border-radius:10px;margin-top:4px">'
         +'<div style="font-size:.88rem;font-weight:700;color:#991b1b;margin-bottom:6px">❌ เอกสารไม่ถูกต้อง กรุณาส่งเอกสารใหม่อีกครั้ง</div>'
         +'<div style="font-size:.8rem;color:#b91c1c;margin-bottom:12px">เจ้าหน้าที่ตรวจสอบแล้วพบว่าเอกสารที่ส่งมาไม่ถูกต้องหรือไม่ครบถ้วน กรุณาตรวจสอบและส่งเอกสารใหม่อีกครั้ง</div>'
         +'<button class="btn btn-primary btn-sm" onclick="sidebarGo(\'renewal\')">📤 ส่งเอกสารใหม่ →</button>'
         +'</div>';
-    } else if(status==='รอตรวจสอบ'){
-      msg='<div style="padding:10px 14px;background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.25);border-radius:10px;font-size:.83rem;color:#92400e">⏳ ส่งเอกสารแล้ว — อยู่ระหว่างรอเจ้าหน้าที่ยืนยันรับเอกสาร</div>';
-    } else if(status==='กำลังดำเนินการ'){
-      msg='<div style="padding:10px 14px;background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.25);border-radius:10px;font-size:.83rem;color:#1e40af">📋 กำลังดำเนินการต่ออายุ — อยู่ระหว่างจัดทำเอกสารรับรอง</div>';
     } else if(status==='ต่ออายุแล้ว'){
-      // ต่ออายุสำเร็จ — ซ่อน dot
       var _d=document.getElementById('tab-dot-renew-status'); if(_d) _d.style.display='none';
       if(certWrap) certWrap.style.display='block';
       var certLinks='';
