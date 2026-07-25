@@ -4614,9 +4614,13 @@ function sidebarGo(section){
     var _rName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
     showView('renew', _rKey, _rName);
   } else if(section === 'renew-status'){
-    var _rsKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : '');
-    var _rsName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
-    showView('renew-status', _rsKey, _rsName);
+    if(isAdmin){
+      showView('admin-renewals');
+    } else {
+      var _rsKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : '');
+      var _rsName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
+      showView('renew-status', _rsKey, _rsName);
+    }
   }
   // Set active AFTER showView so syncSidebarActive doesn't overwrite
   var idMap = { 'main':'si-main','manage':'si-manage','article':'si-article','conf':'si-conf','search':'si-search','my-requests':'si-requests','renewal':'si-renewal','renew-status':'si-renew-status' };
@@ -4636,7 +4640,9 @@ function sidebarGo(section){
 /* Sync sidebar active state when view changes via other buttons */
 function syncSidebarActive(viewId){
   document.querySelectorAll('.sidebar-item').forEach(function(el){ el.classList.remove('active'); });
-  if(viewId === 'status' || viewId === 'conference' || viewId === 'admin-renewals'){
+  if(viewId === 'admin-renewals'){
+    var el = document.getElementById('si-renew-status'); if(el) el.classList.add('active');
+  } else if(viewId === 'status' || viewId === 'conference'){
     var el = document.getElementById('si-main'); if(el) el.classList.add('active');
   } else if(viewId === 'renew'){
     var el = document.getElementById('si-renewal'); if(el) el.classList.add('active');
