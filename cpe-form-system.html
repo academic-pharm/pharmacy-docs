@@ -3415,18 +3415,18 @@ function openCouncilModal(orgKey, ts){
   var docsEl = document.getElementById('council-modal-docs');
   if(docsEl) docsEl.innerHTML = '<span style="font-size:.8rem;color:var(--sub)">กำลังโหลด...</span>';
 
-  firebase.auth().onAuthStateChanged(function(user){
+  var _unsub2 = firebase.auth().onAuthStateChanged(function(user){
+    _unsub2();
     if(!user) return;
     db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).once('value', function(snap){
       var rec = snap.val()||{};
       var chips = '';
-      // User-submitted docs
-      if(rec.doc1 && rec.doc1.url) chips += _councilDocChip(rec.doc1.url, rec.doc1.name||'เอกสาร 1');
-      if(rec.doc2 && rec.doc2.url) chips += _councilDocChip(rec.doc2.url, rec.doc2.name||'เอกสาร 2');
-      if(rec.doc3 && rec.doc3.url) chips += _councilDocChip(rec.doc3.url, rec.doc3.name||'เอกสาร 3');
-      // Admin cert docs
-      if(rec.certPdf && rec.certPdf.url) chips += _councilDocChip(rec.certPdf.url, rec.certPdf.name||'เอกสารรับรอง PDF');
-      if(rec.certWord && rec.certWord.url) chips += _councilDocChip(rec.certWord.url, rec.certWord.name||'เอกสารรับรอง Word');
+      var docLabels = { letter:'หนังสือขอต่ออายุ', form59:'แบบ สภ.59', payment:'หลักฐานชำระ' };
+
+      // User-submitted docs — field names: letter, form59, payment
+      ['letter','form59','payment'].forEach(function(t){
+        if(rec[t] && rec[t].url) chips += _councilDocChip(rec[t].url, rec[t].name||docLabels[t]);
+      });
 
       // Org name for label
       if(labelEl && rec.orgName) labelEl.textContent = 'รวมและส่งเอกสารทั้งหมดทางอีเมล — ' + rec.orgName;
@@ -3435,11 +3435,9 @@ function openCouncilModal(orgKey, ts){
 
       // Store URLs for sendToCouncil
       modal._docUrls = [];
-      if(rec.doc1 && rec.doc1.url) modal._docUrls.push({url:rec.doc1.url, name:rec.doc1.name||'เอกสาร 1'});
-      if(rec.doc2 && rec.doc2.url) modal._docUrls.push({url:rec.doc2.url, name:rec.doc2.name||'เอกสาร 2'});
-      if(rec.doc3 && rec.doc3.url) modal._docUrls.push({url:rec.doc3.url, name:rec.doc3.name||'เอกสาร 3'});
-      if(rec.certPdf && rec.certPdf.url) modal._docUrls.push({url:rec.certPdf.url, name:rec.certPdf.name||'เอกสารรับรอง PDF'});
-      if(rec.certWord && rec.certWord.url) modal._docUrls.push({url:rec.certWord.url, name:rec.certWord.name||'เอกสารรับรอง Word'});
+      ['letter','form59','payment'].forEach(function(t){
+        if(rec[t] && rec[t].url) modal._docUrls.push({url:rec[t].url, name:rec[t].name||docLabels[t]});
+      });
       _updateCouncilTotal();
     });
   });
