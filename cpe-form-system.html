@@ -455,6 +455,9 @@ body::after{display:none}
     <span class="si-icon">🏥</span> หน้าหลัก CPE
     <span id="tab-dot-admin-manage" style="display:none;width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;margin-left:auto;animation:pulse-dot 1.4s ease infinite"></span>
   </button>
+  <button class="sidebar-item" id="si-renewal" onclick="sidebarGo('renewal')">
+    <span class="si-icon">🔄</span> ต่ออายุ
+  </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">บริการ</div>
   <button class="sidebar-item" id="si-conf" onclick="sidebarGo('conf')">
@@ -464,9 +467,6 @@ body::after{display:none}
   <button class="sidebar-item" id="si-article" onclick="sidebarGo('article')">
     <span class="si-icon">📝</span> บทความวิชาการ
     <span class="si-badge" id="art-sidebar-badge"></span>
-  </button>
-  <button class="sidebar-item" id="si-renewal" onclick="sidebarGo('renewal')">
-    <span class="si-icon">🔄</span> ต่ออายุ
   </button>
   <button class="sidebar-item" id="si-search" onclick="sidebarGo('search')">
     <span class="si-icon">🔍</span> ค้นหาหน่วยงาน
@@ -666,8 +666,14 @@ body::after{display:none}
     <p id="renew-org-label">ขั้นตอนการต่ออายุการรับรองหน่วยงาน CPE</p>
   </div>
 
-  <!-- 3 ขั้นตอน -->
-  <div class="fsec">
+  <!-- Renewal progress stepper (user-side) -->
+  <div id="renew-progress-wrap" class="fsec" style="display:none">
+    <div class="fsec-title">📊 สถานะการต่ออายุ</div>
+    <div id="renew-progress-stepper"></div>
+  </div>
+
+  <!-- 3 ขั้นตอน (upload form) -->
+  <div class="fsec" id="renew-upload-section">
     <div class="fsec-title">📋 ขั้นตอนการต่ออายุ</div>
 
     <!-- ขั้นตอน 1 -->
@@ -782,7 +788,7 @@ body::after{display:none}
   </div>
 
   <!-- ปุ่มส่งเอกสาร -->
-  <div class="fsec">
+  <div class="fsec" id="renew-submit-section">
     <div class="fsec-title">📨 ส่งเอกสารทั้งหมด</div>
     <div style="font-size:.84rem;color:#6a6d77;margin-bottom:14px">
       กรุณาใส่ลิงก์ Google Drive ให้ครบทั้ง 3 ขั้นตอนก่อนกดส่ง เมื่อส่งแล้วเจ้าหน้าที่จะดำเนินการตรวจสอบและแจ้งผล
@@ -1597,6 +1603,13 @@ function showView(id, orgKey, orgName){
       document.getElementById('renew-org-label').textContent='หน่วยงาน: '+orgName;
     }
     if(isAdmin && orgKey) loadRenewSubmissions(orgKey);
+    if(!isAdmin && orgKey) loadRenewProgress(orgKey);
+    else if(!isAdmin){
+      // ไม่มี orgKey → แสดง upload form ปกติ
+      var _up=document.getElementById('renew-upload-section'); if(_up) _up.style.display='';
+      var _sm=document.getElementById('renew-submit-section'); if(_sm) _sm.style.display='';
+      var _pw=document.getElementById('renew-progress-wrap'); if(_pw) _pw.style.display='none';
+    }
   }
   if(id==='conference' && orgName){
     document.getElementById('conf-org-label').textContent='หน่วยงาน: '+orgName;
@@ -2964,6 +2977,94 @@ function loadRenewSubmissions(orgKey){
       list.innerHTML=html;
     });
   }catch(e){ console.warn(e); }
+}
+
+/* ════════════════════════════════
+   RENEWAL PROGRESS STEPPER (USER)
+════════════════════════════════ */
+function loadRenewProgress(orgKey){
+  var wrap    = document.getElementById('renew-progress-wrap');
+  var stepper = document.getElementById('renew-progress-stepper');
+  var upSec   = document.getElementById('renew-upload-section');
+  var smSec   = document.getElementById('renew-submit-section');
+  if(!wrap || !stepper) return;
+
+  function _dot(done, active, num){
+    if(done) return '<div style="width:26px;height:26px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0">✓</div>';
+    if(active) return '<div style="width:26px;height:26px;border-radius:50%;background:rgba(217,119,6,.12);border:2px solid #d97706;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:7px;height:7px;border-radius:50%;background:#d97706;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span></div>';
+    return '<div style="width:26px;height:26px;border-radius:50%;background:#f1f5f9;border:1.5px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#94a3b8;flex-shrink:0">'+num+'</div>';
+  }
+  function _line(done){ return '<div style="height:2px;flex:1;background:'+(done?'#059669':'#e2e8f0')+';margin-bottom:18px"></div>'; }
+  function _label(txt, col, bold){ return '<div style="font-size:9px;color:'+col+';text-align:center;line-height:1.4;font-weight:'+(bold?'700':'400')+'">'+txt+'</div>'; }
+
+  function _render(status, latest){
+    // status: null = ยังไม่ส่ง, 'รอตรวจสอบ', 'กำลังดำเนินการ', 'ต่ออายุแล้ว'
+    var s1done = !!status; // มี record = ส่งแล้ว
+    var s2done = status === 'กำลังดำเนินการ' || status === 'ต่ออายุแล้ว';
+    var s2active = status === 'รอตรวจสอบ';
+    var s3done = status === 'ต่ออายุแล้ว';
+    var s3active = status === 'กำลังดำเนินการ';
+    var s4done = status === 'ต่ออายุแล้ว';
+
+    var stepperHtml =
+      '<div style="display:flex;align-items:center;padding:8px 4px 4px">'+
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px">'+
+          _dot(s1done, !s1done, 1)+_label('ส่งเอกสาร', s1done?'#059669':'#b45309', true)+
+        '</div>'+
+        _line(s2done)+
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px">'+
+          _dot(s2done, s2active, 2)+_label('รอการ<br>ยืนยัน', s2done?'#059669':(s2active?'#b45309':'#94a3b8'), s2done||s2active)+
+        '</div>'+
+        _line(s3done)+
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px">'+
+          _dot(s3done, s3active, 3)+_label('กำลัง<br>ดำเนินการ', s3done?'#059669':(s3active?'#b45309':'#94a3b8'), s3done||s3active)+
+        '</div>'+
+        _line(s4done)+
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px">'+
+          _dot(s4done, false, 4)+_label('ต่ออายุ<br>แล้ว', s4done?'#059669':'#94a3b8', s4done)+
+        '</div>'+
+      '</div>';
+
+    // Bottom status message
+    var msgHtml = '';
+    if(!status){
+      msgHtml='<div style="margin-top:10px;padding:10px 14px;background:rgba(90,123,255,.05);border:1px solid rgba(90,123,255,.2);border-radius:10px;font-size:.83rem;color:#4b5563">📋 กรุณาอัปโหลดเอกสารให้ครบและกดส่ง เพื่อเริ่มขั้นตอนการต่ออายุ</div>';
+    } else if(status==='รอตรวจสอบ'){
+      msgHtml='<div style="margin-top:10px;padding:10px 14px;background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.25);border-radius:10px;font-size:.83rem;color:#92400e">⏳ ส่งเอกสารแล้ว — อยู่ระหว่างรอเจ้าหน้าที่ยืนยันรับเอกสาร</div>';
+    } else if(status==='กำลังดำเนินการ'){
+      msgHtml='<div style="margin-top:10px;padding:10px 14px;background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.25);border-radius:10px;font-size:.83rem;color:#1e40af">📋 เจ้าหน้าที่ได้รับเอกสารเรียบร้อยแล้ว อยู่ระหว่างดำเนินการต่ออายุ</div>';
+    } else if(status==='ต่ออายุแล้ว'){
+      var certLinks='';
+      if(latest&&latest.certPdf&&latest.certPdf.url) certLinks+='<a href="'+latest.certPdf.url+'" target="_blank" style="font-size:.8rem;color:#5a7bff;text-decoration:none;padding:6px 12px;border:1px solid rgba(90,123,255,.3);border-radius:8px">📄 เอกสาร PDF</a> ';
+      if(latest&&latest.certWord&&latest.certWord.url) certLinks+='<a href="'+latest.certWord.url+'" target="_blank" style="font-size:.8rem;color:#5a7bff;text-decoration:none;padding:6px 12px;border:1px solid rgba(90,123,255,.3);border-radius:8px">📝 เอกสาร Word</a>';
+      msgHtml='<div style="margin-top:10px;padding:12px 14px;background:rgba(5,150,105,.05);border:1px solid rgba(5,150,105,.3);border-radius:10px">'
+        +'<div style="font-size:.88rem;font-weight:700;color:#065f46;margin-bottom:6px">✅ หน่วยงานนี้ได้ดำเนินการต่ออายุเป็นที่เรียบร้อยแล้ว</div>'
+        +(certLinks?'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">'+certLinks+'</div>':'')
+        +'</div>';
+    }
+
+    stepper.innerHTML = stepperHtml + msgHtml;
+    wrap.style.display = 'block';
+
+    // แสดง/ซ่อน upload form
+    var showUpload = !status || status === null;
+    if(upSec) upSec.style.display = showUpload ? '' : 'none';
+    if(smSec) smSec.style.display = showUpload ? '' : 'none';
+  }
+
+  try{
+    db.ref('pharma-form/_cpe_renewals/'+orgKey).orderByKey().limitToLast(1).once('value', function(snap){
+      var data = snap.val();
+      if(!data || !Object.keys(data).length){
+        _render(null, null);
+        return;
+      }
+      var latest = Object.values(data)[0];
+      _render(latest.status||'รอตรวจสอบ', latest);
+    });
+  }catch(e){
+    _render(null, null);
+  }
 }
 
 /* ════════════════════════════════
