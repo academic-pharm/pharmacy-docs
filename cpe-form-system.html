@@ -3107,14 +3107,23 @@ function loadRenewStatusView(orgKey){
   }
 
   if(!orgKey){ _render(null,null); return; }
-  try{
+  var _unsub = firebase.auth().onAuthStateChanged(function(user){
+    _unsub();
+    if(!user){
+      if(loading) loading.style.display='none';
+      if(msgEl) msgEl.innerHTML='<div style="color:#ef4444;font-size:.85rem">กรุณาล็อกอินใหม่</div>';
+      return;
+    }
     db.ref('pharma-form/_cpe_renewals/'+orgKey).orderByKey().limitToLast(1).once('value',function(snap){
       var data=snap.val();
       if(!data||!Object.keys(data).length){ _render(null,null); return; }
       var latest=Object.values(data)[0];
       _render(latest.status||'รอตรวจสอบ', latest);
+    },function(err){
+      if(loading) loading.style.display='none';
+      if(msgEl) msgEl.innerHTML='<div style="color:#ef4444;font-size:.85rem">โหลดไม่ได้: '+err.code+'</div>';
     });
-  }catch(e){ _render(null,null); }
+  });
 }
 
 /* ════════════════════════════════
