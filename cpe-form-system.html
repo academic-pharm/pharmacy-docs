@@ -1774,9 +1774,9 @@ function switchTab(id){
     if(id === 'user-conf'){
       _rc.style.display = '';
       _rc.setAttribute('onclick','openUserConfForm()');
-      var _rci=_rc.querySelector('.reg-card-icon'); if(_rci) _rci.textContent='🎓';
-      var _rch=_rc.querySelector('.reg-card-text h3'); if(_rch) _rch.textContent='ลงทะเบียนประชุมวิชาการ';
-      var _rcp=_rc.querySelector('.reg-card-text p'); if(_rcp) _rcp.textContent='ยื่นคำขอจัดประชุมวิชาการเพื่อขอรับการรับรองหน่วยกิต CPE';
+      var _rci=_rc.querySelector('.reg-card-icon'); if(_rci) _rci.textContent='🏢';
+      var _rch=_rc.querySelector('.reg-card-text h3'); if(_rch) _rch.textContent='ลงทะเบียนหน่วยงานสมทบ';
+      var _rcp=_rc.querySelector('.reg-card-text p'); if(_rcp) _rcp.textContent='ยื่นคำขอลงทะเบียนหน่วยงานสมทบเพื่อขอรับการรับรองหน่วยกิต CPE';
       var _rcb=_rc.querySelector('.reg-card-btn');
       if(_rcb){ _rcb.textContent='ลงทะเบียน →'; _rcb.setAttribute('onclick','openUserConfForm();event.stopPropagation()'); }
     } else {
