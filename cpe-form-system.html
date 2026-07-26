@@ -2253,9 +2253,11 @@ function approveOrgRequest(key){
 }
 
 function rejectOrgRequest(key){
-  if(!confirm('ต้องการปฏิเสธคำขอนี้ใช่หรือไม่?')) return;
+  var reason = prompt('ระบุเหตุผลที่ปฏิเสธ (แสดงให้ผู้ยื่นคำขอเห็น):','"เอกสารประกอบไม่ครบถ้วน" กรุณาแนบเอกสารให้ถูกต้อง');
+  if(reason === null) return;
   db.ref('pharma-form/_org_requests/'+key).update({
-    status:'ปฏิเสธ', rejectedAt:new Date().toISOString(), rejectedBy:getCanonicalEmail()||''
+    status:'ปฏิเสธ', rejectedAt:new Date().toISOString(), rejectedBy:getCanonicalEmail()||'',
+    rejectReason: reason.trim() || '"เอกสารประกอบไม่ครบถ้วน" กรุณาแนบเอกสารให้ถูกต้อง'
   }).then(function(){ showToast('ปฏิเสธคำขอแล้ว','warn'); })
     .catch(function(e){ showToast('❌ '+e.message,'err'); });
 }
@@ -2311,6 +2313,7 @@ function loadMyOrgRequests(){
 
     wrap.innerHTML = myReqs.map(function(e){ // eslint-disable-line
       var req = e[1];
+      var reqKey = e[0];
       var st  = req.status || 'รอตรวจสอบ';
       var badgeCls = st==='อนุมัติแล้ว' ? 'badge-approved' : st==='ปฏิเสธ' ? 'badge-rejected' : 'badge-pending';
       var cardCls  = st==='อนุมัติแล้ว' ? 'approved' : st==='ปฏิเสธ' ? 'rejected' : '';
@@ -2394,11 +2397,32 @@ function loadMyOrgRequests(){
             'หน่วยงานนี้สามารถยื่นเอกสารต่ออายุ CPE ได้แล้ว</div>';
         }
       } else if(st==='ปฏิเสธ'){
-        extraHtml = '<div style="font-size:.76rem;color:#dc2626;margin-top:6px">'+
-          '❌ ถูกปฏิเสธเมื่อ '+fmtDate(req.rejectedAt)+
+        if(localStorage.getItem('dismissed_req_'+reqKey)==='1') return '';
+        var _safeKey=reqKey.replace(/'/g,"\\'");
+        var _rejReason=req.rejectReason||'"เอกสารประกอบไม่ครบถ้วน" กรุณาแนบเอกสารให้ถูกต้อง';
+        return '<div id="rej-card-'+reqKey+'" style="border:1px solid #F09595;border-radius:10px;overflow:hidden;background:#fff;transition:opacity .3s ease">'+
+          '<div style="padding:10px 12px;display:flex;align-items:flex-start;gap:10px">'+
+            '<div style="width:34px;height:34px;border-radius:8px;background:#FCEBEB;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🏢</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:.84rem;font-weight:700;color:var(--txt);line-height:1.3">'+(req.name||'-')+'</div>'+
+              '<div style="font-size:.68rem;color:var(--sub);margin-top:2px">ยื่นเมื่อ '+fmtDate(req.submittedAt)+(req.address?' · '+req.address:'')+'</div>'+
+            '</div>'+
+            '<span style="font-size:.62rem;font-weight:700;color:#A32D2D;background:#FCEBEB;border:1px solid #F09595;border-radius:20px;padding:3px 9px;white-space:nowrap;flex-shrink:0">ปฏิเสธ</span>'+
           '</div>'+
-          '<div style="font-size:.76rem;color:#94a3b8;margin-top:2px">'+
-          'กรุณาติดต่อผู้ดูแลระบบเพื่อสอบถามเพิ่มเติม</div>';
+          '<div style="background:#FCEBEB;border-top:1px solid #F7C1C1;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">'+
+            '<div style="width:30px;height:30px;border-radius:50%;background:#F7C1C1;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:12px;font-weight:700;color:#A32D2D">✕</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:.77rem;font-weight:700;color:#A32D2D;line-height:1.4">คำขอลงทะเบียนถูกปฏิเสธเมื่อ '+fmtDate(req.rejectedAt)+'</div>'+
+              '<div style="font-size:.69rem;color:#791F1F;margin-top:3px;line-height:1.5">หากต้องการข้อมูลเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่คณะเภสัชศาสตร์</div>'+
+              '<div style="font-size:.7rem;color:#501313;background:rgba(226,75,74,.08);border:1px solid rgba(226,75,74,.2);border-radius:6px;padding:6px 10px;margin-top:8px;line-height:1.5">'+
+                '<div style="font-size:.65rem;font-weight:700;color:#A32D2D;margin-bottom:2px">เหตุผลที่ปฏิเสธ</div>'+
+                _rejReason+
+              '</div>'+
+              '<button onclick="dismissRejectedReq(\''+_safeKey+'\')" style="margin-top:10px;font-size:.72rem;font-weight:700;color:#791F1F;background:none;border:1px solid rgba(162,45,45,.35);border-radius:6px;padding:5px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">'+
+                '✓ รับทราบและปิดสถานะ</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
       } else {
         extraHtml = '<div style="font-size:.76rem;color:#d97706;margin-top:6px">'+
           '⏳ คำขออยู่ระหว่างการพิจารณา — ทีมงานจะแจ้งผลทางอีเมล</div>';
@@ -2417,8 +2441,24 @@ function loadMyOrgRequests(){
           '</div>'+
           extraHtml+
         '</div>';
-    }).join('<hr style="border:none;border-top:1px solid rgba(200,210,230,.45);margin:28px 0">');
+    }).filter(Boolean).join('<hr style="border:none;border-top:1px solid rgba(200,210,230,.45);margin:28px 0">');
   });
+}
+
+function dismissRejectedReq(reqKey){
+  localStorage.setItem('dismissed_req_'+reqKey,'1');
+  var card=document.getElementById('rej-card-'+reqKey);
+  if(!card) return;
+  card.style.opacity='0';
+  setTimeout(function(){
+    card.style.display='none';
+    // ซ่อน section ถ้าไม่มีการ์ดเหลืออยู่
+    var wrap=document.getElementById('my-requests-wrap');
+    var sec=document.getElementById('my-requests-section');
+    if(wrap && sec && !wrap.querySelector('[id^="rej-card-"]') && !wrap.querySelector('.my-req-card')){
+      sec.style.display='none';
+    }
+  },320);
 }
 
 /* ════════════════════════════════
