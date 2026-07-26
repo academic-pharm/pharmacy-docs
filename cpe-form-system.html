@@ -1308,6 +1308,30 @@ body::after{display:none}
       <button class="odm-close" onclick="closeCertModal()">✕</button>
     </div>
     <div style="padding:18px 20px;overflow-y:auto">
+      <!-- Org data fields -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:.72rem;font-weight:700;color:#6a6d77;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px">ข้อมูลรับรอง</div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:.73rem;font-weight:600;color:#6a6d77;margin-bottom:4px">รหัสหน่วยงาน</div>
+          <input id="cert-org-code" type="text" placeholder="เช่น CPE-2568-001" style="width:100%;box-sizing:border-box;padding:8px 11px;border:1px solid rgba(200,210,230,.7);border-radius:8px;font-size:.82rem;color:var(--text,#1e293b);background:var(--surface,#fff);outline:none;font-family:inherit">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:.73rem;font-weight:600;color:#6a6d77;margin-bottom:4px">วันที่ผ่านการรับรอง</div>
+            <input id="cert-reg-date" type="date" style="width:100%;box-sizing:border-box;padding:8px 11px;border:1px solid rgba(200,210,230,.7);border-radius:8px;font-size:.82rem;color:var(--text,#1e293b);background:var(--surface,#fff);outline:none;font-family:inherit">
+          </div>
+          <div>
+            <div style="font-size:.73rem;font-weight:600;color:#6a6d77;margin-bottom:4px">วันหมดอายุ</div>
+            <input id="cert-exp-date" type="date" style="width:100%;box-sizing:border-box;padding:8px 11px;border:1px solid rgba(200,210,230,.7);border-radius:8px;font-size:.82rem;color:var(--text,#1e293b);background:var(--surface,#fff);outline:none;font-family:inherit">
+          </div>
+        </div>
+      </div>
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="flex:1;height:1px;background:rgba(200,210,230,.5)"></div>
+        <div style="font-size:.68rem;color:#94a3b8;letter-spacing:.04em;text-transform:uppercase">เอกสารแนบ</div>
+        <div style="flex:1;height:1px;background:rgba(200,210,230,.5)"></div>
+      </div>
       <!-- Single file zone -->
       <div style="margin-bottom:14px">
         <div style="font-size:.75rem;font-weight:600;color:#6a6d77;margin-bottom:6px">เอกสารรับรอง (.pdf / .doc / .docx)</div>
@@ -3423,6 +3447,9 @@ function openCertModal(orgKey, ts, orgName){
   // reset
   _certFile = null;
   _resetCertZone();
+  var oc = document.getElementById('cert-org-code'); if(oc) oc.value='';
+  var rd = document.getElementById('cert-reg-date'); if(rd) rd.value='';
+  var ed = document.getElementById('cert-exp-date'); if(ed) ed.value='';
   var st = document.getElementById('cert-status'); if(st) st.textContent='';
   var btn = document.getElementById('cert-send-btn'); if(btn){ btn.disabled=false; btn.textContent='📤 ส่งเอกสารรับรองให้ user'; }
   modal.style.cssText='display:flex;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease';
@@ -3470,12 +3497,17 @@ async function adminCompleteRenewal(){
   var modal = document.getElementById('cert-modal');
   var orgKey = modal._orgKey||'';
   var ts = modal._ts||'';
+  var orgCode  = ((document.getElementById('cert-org-code')||{}).value||'').trim();
+  var regDate  = ((document.getElementById('cert-reg-date')||{}).value||'').trim();
+  var expDate  = ((document.getElementById('cert-exp-date')||{}).value||'').trim();
+  if(!orgCode||!regDate||!expDate){ showToast('กรุณากรอกรหัสหน่วยงาน วันที่ผ่านการรับรอง และวันหมดอายุ','err'); return; }
   if(!_certFile){ showToast('กรุณาเลือกไฟล์เอกสารรับรอง','err'); return; }
   var btn = document.getElementById('cert-send-btn');
   var st  = document.getElementById('cert-status');
   if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังอัปโหลด...'; }
   if(st)  st.textContent='';
-  var update = { status:'ต่ออายุแล้ว', completedAt:new Date().toISOString() };
+  var orgMeta = { orgCode:orgCode, registrationDate:regDate, expiryDate:expDate };
+  var update = Object.assign({ status:'ต่ออายุแล้ว', completedAt:new Date().toISOString() }, orgMeta);
   try{
     var ext = _certFile.name.split('.').pop().toLowerCase();
     var label = ext==='pdf' ? 'เอกสารรับรองต่ออายุ-PDF' : 'เอกสารรับรองต่ออายุ-Word';
@@ -3483,6 +3515,13 @@ async function adminCompleteRenewal(){
     if(ext==='pdf') update.certPdf  = { url:r.url, name:_certFile.name };
     else            update.certWord = { url:r.url, name:_certFile.name };
     await db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).update(update);
+    // propagate orgCode/dates to _cpe_orgs and any matching _org_requests
+    var writes = [ db.ref('pharma-form/_cpe_orgs/'+orgKey).update(orgMeta) ];
+    writes.push(
+      db.ref('pharma-form/_org_requests').orderByChild('orgKey').equalTo(orgKey).once('value')
+        .then(function(snap){ var arr=[]; snap.forEach(function(c){ arr.push(c.ref.update(orgMeta)); }); return Promise.all(arr); })
+    );
+    await Promise.all(writes);
     if(st){ st.textContent='✅ ส่งเอกสารรับรองเรียบร้อยแล้ว'; st.style.color='#059669'; }
     setTimeout(function(){ closeCertModal(); loadAllRenewals(); }, 1500);
   }catch(e){
