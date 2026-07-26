@@ -2658,6 +2658,21 @@ function renderUserConfPanel(){
       ? '<button onclick="openConfDetailModal(\''+cidSafe+'\')" style="flex-shrink:0;font-size:.7rem;color:#6366f1;background:none;border:none;cursor:pointer;white-space:nowrap;padding:0;font-family:inherit">ดูรายละเอียด →</button>'
       : '';
 
+    // header icon
+    var iconBg, iconContent;
+    if(st==='result_confirmed'&&payStatus==='confirmed'){
+      iconBg='rgba(5,150,105,.1)'; iconContent='<span style="color:#059669;font-size:14px;font-weight:700">✓</span>';
+    } else if(st==='result_confirmed'&&payStatus==='pending_receipt'){
+      iconBg='rgba(217,119,6,.1)'; iconContent='<span style="color:#b45309;font-size:13px">🧾</span>';
+    } else if(st==='result_confirmed'){
+      iconBg='rgba(99,102,241,.1)'; iconContent='<span style="color:#4338ca;font-size:13px">💳</span>';
+    } else if(st==='sent_to_experts'){
+      iconBg='rgba(14,165,233,.1)'; iconContent='<span style="color:#0369a1;font-size:13px">✉</span>';
+    } else {
+      iconBg='rgba(100,116,139,.1)'; iconContent='<span style="color:#64748b;font-size:13px">📋</span>';
+    }
+    var iconHtml='<div style="width:34px;height:34px;border-radius:8px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+iconContent+'</div>';
+
     // status badge
     var badgeHtml = '', cardBorder = '1px solid rgba(100,116,139,.2)';
     if(st==='result_confirmed'){
@@ -2686,13 +2701,22 @@ function renderUserConfPanel(){
     var s4col=s4done?'#059669':(s4active?'#b45309':(st==='result_confirmed'&&!payStatus?'#4338ca':'#94a3b8'));
     var s4bold=s4done||s4active||(st==='result_confirmed'&&!payStatus);
 
-    var _vR=function(dot,line,label){ return '<div style="display:flex;gap:10px"><div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">'+dot+(line||'')+'</div><div style="padding-bottom:'+(line?'10':'4')+'px">'+label+'</div></div>'; };
+    var _vR=function(dot,line,label,desc){ return '<div style="display:flex;gap:10px"><div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">'+dot+(line||'')+'</div><div style="padding-bottom:'+(line?'10':'4')+'px">'+label+(desc?'<div style="font-size:.67rem;color:'+desc.c+';margin-top:2px">'+desc.t+'</div>':'')+'</div></div>'; };
     var stepperHtml=
       '<div style="padding:12px 14px 4px;display:flex;flex-direction:column">'+
-        _vR(_vDot(true,false,1,''),_vLine(s2done),_vRowLabel('ส่งเอกสาร',true,false,''))+
-        _vR(_vDot(s2done,s2active,2,'#d97706'),_vLine(s3done),_vRowLabel('ผู้ทรงฯ พิจารณา',s2done,s2active,'#b45309'))+
-        _vR(_vDot(s3done,false,3,''),_vLine(s4done),_vRowLabel('ผลการพิจารณา',s3done,false,''))+
-        _vR(_vDot(s4done,s4active,4,'#4338ca'),null,_vRowLabel('ชำระค่าธรรมเนียม',s4done,s4active,s4col))+
+        _vR(_vDot(true,false,1,''),_vLine(s2done),_vRowLabel('ส่งเอกสาร',true,false,''),{t:'ส่งเอกสารประกอบการประชุมและข้อมูล CPE ครบถ้วน',c:'#6b7280'})+
+        _vR(_vDot(s2done,s2active,2,'#d97706'),_vLine(s3done),_vRowLabel('ผู้ทรงคุณวุฒิพิจารณา',s2done,s2active,'#b45309'),
+          s2active?{t:'อยู่ระหว่างการตรวจสอบเนื้อหาและหน่วยกิต CPE',c:'#0369a1'}:
+          s2done?{t:'ส่งให้ผู้ทรงฯ ตรวจสอบเนื้อหาและหน่วยกิต CPE แล้ว',c:'#6b7280'}:
+          {t:'รอส่งเอกสารให้ผู้ทรงคุณวุฒิ',c:'#94a3b8'})+
+        _vR(_vDot(s3done,false,3,''),_vLine(s4done),_vRowLabel('ผลการพิจารณา',s3done,false,''),
+          s3done?{t:'ผ่านการรับรองหน่วยกิต CPE เรียบร้อย',c:'#6b7280'}:
+          {t:'รอรับผลการรับรองหน่วยกิต',c:'#94a3b8'})+
+        _vR(_vDot(s4done,s4active,4,'#4338ca'),null,_vRowLabel('ชำระค่าธรรมเนียม',s4done,s4active,s4col),
+          s4done?{t:'ชำระค่าธรรมเนียมและได้รับใบเสร็จแล้ว',c:'#6b7280'}:
+          s4active?{t:'อยู่ระหว่างการตรวจสอบการชำระเงิน',c:'#b45309'}:
+          (st==='result_confirmed')?{t:'ดำเนินการชำระหลังได้รับผลการรับรอง',c:'#94a3b8'}:
+          {t:'ดำเนินการชำระหลังได้รับผลการรับรอง',c:'#94a3b8'})+
       '</div>';
 
     // bottom panel
@@ -2727,8 +2751,11 @@ function renderUserConfPanel(){
       }
       bottomPanel=
         '<div style="margin:4px 10px 10px;border:1px solid rgba(5,150,105,.2);border-radius:8px;overflow:hidden">'+
-          '<div style="padding:7px 12px;background:rgba(5,150,105,.06);display:flex;align-items:center;justify-content:space-between;gap:8px">'+
-            '<span style="font-size:.71rem;font-weight:700;color:#065f46">✅ ผ่านการรับรองหน่วยกิต CPE</span>'+
+          '<div style="padding:8px 12px;background:rgba(5,150,105,.06);display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+            '<div>'+
+              '<div style="font-size:.71rem;font-weight:700;color:#065f46">✅ ผ่านการรับรองหน่วยกิต CPE</div>'+
+              (hasResult?'<div style="font-size:.67rem;color:#6b7280;margin-top:1px">ดาวน์โหลดเอกสารรับรองได้ด้านขวา</div>':'')+
+            '</div>'+
             (hasResult?'<a href="'+c.files.result_pdf.url+'" target="_blank" style="flex-shrink:0;font-size:.69rem;font-weight:700;color:#059669;text-decoration:none;border:1px solid rgba(5,150,105,.3);border-radius:5px;padding:3px 8px;white-space:nowrap">⬇ ดาวน์โหลดผล</a>':'')+
           '</div>'+
           payRow+
@@ -2736,7 +2763,7 @@ function renderUserConfPanel(){
     } else {
       var statusMsg=st==='sent_to_experts'
         ?'<span style="width:6px;height:6px;border-radius:50%;background:#0ea5e9;flex-shrink:0;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span>'+
-          '<span style="font-size:.71rem;color:#0369a1">ส่งให้ผู้ทรงคุณวุฒิพิจารณาแล้ว — รอผล</span>'
+          '<span style="font-size:.71rem;color:#0369a1">ส่งให้ผู้ทรงคุณวุฒิพิจารณาแล้ว — รอผลการรับรอง</span>'
         :'<span style="font-size:.71rem;color:#64748b">📋 รอเจ้าหน้าที่ส่งเอกสารให้ผู้ทรงคุณวุฒิ</span>';
       bottomPanel=
         '<div style="margin:4px 10px 10px;border:1px solid rgba(100,116,139,.15);border-radius:8px;padding:7px 12px;background:rgba(100,116,139,.04);display:flex;align-items:center;gap:7px">'+
@@ -2746,7 +2773,8 @@ function renderUserConfPanel(){
 
     parts.push(
       '<div style="border:'+cardBorder+';border-radius:11px;overflow:hidden;background:#fff">'+
-        '<div style="padding:9px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,.06)">'+
+        '<div style="padding:10px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,.06)">'+
+          iconHtml+
           '<div style="flex:1;min-width:0">'+
             '<div style="font-size:.82rem;font-weight:700;color:#1a202c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+name+'</div>'+
             (dateStr!=='-'?'<div style="font-size:.69rem;color:#64748b;margin-top:1px">'+dateStr+'</div>':'')+
