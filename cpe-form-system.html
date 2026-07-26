@@ -2364,6 +2364,16 @@ function loadMyOrgRequests(){
           if(req.expiryDate){
             var _expD2=new Date(req.expiryDate+'T00:00:00'),_now2=new Date();_now2.setHours(0,0,0,0);
             var _days2=Math.ceil((_expD2-_now2)/86400000);
+            if(_days2>=0){
+              var _expFmt2=_expD2.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'});
+              _bodyHtml += '<div style="margin-top:10px;border-radius:8px;background:rgba(16,185,129,.08);border:0.5px solid rgba(16,185,129,.35);padding:10px 13px;display:flex;align-items:center;gap:9px">'
+                +'<div style="width:26px;height:26px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:#fff;font-weight:700">✓</div>'
+                +'<div>'
+                  +'<div style="font-size:.78rem;font-weight:700;color:#0F6E56">หน่วยงานนี้สามารถดำเนินการจัดประชุมวิชาการได้</div>'
+                  +'<div style="font-size:.68rem;color:#1D9E75;margin-top:2px">มีผลถึง '+_expFmt2+' · เหลืออีก '+_days2+' วัน</div>'
+                +'</div>'
+              +'</div>';
+            }
             if(_days2<=90){
               var _isExp=_days2<0;
               var _bClr=_isExp?'background:#dc2626':'background:#d97706';
