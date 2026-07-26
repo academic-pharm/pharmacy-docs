@@ -2283,6 +2283,8 @@ function loadMyOrgRequests(){
     var wrap    = document.getElementById('my-requests-wrap');
     if(!section||!wrap) return;
     if(myReqs.length === 0){ return; }
+    // ไม่แสดงสำหรับ admin
+    if(isAdmin) return;
     // ไม่แสดงเมื่ออยู่ที่ tab ประชุมวิชาการ
     var _confActive = (function(){ var p=document.querySelector('[data-tab="user-conf"]'); return p&&p.style.display!=='none'; })();
     if(_confActive) return;
@@ -5085,10 +5087,10 @@ function sidebarGo(section){
   if(section === 'main'){
     showView('status');
     if(isAdmin) switchTab('admin-manage');
-    // คืน my-requests-section ถ้ามีข้อมูล
+    // คืน my-requests-section ถ้ามีข้อมูล (ไม่แสดงสำหรับ admin)
     var _mrs = document.getElementById('my-requests-section');
     var _mrw = document.getElementById('my-requests-wrap');
-    if(_mrs && _mrw && _mrw.innerHTML.trim()) _mrs.style.display = 'block';
+    if(_mrs && _mrw && _mrw.innerHTML.trim() && !isAdmin) _mrs.style.display = 'block';
   } else if(section === 'manage'){
     showView('status');
     switchTab('admin-manage');
