@@ -2296,12 +2296,12 @@ function loadMyOrgRequests(){
 
       var extraHtml = '';
       if(st==='อนุมัติแล้ว'){
-        extraHtml = '<div style="font-size:.76rem;color:#059669;margin-top:6px">'+
-          '✅ ได้รับการอนุมัติเมื่อ '+fmtDate(req.approvedAt)+
-          (req.approvedBy?' โดย '+req.approvedBy:'')+
-          '</div>';
-        if(req.orgCode||req.registrationDate||req.expiryDate){
-          var _fields = [];
+        var _rk2=(req.orgKey||'').replace(/'/g,"\\'");
+        var _rn2=(req.name||'').replace(/'/g,"\\'");
+        var _hasData=req.orgCode||req.registrationDate||req.expiryDate;
+        var _bodyHtml='';
+        if(_hasData){
+          var _fields=[];
           if(req.orgCode){
             _fields.push(
               '<div style="flex:1;padding:10px 12px;text-align:center;border-right:1px solid rgba(16,185,129,.2)">'+
@@ -2335,59 +2335,76 @@ function loadMyOrgRequests(){
               '</div>'
             );
           }
-          // strip trailing border-right from last field
-          if(_fields.length>0){
-            _fields[_fields.length-1] = _fields[_fields.length-1].replace('border-right:1px solid rgba(16,185,129,.2);','');
-          }
-          extraHtml += '<div style="display:flex;width:100%;box-sizing:border-box;margin-top:10px;'+
-            'background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:8px;overflow:hidden">'+
-            _fields.join('')+
-          '</div>';
-        }
-        // ปุ่มต่ออายุ — แสดงเฉพาะเมื่อใกล้หมดอายุ (≤90 วัน) หรือหมดอายุแล้ว
-        if(req.expiryDate){
-          var _expD2=new Date(req.expiryDate+'T00:00:00'),_now2=new Date();_now2.setHours(0,0,0,0);
-          var _days2=Math.ceil((_expD2-_now2)/86400000);
-          if(_days2<=90){
-            var _rk=(req.orgKey||'').replace(/'/g,"\\'");
-            var _rn=(req.name||'').replace(/'/g,"\\'");
-            var _isExp=_days2<0;
-            var _btnClr=_isExp?'background:#dc2626;border-color:#dc2626':'background:#d97706;border-color:#d97706';
-            var _btnTxt=_isExp?'🚨 ต่ออายุด่วน':'🔄 ต่ออายุล่วงหน้า';
-            extraHtml += '<div style="margin-top:12px;display:flex;flex-direction:column;align-items:stretch;gap:6px">'+
-              '<button class="btn btn-sm" style="'+_btnClr+';color:#fff;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px" '+
-              'onclick="showView(\'renew\',\''+_rk+'\',\''+_rn+'\')">'+_btnTxt+'</button>'+
-              (_isExp
-                ? '<div style="font-size:.72rem;color:#dc2626;text-align:center">⚠️ กรุณาต่ออายุเพื่อดำเนินกิจกรรม CPE ต่อ</div>'
-                : '<div style="font-size:.72rem;color:#d97706;text-align:center">แนะนำให้ดำเนินการก่อนหมดอายุ</div>')+
+          if(_fields.length>0) _fields[_fields.length-1]=_fields[_fields.length-1].replace('border-right:1px solid rgba(16,185,129,.2);','');
+          _bodyHtml += '<div style="display:flex;width:100%;box-sizing:border-box;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:9px;overflow:hidden">'+_fields.join('')+'</div>';
+          if(req.expiryDate){
+            var _expD2=new Date(req.expiryDate+'T00:00:00'),_now2=new Date();_now2.setHours(0,0,0,0);
+            var _days2=Math.ceil((_expD2-_now2)/86400000);
+            if(_days2<=90){
+              var _isExp=_days2<0;
+              var _bClr=_isExp?'background:#dc2626':'background:#d97706';
+              var _bTxt=_isExp?'🚨 ต่ออายุด่วน':'🔄 ต่ออายุล่วงหน้า';
+              _bodyHtml += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">'+
+                '<button class="btn btn-sm" style="'+_bClr+';color:#fff;font-weight:700;padding:8px;border-radius:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:6px" onclick="showView(\'renew\',\''+_rk2+'\',\''+_rn2+'\')">'+_bTxt+'</button>'+
+                (_isExp
+                  ?'<div style="font-size:.71rem;color:#dc2626;text-align:center">⚠️ กรุณาต่ออายุเพื่อดำเนินกิจกรรม CPE ต่อ</div>'
+                  :'<div style="font-size:.71rem;color:#d97706;text-align:center">แนะนำให้ดำเนินการก่อนหมดอายุ</div>')+
               '</div>';
+            }
           }
-        }
-        if(!req.orgCode && !req.registrationDate && !req.expiryDate){
-          extraHtml += '<div style="border-radius:9px;overflow:hidden;border:0.5px solid #FAC775;margin-top:10px">'
-            +'<div style="background:#FAEEDA;padding:8px 12px;display:flex;align-items:center;gap:7px">'
-              +'<span style="font-size:13px">🕐</span>'
+        } else {
+          _bodyHtml =
+            '<div style="border-radius:10px;overflow:hidden;border:0.5px solid #E8C875">'
+            +'<div style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);padding:11px 14px;display:flex;align-items:center;gap:10px">'
+              +'<div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">🕐</div>'
               +'<div style="flex:1">'
-                +'<div style="font-size:.73rem;font-weight:700;color:#412402">รอดำเนินการต่ออายุ</div>'
-                +'<div style="font-size:.64rem;color:#633806;margin-top:1px">ข้อมูลรหัสและวันที่จะแสดงหลังต่ออายุสำเร็จ</div>'
+                +'<div style="font-size:.76rem;font-weight:700;color:#78350F">รอดำเนินการต่ออายุ</div>'
+                +'<div style="font-size:.64rem;color:#92400E;margin-top:2px">ข้อมูลรหัสและวันที่จะแสดงหลังต่ออายุสำเร็จ</div>'
               +'</div>'
             +'</div>'
-            +'<div style="background:var(--surface);padding:9px 12px;display:flex;flex-direction:column;gap:5px">'
-              +'<div style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--text-secondary)">'
-                +'<span style="width:18px;height:18px;border-radius:50%;background:#FAC775;color:#633806;font-size:.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">1</span>'
-                +'ยื่นเอกสารต่ออายุผ่านเมนู "สถานะการต่ออายุ"'
+            +'<div style="background:var(--surface);padding:11px 14px;display:flex;flex-direction:column;gap:8px">'
+              +'<div style="display:flex;gap:10px;align-items:flex-start">'
+                +'<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">'
+                  +'<span style="width:20px;height:20px;border-radius:50%;background:#FDE68A;border:1.5px solid #D97706;color:#78350F;font-size:.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center">1</span>'
+                  +'<div style="width:1.5px;height:14px;background:#E8C875;margin:2px 0"></div>'
+                +'</div>'
+                +'<div style="font-size:.72rem;color:var(--text-secondary);padding-top:2px">ยื่นเอกสารต่ออายุผ่านเมนู <strong style="color:var(--text)">"สถานะการต่ออายุ"</strong></div>'
               +'</div>'
-              +'<div style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--text-secondary)">'
-                +'<span style="width:18px;height:18px;border-radius:50%;background:#FAC775;color:#633806;font-size:.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">2</span>'
-                +'เจ้าหน้าที่กำหนดรหัสหน่วยงาน + วันหมดอายุ'
+              +'<div style="display:flex;gap:10px;align-items:flex-start">'
+                +'<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">'
+                  +'<span style="width:20px;height:20px;border-radius:50%;background:#FDE68A;border:1.5px solid #D97706;color:#78350F;font-size:.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center">2</span>'
+                  +'<div style="width:1.5px;height:14px;background:#E8C875;margin:2px 0"></div>'
+                +'</div>'
+                +'<div style="font-size:.72rem;color:var(--text-secondary);padding-top:2px">เจ้าหน้าที่กำหนดรหัสหน่วยงาน + วันหมดอายุ</div>'
               +'</div>'
-              +'<div style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--text-secondary)">'
-                +'<span style="width:18px;height:18px;border-radius:50%;background:#FAC775;color:#633806;font-size:.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">3</span>'
-                +'รหัสหน่วยงาน วันที่รับรอง และวันหมดอายุปรากฏที่นี่'
+              +'<div style="display:flex;gap:10px;align-items:flex-start">'
+                +'<span style="width:20px;height:20px;border-radius:50%;background:#FDE68A;border:1.5px solid #D97706;color:#78350F;font-size:.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">3</span>'
+                +'<div style="font-size:.72rem;color:var(--text-secondary);padding-top:2px">รหัสหน่วยงาน วันที่รับรอง และวันหมดอายุปรากฏที่นี่</div>'
               +'</div>'
+            +'</div>'
+            +'<div style="padding:10px 14px;background:rgba(0,0,0,.025);border-top:0.5px solid #E8C875">'
+              +'<button class="btn btn-sm" style="background:linear-gradient(135deg,#D97706,#B45309);color:#fff;font-weight:700;border-radius:8px;padding:8px 16px;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;font-size:.76rem" onclick="showView(\'renew\',\''+_rk2+'\',\''+_rn2+'\')">'
+                +'▶ ดำเนินการต่ออายุหน่วยงาน'
+              +'</button>'
             +'</div>'
           +'</div>';
         }
+        return '<div style="border-radius:12px;overflow:hidden;border:0.5px solid #5DCAA5">'
+          +'<div style="height:3px;background:linear-gradient(90deg,#1D9E75,#38A36B)"></div>'
+          +'<div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px">'
+            +'<div style="width:36px;height:36px;border-radius:9px;background:rgba(29,158,117,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">🏢</div>'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-size:.88rem;font-weight:700;color:var(--text)">'+(req.name||'-')+'</div>'
+              +'<div style="font-size:.67rem;color:var(--text-muted);margin-top:1px">ยื่นเมื่อ '+fmtDate(req.submittedAt)+(req.address?' · '+req.address:'')+'</div>'
+            +'</div>'
+            +'<span style="font-size:.6rem;font-weight:700;color:#085041;background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:20px;padding:3px 9px;white-space:nowrap;flex-shrink:0">อนุมัติแล้ว</span>'
+          +'</div>'
+          +'<div style="margin:0 14px 8px;padding:7px 11px;background:rgba(29,158,117,.08);border-radius:8px;display:flex;align-items:center;gap:7px">'
+            +'<span style="font-size:13px">✅</span>'
+            +'<div style="font-size:.73rem;color:#085041;font-weight:500">ได้รับการอนุมัติเมื่อ '+fmtDate(req.approvedAt)+(req.approvedBy?' <span style="color:#185FA5">โดย '+req.approvedBy+'</span>':'')+'</div>'
+          +'</div>'
+          +'<div style="padding:0 14px 14px">'+_bodyHtml+'</div>'
+        +'</div>';
       } else if(st==='ปฏิเสธ'){
         if(localStorage.getItem('dismissed_req_'+reqKey)==='1') return '';
         var _safeKey=reqKey.replace(/'/g,"\\'");
