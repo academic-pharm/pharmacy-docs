@@ -2289,6 +2289,9 @@ function loadMyOrgRequests(){
     var wrap    = document.getElementById('my-requests-wrap');
     if(!section||!wrap) return;
     if(myReqs.length === 0){ return; }
+    // ไม่แสดงเมื่ออยู่ที่ tab ประชุมวิชาการ
+    var _confActive = (function(){ var p=document.querySelector('[data-tab="user-conf"]'); return p&&p.style.display!=='none'; })();
+    if(_confActive) return;
     // Show section directly (no longer a switchTab tab)
     section.style.display = 'block';
 
