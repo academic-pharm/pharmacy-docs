@@ -1771,6 +1771,16 @@ var currentUser=null, isAdmin=false;
    ADMIN NOTIFICATIONS
 ════════════════════════════════ */
 var _notifData = {orgReqs:{}, renewals:{}, conferences:{}};
+var _seenNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_seen')||'[]')); } catch(ex){ return new Set(); } })();
+
+function _markAdminSeen(key, nav){
+  _seenNotifs.add(key);
+  try{ localStorage.setItem('_cpe_admin_seen', JSON.stringify([..._seenNotifs])); } catch(ex){}
+  _refreshNotif();
+  if(nav === 'main'){ sidebarGo('main'); toggleNotifPanel(); }
+  else if(nav === 'renewals'){ showView('admin-renewals'); toggleNotifPanel(); }
+  else if(nav === 'conf'){ showView('status'); switchTab('admin-conf'); toggleNotifPanel(); }
+}
 
 function _setupAdminNotifications(){
   var wrap = document.getElementById('notif-wrap');
@@ -1800,20 +1810,20 @@ function _collectNotifItems(){
   Object.entries(_notifData.orgReqs).forEach(function(e){
     var r = e[1];
     if(r && r.status === 'รอตรวจสอบ')
-      items.push({type:'org', name:r.name||'—', time:r.submittedAt||''});
+      items.push({type:'org', key:'org_'+e[0], name:r.name||'—', time:r.submittedAt||'', nav:'main'});
   });
   Object.entries(_notifData.renewals).forEach(function(e){
     var subs = e[1]||{};
     Object.entries(subs).forEach(function(se){
       var v = se[1]||{};
       if(v.status === 'รอตรวจสอบ')
-        items.push({type:'renew', name:v.orgName||e[0], time:v.submittedAt||''});
+        items.push({type:'renew', key:'renew_'+e[0]+'_'+se[0], name:v.orgName||e[0], time:v.submittedAt||'', nav:'renewals'});
     });
   });
   Object.entries(_notifData.conferences).forEach(function(e){
     var c = e[1]||{};
     if(!c.status || c.status === 'pending_review')
-      items.push({type:'conf', name:c.confName||c.orgName||'—', time:c.createdAt||''});
+      items.push({type:'conf', key:'conf_'+e[0], name:c.confName||c.orgName||'—', time:c.createdAt||'', nav:'conf'});
   });
   return items.sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
 }
@@ -1821,8 +1831,9 @@ function _collectNotifItems(){
 function _refreshNotif(){
   var items = _collectNotifItems();
   window._lastNotifItems = items;
+  var unseenCount = items.filter(function(n){ return !_seenNotifs.has(n.key); }).length;
   var badge = document.getElementById('notif-badge');
-  if(badge){ badge.textContent = items.length > 9 ? '9+' : items.length; badge.classList.toggle('show', items.length > 0); }
+  if(badge){ badge.textContent = unseenCount > 9 ? '9+' : unseenCount; badge.classList.toggle('show', unseenCount > 0); }
   var panel = document.getElementById('notif-panel');
   if(panel && panel.style.display !== 'none') _renderNotifList(items);
 }
@@ -1836,24 +1847,25 @@ function _renderNotifList(items){
   }
   list.innerHTML = items.map(function(n){
     var cfgN = {
-      org:   {label:'ลงทะเบียนหน่วยงาน', bg:'#E6F1FB', color:'#0C447C', bdr:'#85B7EB', icon:'🏢', nav:"sidebarGo('main');toggleNotifPanel()"},
-      renew: {label:'ส่งเอกสารต่ออายุ',   bg:'#FCEBEB', color:'#A32D2D', bdr:'#F09595', icon:'📄', nav:"showView('admin-renewals');toggleNotifPanel()"},
-      conf:  {label:'ยื่นประชุมวิชาการ',   bg:'#EEEDFE', color:'#3C3489', bdr:'#AFA9EC', icon:'🎓', nav:"showView('status');switchTab('admin-conf');toggleNotifPanel()"}
-    }[n.type]||{label:n.type,bg:'#eee',color:'#333',bdr:'#ccc',icon:'📌',nav:''};
-    var typeLabel = cfgN.label, typeBg = cfgN.bg, typeColor = cfgN.color, typeBdr = cfgN.bdr, icon = cfgN.icon;
-    var timeStr   = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-    var navFn = cfgN.nav;
-    return '<div onclick="'+navFn+'" style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
-      +'<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px">'
-        +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444;animation:notif-pulse 1.5s ease-out infinite"></div>'
-        +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444"></div>'
-      +'</div>'
+      org:   {label:'ลงทะเบียนหน่วยงาน', bg:'#E6F1FB', color:'#0C447C', bdr:'#85B7EB', dot:'#378ADD', icon:'🏢'},
+      renew: {label:'ส่งเอกสารต่ออายุ',   bg:'#FCEBEB', color:'#A32D2D', bdr:'#F09595', dot:'#ef4444', icon:'📄'},
+      conf:  {label:'ยื่นประชุมวิชาการ',   bg:'#EEEDFE', color:'#3C3489', bdr:'#AFA9EC', dot:'#7F77DD', icon:'🎓'}
+    }[n.type]||{label:n.type, bg:'#eee', color:'#333', bdr:'#ccc', dot:'#888', icon:'📌'};
+    var seen = _seenNotifs.has(n.key);
+    var timeStr = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    var dotHtml = seen
+      ? '<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px;visibility:hidden"><div style="position:absolute;inset:0;border-radius:50%;background:'+cfgN.dot+'"></div></div>'
+      : '<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px"><div style="position:absolute;inset:0;border-radius:50%;background:'+cfgN.dot+';animation:notif-pulse 1.5s ease-out infinite"></div><div style="position:absolute;inset:0;border-radius:50%;background:'+cfgN.dot+'"></div></div>';
+    var rowStyle = 'display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s'+(seen?';opacity:.45':'');
+    var safeKey = n.key.replace(/'/g,"\\'");
+    return '<div onclick="_markAdminSeen(\''+safeKey+'\',\''+n.nav+'\')" style="'+rowStyle+'" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
+      +dotHtml
       +'<div style="flex:1;min-width:0">'
         +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">'
-          +'<span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+typeBg+';color:'+typeColor+';border:0.5px solid '+typeBdr+'">'+typeLabel+'</span>'
+          +'<span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+cfgN.bg+';color:'+cfgN.color+';border:0.5px solid '+cfgN.bdr+'">'+cfgN.label+'</span>'
           +'<span style="font-size:.68rem;color:var(--sub)">'+timeStr+'</span>'
         +'</div>'
-        +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+icon+' '+n.name+'</div>'
+        +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+cfgN.icon+' '+n.name+'</div>'
       +'</div>'
       +'<div style="font-size:13px;color:var(--sub);opacity:.45;margin-top:3px">›</div>'
     +'</div>';
@@ -1873,6 +1885,15 @@ function toggleNotifPanel(){
 ════════════════════════════════ */
 var _userNotifData = {orgReqs:{}, renewals:{}};
 var _userMyEmail = '';
+var _seenUserNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_user_seen')||'[]')); } catch(ex){ return new Set(); } })();
+
+function _markUserSeen(key, nav){
+  _seenUserNotifs.add(key);
+  try{ localStorage.setItem('_cpe_user_seen', JSON.stringify([..._seenUserNotifs])); } catch(ex){}
+  _refreshUserNotif();
+  if(nav === 'main'){ sidebarGo('main'); toggleUserNotifPanel(); }
+  else if(nav === 'renew-status'){ sidebarGo('renew-status'); toggleUserNotifPanel(); }
+}
 
 function _setupUserNotifications(){
   var wrap = document.getElementById('user-notif-wrap');
@@ -1936,8 +1957,9 @@ function _collectUserNotifItems(){
 function _refreshUserNotif(){
   var items = _collectUserNotifItems();
   window._lastUserNotifItems = items;
+  var unseenCount = items.filter(function(n){ return !_seenUserNotifs.has(n.key); }).length;
   var badge = document.getElementById('user-notif-badge');
-  if(badge){ badge.textContent = items.length > 9 ? '9+' : items.length; badge.classList.toggle('show', items.length > 0); }
+  if(badge){ badge.textContent = unseenCount > 9 ? '9+' : unseenCount; badge.classList.toggle('show', unseenCount > 0); }
   var panel = document.getElementById('user-notif-panel');
   if(panel && panel.style.display !== 'none') _renderUserNotifList(items);
 }
@@ -1950,18 +1972,21 @@ function _renderUserNotifList(items){
     return;
   }
   var cfgMap = {
-    org_approved: {label:'อนุมัติแล้ว',  bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'คำขอลงทะเบียนหน่วยงานได้รับการอนุมัติ', nav:"sidebarGo('main')"},
-    org_rejected: {label:'ไม่อนุมัติ',   bg:'#FCEBEB',color:'#A32D2D',bdr:'#F09595',dot:'#ef4444',title:'คำขอลงทะเบียนหน่วยงานถูกปฏิเสธ',       nav:"sidebarGo('main')"},
-    renew_done:   {label:'ต่ออายุสำเร็จ',bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'เอกสารรับรองหน่วยงานพร้อมแล้ว',        nav:"sidebarGo('renew-status')"}
+    org_approved: {label:'อนุมัติแล้ว',  bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'คำขอลงทะเบียนหน่วยงานได้รับการอนุมัติ', nav:'main'},
+    org_rejected: {label:'ไม่อนุมัติ',   bg:'#FCEBEB',color:'#A32D2D',bdr:'#F09595',dot:'#ef4444',title:'คำขอลงทะเบียนหน่วยงานถูกปฏิเสธ',       nav:'main'},
+    renew_done:   {label:'ต่ออายุสำเร็จ',bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'เอกสารรับรองหน่วยงานพร้อมแล้ว',        nav:'renew-status'}
   };
   list.innerHTML = items.map(function(n){
-    var cfg = cfgMap[n.type]||{label:n.type,bg:'#eee',color:'#333',bdr:'#ccc',dot:'#888',title:n.name,nav:''};
+    var cfg = cfgMap[n.type]||{label:n.type,bg:'#eee',color:'#333',bdr:'#ccc',dot:'#888',title:n.name,nav:'main'};
+    var seen = _seenUserNotifs.has(n.key);
     var timeStr = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-    return '<div onclick="'+cfg.nav+';toggleUserNotifPanel()" style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
-      +'<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px">'
-        +'<div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+';animation:notif-pulse 1.5s ease-out infinite"></div>'
-        +'<div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+'"></div>'
-      +'</div>'
+    var dotHtml = seen
+      ? '<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px;visibility:hidden"><div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+'"></div></div>'
+      : '<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px"><div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+';animation:notif-pulse 1.5s ease-out infinite"></div><div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+'"></div></div>';
+    var rowStyle = 'display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s'+(seen?';opacity:.45':'');
+    var safeKey = n.key.replace(/'/g,"\\'");
+    return '<div onclick="_markUserSeen(\''+safeKey+'\',\''+cfg.nav+'\')" style="'+rowStyle+'" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
+      +dotHtml
       +'<div style="flex:1;min-width:0">'
         +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">'
           +'<span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+cfg.bg+';color:'+cfg.color+';border:0.5px solid '+cfg.bdr+'">'+cfg.label+'</span>'
