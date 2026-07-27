@@ -4595,6 +4595,43 @@ function _buildExpertModalContent(c){
         '<div id="em-file-count" style="background:rgba(5,150,105,.15);border-radius:8px;padding:4px 12px;font-size:.82rem;font-weight:700;color:#059669">- ไฟล์</div>',
       '</div>',
 
+      // Deadline note
+      '<div>',
+        secLabel('หมายเหตุ — กำหนดส่งมติ','#f59e0b'),
+        '<div style="background:#fffbeb;border:0.5px solid rgba(245,158,11,.3);border-radius:10px;padding:12px 14px">',
+          '<div style="font-size:.78rem;color:#78350f;margin-bottom:10px;line-height:1.5">ขอความกรุณาท่านส่งมติกลับมา ภายในวันที่</div>',
+          '<div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap">',
+            '<div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:64px">',
+              '<label for="em-dl-day" style="font-size:.67rem;color:#92400e;font-weight:600">วันที่</label>',
+              '<input type="number" id="em-dl-day" min="1" max="31" placeholder="เช่น 15" style="border:1px solid rgba(245,158,11,.4);border-radius:7px;padding:6px 10px;font-size:.8rem;background:#fff;color:#374151;outline:none;width:100%;box-sizing:border-box;font-family:inherit">',
+            '</div>',
+            '<div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:110px">',
+              '<label for="em-dl-month" style="font-size:.67rem;color:#92400e;font-weight:600">เดือน</label>',
+              '<select id="em-dl-month" style="border:1px solid rgba(245,158,11,.4);border-radius:7px;padding:6px 10px;font-size:.8rem;background:#fff;color:#374151;outline:none;width:100%;box-sizing:border-box;font-family:inherit">',
+                '<option value="">-- เลือกเดือน --</option>',
+                '<option value="มกราคม">มกราคม</option>',
+                '<option value="กุมภาพันธ์">กุมภาพันธ์</option>',
+                '<option value="มีนาคม">มีนาคม</option>',
+                '<option value="เมษายน">เมษายน</option>',
+                '<option value="พฤษภาคม">พฤษภาคม</option>',
+                '<option value="มิถุนายน">มิถุนายน</option>',
+                '<option value="กรกฎาคม">กรกฎาคม</option>',
+                '<option value="สิงหาคม">สิงหาคม</option>',
+                '<option value="กันยายน">กันยายน</option>',
+                '<option value="ตุลาคม">ตุลาคม</option>',
+                '<option value="พฤศจิกายน">พฤศจิกายน</option>',
+                '<option value="ธันวาคม">ธันวาคม</option>',
+              '</select>',
+            '</div>',
+            '<div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:80px">',
+              '<label for="em-dl-year" style="font-size:.67rem;color:#92400e;font-weight:600">ปี (พ.ศ.)</label>',
+              '<input type="number" id="em-dl-year" min="2560" max="2600" placeholder="เช่น 2568" style="border:1px solid rgba(245,158,11,.4);border-radius:7px;padding:6px 10px;font-size:.8rem;background:#fff;color:#374151;outline:none;width:100%;box-sizing:border-box;font-family:inherit">',
+            '</div>',
+          '</div>',
+          '<div style="margin-top:10px;font-size:.73rem;color:#92400e;line-height:1.5">เพื่อดำเนินการกรอกหน่วยกิตในระบบศูนย์การศึกษาต่อเนื่องทางเภสัชศาสตร์ต่อไป</div>',
+        '</div>',
+      '</div>',
+
       // Email
       '<div>',
         secLabel('อีเมลผู้ทรงคุณวุฒิ','#3b82f6'),
@@ -4850,6 +4887,13 @@ async function sendToExperts(){
 
   if(emails.length === 0){ showToast('กรุณาระบุอีเมลอย่างน้อย 1 ท่าน','err'); return; }
 
+  var deadlineDay   = ((document.getElementById('em-dl-day')||{}).value||'').trim();
+  var deadlineMonth = ((document.getElementById('em-dl-month')||{}).value||'').trim();
+  var deadlineYear  = ((document.getElementById('em-dl-year')||{}).value||'').trim();
+  var deadlineText  = (deadlineDay && deadlineMonth && deadlineYear)
+    ? 'ขอความกรุณาท่านส่งมติกลับมา ภายในวันที่ '+deadlineDay+' เดือน '+deadlineMonth+' ปี '+deadlineYear+' เพื่อดำเนินการกรอกหน่วยกิตในระบบศูนย์การศึกษาต่อเนื่องทางเภสัชศาสตร์ต่อไป'
+    : '';
+
   var btn = document.getElementById('em-send-btn');
   if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังส่ง...'; }
 
@@ -4866,6 +4910,7 @@ async function sendToExperts(){
         location:     c.location||'',
         note:         c.note||'',
         expertEmails: emails,
+        deadlineText: deadlineText,
         projectUrl:    c.files&&c.files.project&&c.files.project.url       ||'',
         cvfileUrl:     c.files&&c.files.cvfile&&c.files.cvfile.url         ||'',
         scheduleUrl:   c.files&&c.files.schedule&&c.files.schedule.url     ||'',

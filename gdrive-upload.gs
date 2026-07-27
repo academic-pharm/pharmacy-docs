@@ -598,6 +598,11 @@ function sendExpertEmail(data) {
     if (data.matiWordUrl) html += '<tr><td style="padding:10px 14px 10px 0;font-size:.85rem;color:#374151;width:290px;border-bottom:1px solid #e5e7eb">มติผลการพิจารณารับรอง CPE (Word)</td><td style="padding:10px 0;border-bottom:1px solid #e5e7eb"><a href="' + data.matiWordUrl + '" style="color:#4f46e5;font-weight:700">เปิดเอกสาร</a></td></tr>';
     html += '</table>';
   }
+  if (data.deadlineText) {
+    html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 16px;margin:8px 0 20px">';
+    html += '<p style="margin:0;font-size:.85rem;color:#78350f;line-height:1.7"><strong>หมายเหตุ</strong> : ' + data.deadlineText + '</p>';
+    html += '</div>';
+  }
   html += '</div></div>';
 
   var sent = 0;
