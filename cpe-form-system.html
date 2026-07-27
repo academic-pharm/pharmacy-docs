@@ -4359,7 +4359,7 @@ function loadAllCpeConferences(){
     }
 
     // ── จัดกลุ่มตาม pipeline ──
-    var _needAction = [], _waiting = [], _done = [];
+    var _needAction = [], _waiting = [], _done = [], _cancelled = [];
     confs.forEach(function(e){
       var _st = e[1].status||'pending_review';
       var _ps = e[1].payment ? (e[1].payment.status||'') : '';
@@ -4369,7 +4369,7 @@ function loadAllCpeConferences(){
       else if(_st==='sent_to_experts'){ _waiting.push({step:3,e:e}); }
       else if(_st==='result_confirmed' && !_ps){ _waiting.push({step:4,e:e}); }
       else if(_st==='result_confirmed' && _ps==='confirmed'){ _done.push(e); }
-      else if(_st==='cancelled'){ _done.push(e); }
+      else if(_st==='cancelled'){ _cancelled.push(e); }
       else { _waiting.push({step:3,e:e}); }
     });
     _needAction.sort(function(a,b){ return a.step-b.step; });
@@ -4457,6 +4457,46 @@ function loadAllCpeConferences(){
       return h+'</div>';
     }
 
+    function buildCancelledCard(e){
+      var cid=e[0], c=e[1];
+      var safeCid=cid.replace(/[^a-zA-Z0-9_-]/g,'_');
+      var dateRange=c.dateStart?fd(c.dateStart)+(c.dateEnd&&c.dateEnd!==c.dateStart?' – '+fd(c.dateEnd):''):'-';
+      var reason=(c.cancelReason||'').trim();
+      return (
+        '<div style="background:#fff;border:1.5px solid rgba(220,38,38,.3);border-radius:11px;overflow:hidden;margin-bottom:8px">'+
+        '<div style="padding:10px 14px;border-bottom:1px solid rgba(220,38,38,.1);display:flex;align-items:flex-start;gap:10px">'+
+          '<div style="width:32px;height:32px;border-radius:8px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🚫</div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'+
+              '<span style="font-size:.84rem;font-weight:700;color:#1a202c">'+(c.confName||'-')+'</span>'+
+              '<span style="font-size:.62rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.3);border-radius:20px;padding:2px 8px;white-space:nowrap">ยกเลิกแล้ว</span>'+
+            '</div>'+
+            '<div style="font-size:.72rem;color:#6b7280;display:flex;gap:8px;flex-wrap:wrap">'+
+              '<span>🏢 '+(c.orgName||'-')+'</span>'+
+              '<span>📅 '+dateRange+'</span>'+
+              '<span>ส่งโดย '+(c.createdBy||'-')+'</span>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:10px 14px">'+
+          '<div style="font-size:.65rem;font-weight:700;color:#b91c1c;margin-bottom:4px;letter-spacing:.03em">เหตุผลการยกเลิก</div>'+
+          (reason?
+            '<div style="background:rgba(220,38,38,.03);border-radius:6px;padding:8px 10px;border:0.5px solid rgba(220,38,38,.2);font-size:.72rem;color:#374151;line-height:1.55;font-style:italic;margin-bottom:8px">"'+escHtml(reason)+'"</div>'
+          :'<div style="font-size:.72rem;color:#9ca3af;margin-bottom:8px;font-style:italic">— ไม่ระบุเหตุผล —</div>')+
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+            (c.cancelledAt?'<span style="font-size:.67rem;color:#9ca3af">🗓 ยกเลิกเมื่อ '+fd(c.cancelledAt)+'</span>':'')+''+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:8px 14px;border-top:1px solid rgba(220,38,38,.08);display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+          '<span style="font-size:.67rem;color:#9ca3af;margin-right:2px">เอกสารที่ส่งมา</span>'+
+          fileBtn('โครงการ',c.files&&c.files.project&&c.files.project.url,'📋')+
+          fileBtn('CV วิทยากร',c.files&&c.files.cvfile&&c.files.cvfile.url,'👤')+
+          fileBtn('กำหนดการ',c.files&&c.files.schedule&&c.files.schedule.url,'📅')+
+        '</div>'+
+        '</div>'
+      );
+    }
+
     var _doneId='adc-done-'+Date.now();
     var _doneHtml='';
     if(_done.length){
@@ -4495,12 +4535,28 @@ function loadAllCpeConferences(){
       '</div>'+
     '</div>';
 
+    var _cancelledId='adc-cancelled-'+Date.now();
+    var _cancelledHtml='';
+    if(_cancelled.length){
+      _cancelledHtml=
+        '<div style="margin-bottom:16px">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+            '<span style="width:3px;height:15px;background:#dc2626;border-radius:2px;display:inline-block"></span>'+
+            '<span style="font-size:.78rem;font-weight:700;color:#991b1b">ยกเลิกคำขอ</span>'+
+            '<span style="font-size:.66rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.25);border-radius:20px;padding:1px 8px">'+_cancelled.length+' รายการ</span>'+
+            '<button onclick="var s=document.getElementById(\''+_cancelledId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'+
+          '</div>'+
+          '<div id="'+_cancelledId+'">'+_cancelled.map(buildCancelledCard).join('')+'</div>'+
+        '</div>';
+    }
+
     var _secDiv = '<hr style="border:none;border-top:1px solid rgba(200,210,230,.45);margin:28px 0">';
     wrap.innerHTML = _guideHtml +
       buildAdminSection('ต้องดำเนินการ','#b45309','rgba(217,119,6,.08)','rgba(217,119,6,.25)',_needAction,true) +
       _secDiv +
       buildAdminSection('รอดำเนินการจากฝ่ายอื่น','#0369a1','rgba(14,165,233,.08)','rgba(14,165,233,.25)',_waiting,true) +
-      (_doneHtml ? _secDiv + _doneHtml : '');
+      (_doneHtml ? _secDiv + _doneHtml : '') +
+      (_cancelledHtml ? _secDiv + _cancelledHtml : '');
   });
 }
 
