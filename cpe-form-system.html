@@ -1770,7 +1770,7 @@ var currentUser=null, isAdmin=false;
 /* ════════════════════════════════
    ADMIN NOTIFICATIONS
 ════════════════════════════════ */
-var _notifData = {orgReqs:{}, renewals:{}};
+var _notifData = {orgReqs:{}, renewals:{}, conferences:{}};
 
 function _setupAdminNotifications(){
   var wrap = document.getElementById('notif-wrap');
@@ -1781,6 +1781,10 @@ function _setupAdminNotifications(){
   });
   db.ref('pharma-form/_cpe_renewals').on('value', function(snap){
     _notifData.renewals = snap.val()||{};
+    _refreshNotif();
+  });
+  db.ref('pharma-form/_all_cpe_conferences').on('value', function(snap){
+    _notifData.conferences = snap.val()||{};
     _refreshNotif();
   });
   document.addEventListener('click', function(e){
@@ -1806,6 +1810,11 @@ function _collectNotifItems(){
         items.push({type:'renew', name:v.orgName||e[0], time:v.submittedAt||''});
     });
   });
+  Object.entries(_notifData.conferences).forEach(function(e){
+    var c = e[1]||{};
+    if(!c.status || c.status === 'pending_review')
+      items.push({type:'conf', name:c.confName||c.orgName||'—', time:c.createdAt||''});
+  });
   return items.sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
 }
 
@@ -1826,14 +1835,14 @@ function _renderNotifList(items){
     return;
   }
   list.innerHTML = items.map(function(n){
-    var isOrg = n.type === 'org';
-    var typeLabel = isOrg ? 'ลงทะเบียนหน่วยงาน' : 'ส่งเอกสารต่ออายุ';
-    var typeBg    = isOrg ? '#E6F1FB' : '#FCEBEB';
-    var typeColor = isOrg ? '#0C447C' : '#A32D2D';
-    var typeBdr   = isOrg ? '#85B7EB' : '#F09595';
-    var icon      = isOrg ? '🏢' : '📄';
+    var cfgN = {
+      org:   {label:'ลงทะเบียนหน่วยงาน', bg:'#E6F1FB', color:'#0C447C', bdr:'#85B7EB', icon:'🏢', nav:"sidebarGo('main');toggleNotifPanel()"},
+      renew: {label:'ส่งเอกสารต่ออายุ',   bg:'#FCEBEB', color:'#A32D2D', bdr:'#F09595', icon:'📄', nav:"showView('admin-renewals');toggleNotifPanel()"},
+      conf:  {label:'ยื่นประชุมวิชาการ',   bg:'#EEEDFE', color:'#3C3489', bdr:'#AFA9EC', icon:'🎓', nav:"showView('status');switchTab('admin-conf');toggleNotifPanel()"}
+    }[n.type]||{label:n.type,bg:'#eee',color:'#333',bdr:'#ccc',icon:'📌',nav:''};
+    var typeLabel = cfgN.label, typeBg = cfgN.bg, typeColor = cfgN.color, typeBdr = cfgN.bdr, icon = cfgN.icon;
     var timeStr   = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-    var navFn = isOrg ? "sidebarGo('main');toggleNotifPanel()" : "showView('admin-renewals');toggleNotifPanel()";
+    var navFn = cfgN.nav;
     return '<div onclick="'+navFn+'" style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
       +'<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px">'
         +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444;animation:notif-pulse 1.5s ease-out infinite"></div>'
