@@ -1813,6 +1813,23 @@ var currentUser=null, isAdmin=false;
 ════════════════════════════════ */
 var _notifData = {orgReqs:{}, renewals:{}, conferences:{}};
 var _seenNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_seen')||'[]')); } catch(ex){ return new Set(); } })();
+// จุดแดงเมนู "ประชุมวิชาการ" (admin) — เก็บ key ที่เคยเปิดดูแล้วแยกต่างหาก
+// key = cid + step ดังนั้นถ้ารายการขยับ step (เช่น admin ดำเนินการต่อ) จะนับเป็น "ยังไม่เห็น" ใหม่โดยอัตโนมัติ
+var _seenConfAction = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_conf_seen')||'[]')); } catch(ex){ return new Set(); } })();
+function _markConfActionSeen(){
+  if(!isAdmin) return;
+  var items = window._lastConfNeedAction || [];
+  var changed = false;
+  items.forEach(function(item){
+    var k = item.e[0] + '_s' + item.step;
+    if(!_seenConfAction.has(k)){ _seenConfAction.add(k); changed = true; }
+  });
+  if(changed){
+    try{ localStorage.setItem('_cpe_admin_conf_seen', JSON.stringify([..._seenConfAction])); } catch(ex){}
+  }
+  var _confDot = document.getElementById('tab-dot-admin-conf');
+  if(_confDot) _confDot.style.display = 'none';
+}
 
 function _markAdminSeen(key, nav){
   _seenNotifs.add(key);
@@ -1878,11 +1895,27 @@ function _refreshNotif(){
   var panel = document.getElementById('notif-panel');
   if(panel && panel.style.display !== 'none') _renderNotifList(items);
   // จุด pulse-dot สีแดงที่เมนู "หน้าหลัก CPE" — ขึ้นเมื่อมีคำขอลงทะเบียนหน่วยงาน
-  // หรือเอกสารต่ออายุสถาบันสมทบที่ผู้ใช้ส่งมา "รอตรวจสอบ" (ไม่ว่าจะเคยเปิดดูแล้วหรือไม่)
+  // หรือเอกสารต่ออายุสถาบันสมทบที่ผู้ใช้ส่งมา "รอตรวจสอบ" ที่ admin ยังไม่เคยกดเข้าไปดู
   var mainDot = document.getElementById('tab-dot-admin-manage');
   if(mainDot){
-    var needsAction = items.some(function(n){ return n.type === 'org' || n.type === 'renew'; });
+    var needsAction = items.some(function(n){ return (n.type === 'org' || n.type === 'renew') && !_seenNotifs.has(n.key); });
     mainDot.style.display = needsAction ? 'inline-block' : 'none';
+  }
+}
+
+// เรียกเมื่อ admin กดเข้า "หน้าหลัก CPE" หรือหน้า "เอกสารต่ออายุทั้งหมด" —
+// ถือว่ารับทราบคำขอ/เอกสารที่รออยู่ ณ ตอนนี้ทั้งหมด จุดแดงจะหายไป
+// (จะขึ้นใหม่อัตโนมัติเมื่อมีคำขอ/เอกสารใหม่เข้ามา เพราะ key มี timestamp ของแต่ละรายการ)
+function _markMainNotifsSeen(){
+  if(!isAdmin) return;
+  var items = window._lastNotifItems || _collectNotifItems();
+  var changed = false;
+  items.forEach(function(n){
+    if((n.type === 'org' || n.type === 'renew') && !_seenNotifs.has(n.key)){ _seenNotifs.add(n.key); changed = true; }
+  });
+  if(changed){
+    try{ localStorage.setItem('_cpe_admin_seen', JSON.stringify([..._seenNotifs])); } catch(ex){}
+    _refreshNotif();
   }
 }
 
@@ -1934,6 +1967,10 @@ function toggleNotifPanel(){
 var _userNotifData = {orgReqs:{}, renewals:{}};
 var _userMyEmail = '';
 var _seenUserNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_user_seen')||'[]')); } catch(ex){ return new Set(); } })();
+// จุดแดงเมนู "สถานะการต่ออายุ" (user) — key รวม timestamp ของ record ล่าสุด + สถานะ
+// ดังนั้นเมื่อ admin เปลี่ยนสถานะใหม่ (ยืนยัน/ยกเลิก/ต่ออายุแล้ว) key จะเปลี่ยน → นับเป็น "ยังไม่เห็น" ใหม่อัตโนมัติ
+var _seenRenewStatus = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_renewstatus_seen')||'[]')); } catch(ex){ return new Set(); } })();
+function _renewStatusKey(orgKey, ts, status){ return orgKey+'|'+ts+'|'+status; }
 
 function _markUserSeen(key, nav){
   _seenUserNotifs.add(key);
@@ -3807,10 +3844,12 @@ function updateRenewStatusDot(orgKey){
     db.ref('pharma-form/_cpe_renewals/'+orgKey).orderByKey().limitToLast(1).once('value',function(snap){
       var data=snap.val();
       if(!data||!Object.keys(data).length){ dot.style.display='none'; return; }
-      var latest=Object.values(data)[0];
+      var ts=Object.keys(data)[0];
+      var latest=data[ts];
       var status=latest.status||'';
-      // แสดง dot เมื่อมีการต่ออายุที่ยังไม่เสร็จ หรือถูกยกเลิก (ต้องส่งใหม่)
-      dot.style.display=(status==='รอตรวจสอบ'||status==='กำลังดำเนินการ'||status==='ถูกยกเลิก')?'inline-block':'none';
+      // แสดง dot เมื่อมีการต่ออายุที่ยังไม่เสร็จ หรือถูกยกเลิก (ต้องส่งใหม่) และผู้ใช้ยังไม่เคยเปิดดูสถานะนี้
+      var show=(status==='รอตรวจสอบ'||status==='กำลังดำเนินการ'||status==='ถูกยกเลิก') && !_seenRenewStatus.has(_renewStatusKey(orgKey, ts, status));
+      dot.style.display=show?'inline-block':'none';
     });
   }catch(e){ dot.style.display='none'; }
 }
@@ -3927,7 +3966,16 @@ function loadRenewStatusView(orgKey){
     db.ref('pharma-form/_cpe_renewals/'+orgKey).orderByKey().limitToLast(1).once('value',function(snap){
       var data=snap.val();
       if(!data||!Object.keys(data).length){ _render(null,null); return; }
-      var latest=Object.values(data)[0];
+      var ts=Object.keys(data)[0];
+      var latest=data[ts];
+      // ผู้ใช้เปิดดูสถานะล่าสุดแล้ว ให้จำว่ารับทราบแล้ว จุดแดงจะหาย
+      // (จะขึ้นใหม่อัตโนมัติเมื่อ admin เปลี่ยนสถานะครั้งถัดไป เพราะ key มี timestamp+status)
+      var _seenKey=_renewStatusKey(orgKey, ts, latest.status||'รอตรวจสอบ');
+      if(!_seenRenewStatus.has(_seenKey)){
+        _seenRenewStatus.add(_seenKey);
+        try{ localStorage.setItem('_cpe_renewstatus_seen', JSON.stringify([..._seenRenewStatus])); } catch(ex){}
+      }
+      var _rdot=document.getElementById('tab-dot-renew-status'); if(_rdot) _rdot.style.display='none';
       _render(latest.status||'รอตรวจสอบ', latest);
     },function(err){
       if(loading) loading.style.display='none';
@@ -4583,9 +4631,13 @@ function loadAllCpeConferences(){
       else { _waiting.push({step:3,e:e}); }
     });
     _needAction.sort(function(a,b){ return a.step-b.step; });
-    // update tab dot
+    window._lastConfNeedAction = _needAction;
+    // update tab dot — ขึ้นเฉพาะรายการที่ยังไม่เคยกดเข้าไปดู (ดู _markConfActionSeen)
     var _confDot = document.getElementById('tab-dot-admin-conf');
-    if(_confDot) _confDot.style.display = _needAction.length ? 'inline-block' : 'none';
+    if(_confDot){
+      var _hasUnseenConf = _needAction.some(function(item){ return !_seenConfAction.has(item.e[0]+'_s'+item.step); });
+      _confDot.style.display = _hasUnseenConf ? 'inline-block' : 'none';
+    }
 
     function buildAdminCard(e, stepNum){
       var cid=e[0], c=e[1];
@@ -6100,7 +6152,7 @@ function sidebarGo(section){
   // Navigate first (showView triggers syncSidebarActive which may reset active)
   if(section === 'main'){
     showView('status');
-    if(isAdmin) switchTab('admin-manage');
+    if(isAdmin){ switchTab('admin-manage'); _markMainNotifsSeen(); }
     // คืน my-requests-section ถ้ามีข้อมูล (ไม่แสดงสำหรับ admin)
     var _mrs = document.getElementById('my-requests-section');
     var _mrw = document.getElementById('my-requests-wrap');
@@ -6128,7 +6180,7 @@ function sidebarGo(section){
       return;
     }
     showView('status');
-    if(isAdmin){ switchTab('admin-conf'); } else {
+    if(isAdmin){ switchTab('admin-conf'); _markConfActionSeen(); } else {
       // ซ่อน my-requests-section ในหน้าประชุมวิชาการ
       var _mrs2 = document.getElementById('my-requests-section');
       if(_mrs2) _mrs2.style.display = 'none';
@@ -6163,6 +6215,7 @@ function sidebarGo(section){
     }
     if(isAdmin){
       showView('admin-renewals');
+      _markMainNotifsSeen();
     } else {
       var _rsKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : (window._lastRenewalSubmittedKey||''));
       var _rsName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : (window._lastRenewalSubmittedName||''));
