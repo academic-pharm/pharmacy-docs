@@ -4480,110 +4480,137 @@ function closeExpertModal(){
 
 function _buildExpertModalContent(c){
   var _fd = function(iso){ return iso ? new Date(iso).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}) : '-'; };
-  var dateRange = c.dateStart ? _fd(c.dateStart)+(c.dateEnd&&c.dateEnd!==c.dateStart?' – '+_fd(c.dateEnd):'') : '-';
 
-  function fileChip(url, name, icon, iconColor){
+  // Blue chip for user files (มติ CPE)
+  function blueChip(url, name, emoji){
     if(!url) return '';
     return '<a href="'+url+'" target="_blank" rel="noopener" '+
-      'style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.06);'+
-      'border:0.5px solid rgba(0,0,0,.14);border-radius:8px;padding:5px 10px;'+
-      'font-size:.75rem;color:#374151;text-decoration:none;max-width:190px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
-      '<span style="flex-shrink:0;color:'+iconColor+'">'+icon+'</span>'+
+      'style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);'+
+      'border:0.5px solid rgba(59,130,246,.3);border-radius:20px;padding:4px 12px 4px 8px;'+
+      'font-size:.74rem;color:#1d4ed8;text-decoration:none;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
+      '<span style="flex-shrink:0;font-size:12px">'+emoji+'</span>'+
       '<span style="overflow:hidden;text-overflow:ellipsis">'+(escHtml(name||'เอกสาร'))+'</span></a>';
   }
 
   var userFiles = '';
-  userFiles += fileChip(c.files&&c.files.project&&c.files.project.url, c.files&&c.files.project&&(c.files.project.name||'โครงการ'), '📋', '#c2410c');
-  userFiles += fileChip(c.files&&c.files.cvfile&&c.files.cvfile.url, c.files&&c.files.cvfile&&(c.files.cvfile.name||'CV วิทยากร'), '👤', '#1d4ed8');
-  userFiles += fileChip(c.files&&c.files.schedule&&c.files.schedule.url, c.files&&c.files.schedule&&(c.files.schedule.name||'กำหนดการ'), '📅', '#6b7280');
+  userFiles += blueChip(c.files&&c.files.project&&c.files.project.url, c.files&&c.files.project&&(c.files.project.name||'โครงการ'), '📋');
+  userFiles += blueChip(c.files&&c.files.cvfile&&c.files.cvfile.url, c.files&&c.files.cvfile&&(c.files.cvfile.name||'CV วิทยากร'), '👤');
+  userFiles += blueChip(c.files&&c.files.schedule&&c.files.schedule.url, c.files&&c.files.schedule&&(c.files.schedule.name||'กำหนดการ'), '📅');
   if(!userFiles) userFiles = '<span style="font-size:.75rem;color:#9ca3af">ยังไม่มีไฟล์จาก user</span>';
 
   var hasPdf  = c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url;
   var hasWord = c.files&&c.files.resolution_word&&c.files.resolution_word.url;
 
-  function uploadZone(has, fileObj, zoneId, inputId, accept, fileType, icon){
+  // Section label with colored left bar
+  function secLabel(text, color, sub){
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'+
+      '<span style="width:3px;height:13px;border-radius:2px;background:'+color+';display:inline-block;flex-shrink:0"></span>'+
+      '<span style="font-size:.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em">'+text+'</span>'+
+      (sub?'<span style="font-size:.67rem;color:#c4c4c4;margin-left:auto">'+sub+'</span>':'')+
+      '</div>';
+  }
+
+  // Upload zone
+  function uploadZone(has, fileObj, zoneId, inputId, accept, fileType, iconBg, iconColor, iconEmoji){
     var inner = has
-      ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-          '<a href="'+fileObj.url+'" target="_blank" rel="noopener" '+
-          'style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.06);'+
-          'border:0.5px solid rgba(0,0,0,.14);border-radius:8px;padding:5px 10px;'+
-          'font-size:.75rem;color:#374151;text-decoration:none;max-width:240px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
-          icon+' '+(escHtml(fileObj.name||fileType))+'</a>'+
-          '<label for="'+inputId+'" style="cursor:pointer;font-size:.72rem;color:#9ca3af;white-space:nowrap;text-decoration:underline">เปลี่ยนไฟล์</label>'+
+      ? '<div style="display:flex;align-items:center;gap:10px;width:100%">'+
+          '<div style="width:34px;height:34px;border-radius:8px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">'+iconEmoji+'</div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:.78rem;font-weight:500;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(escHtml(fileObj.name||fileType))+'</div>'+
+            '<div style="font-size:.69rem;color:#9ca3af;margin-top:1px">อัปโหลดแล้ว · '+_fd(fileObj.uploadedAt||'')+'</div>'+
+          '</div>'+
+          '<label for="'+inputId+'" style="cursor:pointer;font-size:.71rem;color:#6b7280;background:rgba(0,0,0,.05);border:0.5px solid rgba(0,0,0,.12);border-radius:6px;padding:4px 10px;white-space:nowrap;flex-shrink:0;font-family:inherit">เปลี่ยน</label>'+
         '</div>'
-      : '<label for="'+inputId+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;width:100%;padding:6px 0">'+
-          '<span style="font-size:22px;color:#d1d5db">⬆</span>'+
-          '<span style="font-size:.76rem;color:#9ca3af">คลิกหรือลากไฟล์มาวางที่นี่</span>'+
+      : '<label for="'+inputId+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:100%;padding:4px 0">'+
+          '<div style="width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,.04);display:flex;align-items:center;justify-content:center;font-size:18px">⬆</div>'+
+          '<span style="font-size:.76rem;color:#9ca3af;font-weight:500">คลิกหรือลากไฟล์มาวางที่นี่</span>'+
+          '<span style="font-size:.68rem;color:#d1d5db">'+accept+'</span>'+
         '</label>';
-    return '<div id="'+zoneId+'" style="border:1.5px dashed rgba(200,210,230,.7);border-radius:10px;padding:'+(has?'10px 14px':'14px')+';min-height:50px;display:flex;align-items:center">'+
+    return '<div id="'+zoneId+'" style="border:1.5px dashed rgba(0,0,0,.15);border-radius:10px;padding:'+(has?'10px 14px':'16px')+';overflow:hidden;'+(has?'background:#fafafa;display:flex;align-items:center':'display:flex;align-items:center;justify-content:center')+'">'+
       inner+
       '<input type="file" id="'+inputId+'" accept="'+accept+'" style="display:none" onchange="expertUploadFile(this,\''+fileType+'\')">'+
       '</div>';
   }
 
+  // Email row with numbered circle
+  function emailRow(n, id, ph){
+    return '<div style="display:flex;align-items:center;gap:10px">'+
+      '<div style="width:22px;height:22px;border-radius:50%;background:rgba(79,70,229,.1);color:#4f46e5;font-size:.68rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+n+'</div>'+
+      '<input type="email" id="'+id+'" placeholder="'+ph+'" style="flex:1;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:8px 11px;font-size:.81rem;outline:none;background:#fff;font-family:inherit;box-sizing:border-box">'+
+      '</div>';
+  }
+
   return [
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(200,210,230,.4)">',
-      '<div>',
-        '<div style="display:flex;align-items:center;gap:7px">',
-          '<span style="font-size:15px">📧</span>',
-          '<span style="font-size:.88rem;font-weight:600;color:var(--txt,#1a202c)">ส่งเอกสารให้ผู้ทรงคุณวุฒิ</span>',
+    // Header
+    '<div style="padding:16px 20px 14px;border-bottom:0.5px solid rgba(0,0,0,.07)">',
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between">',
+        '<div style="display:flex;align-items:center;gap:10px">',
+          '<div style="width:36px;height:36px;border-radius:10px;background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">📧</div>',
+          '<div>',
+            '<div style="font-size:.9rem;font-weight:600;color:#111827;line-height:1.3">ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>',
+            '<div style="font-size:.72rem;color:#9ca3af;margin-top:2px">'+escHtml(c.confName||'-')+' · '+escHtml(c.orgName||'-')+'</div>',
+          '</div>',
         '</div>',
-        '<div style="font-size:.71rem;color:#6b7280;margin-top:2px;padding-left:22px">'+escHtml(c.confName||'-')+' · '+escHtml(c.orgName||'-')+'</div>',
+        '<button onclick="closeExpertModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:inherit">✕</button>',
       '</div>',
-      '<button onclick="closeExpertModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;line-height:1;padding:4px">✕</button>',
     '</div>',
 
-    '<div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:420px">',
+    // Body
+    '<div style="padding:16px 20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;max-height:430px">',
 
-      // User files
+      // มติ CPE
       '<div>',
-        '<div style="font-size:.68rem;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">มติ CPE</div>',
+        secLabel('มติ CPE','#3b82f6','เอกสารที่ user แนบมา'),
         '<div style="display:flex;gap:6px;flex-wrap:wrap">'+userFiles+'</div>',
       '</div>',
 
       // Divider
-      '<div style="display:flex;align-items:center;gap:8px">',
-        '<div style="flex:1;height:1px;background:rgba(200,210,230,.5)"></div>',
-        '<span style="font-size:.65rem;color:#9ca3af;white-space:nowrap">แนบเอกสารเพิ่มเติมจาก admin</span>',
-        '<div style="flex:1;height:1px;background:rgba(200,210,230,.5)"></div>',
+      '<div style="display:flex;align-items:center;gap:10px">',
+        '<div style="flex:1;height:0.5px;background:rgba(0,0,0,.09)"></div>',
+        '<span style="font-size:.64rem;color:#c4c4c4;white-space:nowrap;font-weight:500;letter-spacing:.03em">เอกสารเพิ่มเติมจาก admin</span>',
+        '<div style="flex:1;height:0.5px;background:rgba(0,0,0,.09)"></div>',
       '</div>',
 
       // Extra PDF
       '<div>',
-        '<div style="font-size:.68rem;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">เอกสารเพิ่มเติม (PDF) — 1 ไฟล์</div>',
-        uploadZone(hasPdf, hasPdf&&c.files.resolution_pdf, 'em-pdf-zone','em-extra-pdf','.pdf','pdf','📄'),
+        secLabel('เอกสารเพิ่มเติม (PDF) — 1 ไฟล์','#94a3b8'),
+        uploadZone(hasPdf, hasPdf&&c.files.resolution_pdf, 'em-pdf-zone','em-extra-pdf','.pdf','pdf','#fff7ed','#c2410c','📄'),
       '</div>',
 
       // Extra Word
       '<div>',
-        '<div style="font-size:.68rem;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">เอกสารเพิ่มเติม (Word) — 1 ไฟล์</div>',
-        uploadZone(hasWord, hasWord&&c.files.resolution_word, 'em-word-zone','em-extra-word','.doc,.docx','word','📝'),
+        secLabel('เอกสารเพิ่มเติม (Word) — 1 ไฟล์','#94a3b8'),
+        uploadZone(hasWord, hasWord&&c.files.resolution_word, 'em-word-zone','em-extra-word','.doc,.docx','word','#eff6ff','#1d4ed8','📝'),
       '</div>',
 
       // File count bar
-      '<div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:0.5px solid rgba(5,150,105,.25);border-radius:9px;padding:9px 14px">',
-        '<div style="display:flex;align-items:center;gap:7px">',
-          '<span style="color:#059669;font-size:16px">📁</span>',
-          '<span style="font-size:.78rem;font-weight:500;color:#059669">เอกสารทั้งหมดที่จะส่ง</span>',
+      '<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(5,150,105,.06);border:0.5px solid rgba(5,150,105,.22);border-radius:10px;padding:10px 14px">',
+        '<div style="display:flex;align-items:center;gap:8px">',
+          '<div style="width:28px;height:28px;border-radius:8px;background:rgba(5,150,105,.12);display:flex;align-items:center;justify-content:center;font-size:14px">📁</div>',
+          '<div>',
+            '<div style="font-size:.78rem;font-weight:600;color:#059669">เอกสารทั้งหมดที่จะส่ง</div>',
+            '<div id="em-file-detail" style="font-size:.67rem;color:#6ee7b7;margin-top:1px">-</div>',
+          '</div>',
         '</div>',
-        '<span id="em-file-count" style="font-size:.78rem;font-weight:600;color:#059669">- ไฟล์</span>',
+        '<div id="em-file-count" style="background:rgba(5,150,105,.15);border-radius:8px;padding:4px 12px;font-size:.82rem;font-weight:700;color:#059669">- ไฟล์</div>',
       '</div>',
 
-      // Email inputs
+      // Email
       '<div>',
-        '<div style="font-size:.68rem;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">อีเมลผู้ทรงคุณวุฒิ</div>',
-        '<div style="display:flex;flex-direction:column;gap:7px">',
-          '<input type="email" id="em-expert-1" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 1 (จำเป็น)" style="border:1px solid rgba(200,210,230,.8);border-radius:8px;padding:8px 12px;font-size:.82rem;outline:none;width:100%;box-sizing:border-box;font-family:inherit">',
-          '<input type="email" id="em-expert-2" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 2 (ถ้ามี)" style="border:1px solid rgba(200,210,230,.8);border-radius:8px;padding:8px 12px;font-size:.82rem;outline:none;width:100%;box-sizing:border-box;font-family:inherit">',
-          '<input type="email" id="em-expert-3" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 3 (ถ้ามี)" style="border:1px solid rgba(200,210,230,.8);border-radius:8px;padding:8px 12px;font-size:.82rem;outline:none;width:100%;box-sizing:border-box;font-family:inherit">',
+        secLabel('อีเมลผู้ทรงคุณวุฒิ','#3b82f6'),
+        '<div style="display:flex;flex-direction:column;gap:8px">',
+          emailRow(1,'em-expert-1','อีเมลผู้ทรงคุณวุฒิท่านที่ 1 (จำเป็น)'),
+          emailRow(2,'em-expert-2','อีเมลผู้ทรงคุณวุฒิท่านที่ 2 (ถ้ามี)'),
+          emailRow(3,'em-expert-3','อีเมลผู้ทรงคุณวุฒิท่านที่ 3 (ถ้ามี)'),
         '</div>',
       '</div>',
 
     '</div>',
 
-    '<div style="display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(200,210,230,.4)">',
-      '<button id="em-send-btn" onclick="sendToExperts()" style="flex:1;background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">📤 ส่งเอกสารทั้งหมด</button>',
-      '<button onclick="closeExpertModal()" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:9px;padding:9px 16px;font-size:.82rem;cursor:pointer;font-family:inherit">ยกเลิก</button>',
+    // Footer
+    '<div style="display:flex;gap:8px;padding:12px 20px;border-top:0.5px solid rgba(0,0,0,.07);background:#fafafa">',
+      '<button id="em-send-btn" onclick="sendToExperts()" style="flex:1;background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">📤 ส่งเอกสารทั้งหมด</button>',
+      '<button onclick="closeExpertModal()" style="background:transparent;color:#6b7280;border:0.5px solid rgba(0,0,0,.18);border-radius:9px;padding:10px 16px;font-size:.82rem;cursor:pointer;font-family:inherit">ยกเลิก</button>',
     '</div>',
   ].join('');
 }
@@ -4591,16 +4618,19 @@ function _buildExpertModalContent(c){
 function _expertModalUpdateCount(){
   var c = _adminConfs[_expertModal.cid];
   if(!c) return;
-  var count = 0;
-  if(c.files&&c.files.project&&c.files.project.url) count++;
-  if(c.files&&c.files.cvfile&&c.files.cvfile.url) count++;
-  if(c.files&&c.files.schedule&&c.files.schedule.url) count++;
-  if(c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url) count++;
-  if(c.files&&c.files.resolution_word&&c.files.resolution_word.url) count++;
+  var userCount  = 0, extraCount = 0;
+  if(c.files&&c.files.project&&c.files.project.url)  userCount++;
+  if(c.files&&c.files.cvfile&&c.files.cvfile.url)    userCount++;
+  if(c.files&&c.files.schedule&&c.files.schedule.url) userCount++;
+  if(c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url)  extraCount++;
+  if(c.files&&c.files.resolution_word&&c.files.resolution_word.url) extraCount++;
+  var total = userCount + extraCount;
   var el = document.getElementById('em-file-count');
-  if(el) el.textContent = count + ' ไฟล์';
+  if(el) el.textContent = total + ' ไฟล์';
+  var detail = document.getElementById('em-file-detail');
+  if(detail) detail.textContent = 'มติ CPE ' + userCount + ' ไฟล์' + (extraCount ? ' + เพิ่มเติม ' + extraCount + ' ไฟล์' : '');
   var btn = document.getElementById('em-send-btn');
-  if(btn) btn.textContent = '📤 ส่งเอกสารทั้งหมด ('+count+' ไฟล์)';
+  if(btn) btn.textContent = '📤 ส่งเอกสารทั้งหมด (' + total + ' ไฟล์)';
 }
 
 function expertUploadFile(inputEl, fileType){
@@ -4618,17 +4648,22 @@ function _expertModalRefreshZone(fileType){
   var fileInfo = fileType==='pdf' ? (c.files&&c.files.resolution_pdf) : (c.files&&c.files.resolution_word);
   var inputId  = fileType==='pdf' ? 'em-extra-pdf' : 'em-extra-word';
   var accept   = fileType==='pdf' ? '.pdf' : '.doc,.docx';
-  var icon = fileType==='pdf' ? '📄' : '📝';
+  var iconEmoji  = fileType==='pdf' ? '📄' : '📝';
+  var iconBg     = fileType==='pdf' ? '#fff7ed' : '#eff6ff';
+  var _fd = function(iso){ return iso ? new Date(iso).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}) : '-'; };
   if(fileInfo&&fileInfo.url){
     zone.style.padding = '10px 14px';
+    zone.style.background = '#fafafa';
+    zone.style.display = 'flex';
+    zone.style.alignItems = 'center';
     zone.innerHTML =
-      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-        '<a href="'+fileInfo.url+'" target="_blank" rel="noopener" '+
-        'style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.06);'+
-        'border:0.5px solid rgba(0,0,0,.14);border-radius:8px;padding:5px 10px;'+
-        'font-size:.75rem;color:#374151;text-decoration:none;max-width:240px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
-        icon+' '+(escHtml(fileInfo.name||fileType))+'</a>'+
-        '<label for="'+inputId+'" style="cursor:pointer;font-size:.72rem;color:#9ca3af;white-space:nowrap;text-decoration:underline">เปลี่ยนไฟล์</label>'+
+      '<div style="display:flex;align-items:center;gap:10px;width:100%">'+
+        '<div style="width:34px;height:34px;border-radius:8px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">'+iconEmoji+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:.78rem;font-weight:500;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(escHtml(fileInfo.name||fileType))+'</div>'+
+          '<div style="font-size:.69rem;color:#9ca3af;margin-top:1px">อัปโหลดแล้ว · '+_fd(fileInfo.uploadedAt||'')+'</div>'+
+        '</div>'+
+        '<label for="'+inputId+'" style="cursor:pointer;font-size:.71rem;color:#6b7280;background:rgba(0,0,0,.05);border:0.5px solid rgba(0,0,0,.12);border-radius:6px;padding:4px 10px;white-space:nowrap;flex-shrink:0;font-family:inherit">เปลี่ยน</label>'+
       '</div>'+
       '<input type="file" id="'+inputId+'" accept="'+accept+'" style="display:none" onchange="expertUploadFile(this,\''+fileType+'\')">';
   }
