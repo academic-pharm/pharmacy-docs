@@ -3035,6 +3035,8 @@ function renderUserConfPanel(){
       iconBg='rgba(14,165,233,.1)'; iconContent='<span style="color:#0369a1;font-size:13px">✉</span>';
     } else if(st==='docs_approved'){
       iconBg='rgba(217,119,6,.1)'; iconContent='<span style="color:#b45309;font-size:13px">📤</span>';
+    } else if(st==='cancelled'){
+      iconBg='rgba(220,38,38,.08)'; iconContent='<span style="color:#dc2626;font-size:13px">🚫</span>';
     } else {
       iconBg='rgba(100,116,139,.1)'; iconContent='<span style="color:#64748b;font-size:13px">📋</span>';
     }
@@ -3058,8 +3060,31 @@ function renderUserConfPanel(){
     } else if(st==='docs_approved'){
       badgeHtml='<span style="font-size:.63rem;font-weight:700;color:#b45309;background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3);border-radius:20px;padding:2px 8px;white-space:nowrap">รอส่งผู้ทรงฯ</span>';
       cardBorder='1px solid rgba(217,119,6,.25)';
+    } else if(st==='cancelled'){
+      badgeHtml='<span style="font-size:.63rem;font-weight:700;color:#991b1b;background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.3);border-radius:20px;padding:2px 8px;white-space:nowrap">ยกเลิกแล้ว</span>';
+      cardBorder='1px solid rgba(220,38,38,.3)';
     } else {
       badgeHtml='<span style="font-size:.63rem;font-weight:700;color:#64748b;background:rgba(100,116,139,.07);border:1px solid rgba(100,116,139,.25);border-radius:20px;padding:2px 8px;white-space:nowrap">รอดำเนินการ</span>';
+    }
+
+    // cancelled notice (replaces stepper)
+    var _cancelNotice='';
+    if(st==='cancelled'){
+      detailBtn='';
+      var _cr=(c.cancelReason||'').trim();
+      _cancelNotice=
+        '<div id="cc-'+cidSafe+'" style="margin:12px;border-radius:8px;padding:12px 14px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2)">'+
+          '<div style="font-size:.76rem;font-weight:700;color:#991b1b;display:flex;align-items:center;gap:7px;margin-bottom:8px">'+
+            '<span style="font-size:14px">🚫</span> เจ้าหน้าที่ยกเลิกคำขอของท่าน'+
+          '</div>'+
+          (_cr?
+            '<div style="font-size:.65rem;font-weight:700;color:#b91c1c;margin-bottom:4px">เหตุผลจากเจ้าหน้าที่</div>'+
+            '<div style="background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid rgba(220,38,38,.25);font-size:.72rem;color:#374151;line-height:1.5;font-style:italic;margin-bottom:10px">"'+escHtml(_cr)+'"</div>'
+          :'')+
+          '<button onclick="dismissCancelledConf(\''+cidSafe+'\',\''+cid+'\')" style="width:100%;background:#dc2626;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:.77rem;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">'+
+            '✓ รับทราบ — ลงทะเบียนใหม่'+
+          '</button>'+
+        '</div>';
     }
 
     // stepper states (5 steps)
@@ -3152,7 +3177,7 @@ function renderUserConfPanel(){
     }
 
     parts.push(
-      '<div style="border:'+cardBorder+';border-radius:11px;overflow:hidden;background:#fff">'+
+      '<div id="ucc-'+cidSafe+'" style="border:'+cardBorder+';border-radius:11px;overflow:hidden;background:#fff">'+
         '<div style="padding:10px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,.06)">'+
           iconHtml+
           '<div style="flex:1;min-width:0">'+
@@ -3162,8 +3187,7 @@ function renderUserConfPanel(){
           badgeHtml+
           detailBtn+
         '</div>'+
-        stepperHtml+
-        bottomPanel+
+        (_cancelNotice||(stepperHtml+bottomPanel))+
       '</div>'
     );
   });
@@ -4345,6 +4369,7 @@ function loadAllCpeConferences(){
       else if(_st==='sent_to_experts'){ _waiting.push({step:3,e:e}); }
       else if(_st==='result_confirmed' && !_ps){ _waiting.push({step:4,e:e}); }
       else if(_st==='result_confirmed' && _ps==='confirmed'){ _done.push(e); }
+      else if(_st==='cancelled'){ _done.push(e); }
       else { _waiting.push({step:3,e:e}); }
     });
     _needAction.sort(function(a,b){ return a.step-b.step; });
@@ -5178,6 +5203,24 @@ async function confirmCancelConf(){
   } catch(err){
     showToast('เกิดข้อผิดพลาด: '+err.message,'err');
     if(btn){ btn.disabled=false; btn.textContent='🚫 ยืนยันยกเลิก'; }
+  }
+}
+
+async function dismissCancelledConf(safeCid, cid){
+  var u = firebase.auth().currentUser;
+  if(!u){ showToast('กรุณาเข้าสู่ระบบก่อน','err'); return; }
+  var userKey = emailToFbKey(getCanonicalEmail(u.email));
+  try{
+    await db.ref('pharma-form/'+userKey+'/cpe-conferences/'+cid).remove();
+    var outer = document.getElementById('ucc-'+safeCid);
+    if(outer){
+      outer.style.transition='opacity .25s ease';
+      outer.style.opacity='0';
+      setTimeout(function(){ if(outer.parentElement) outer.parentElement.removeChild(outer); }, 260);
+    }
+    showToast('รับทราบแล้ว — สามารถลงทะเบียนประชุมวิชาการใหม่ได้เลย');
+  } catch(err){
+    showToast('เกิดข้อผิดพลาด: '+err.message,'err');
   }
 }
 
