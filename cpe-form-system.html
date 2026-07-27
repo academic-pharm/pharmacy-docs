@@ -33,6 +33,13 @@ body::after{display:none}
 #au-cursor{position:fixed;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle at center,rgba(255,255,255,.18),transparent 65%);pointer-events:none;z-index:5;transform:translate(-50%,-50%)}
 .navbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;gap:14px;padding:12px 24px;
   background:rgba(245,247,252,.52);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(200,210,230,.5)}
+#notif-wrap{position:relative;display:none}
+#notif-btn{background:none;border:0.5px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.84rem;color:var(--txt);display:flex;align-items:center;gap:4px;position:relative;white-space:nowrap}
+#notif-btn:hover{background:rgba(90,123,255,.07)}
+#notif-badge{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;border-radius:99px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px;pointer-events:none;border:2px solid var(--bg)}
+#notif-badge.show{display:flex}
+#notif-panel{display:none;position:absolute;right:0;top:calc(100% + 8px);width:308px;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.1)}
+@keyframes notif-pulse{0%{transform:scale(1);opacity:.65}100%{transform:scale(2.5);opacity:0}}
 .navbar-info{flex:1}
 .navbar-info h1{font-size:.9rem;font-weight:700;letter-spacing:.04em;color:var(--txt);line-height:1.2}
 .navbar-info p{font-size:.68rem;color:var(--sub)}
@@ -503,6 +510,18 @@ body::after{display:none}
     <p>คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>
   </div>
   <div id="user-badge-nav"></div>
+  <div id="notif-wrap">
+    <button id="notif-btn" onclick="toggleNotifPanel()" aria-label="การแจ้งเตือน" title="การแจ้งเตือน">
+      🔔 <span id="notif-badge"></span>
+    </button>
+    <div id="notif-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:0.5px solid var(--border);background:var(--surface)">
+        <span style="font-size:.82rem;font-weight:700;color:var(--txt)">การแจ้งเตือน</span>
+        <button onclick="toggleNotifPanel()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--sub);padding:0">✕</button>
+      </div>
+      <div id="notif-list" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+  </div>
   <button class="btn-home" onclick="location.href='index.html'" style="margin-left:4px">← กลับหน้าแรก</button>
 </nav>
 
@@ -1720,6 +1739,7 @@ var currentUser=null, isAdmin=false;
     sidebarGo('main');
     loadOrgRequests();
     loadAllCpeConferences();
+    _setupAdminNotifications();
   } else {
     sidebarGo('main');
   }
@@ -1727,6 +1747,96 @@ var currentUser=null, isAdmin=false;
   loadMyConferences();
   loadAllOrgs();
 })();
+
+/* ════════════════════════════════
+   ADMIN NOTIFICATIONS
+════════════════════════════════ */
+var _notifData = {orgReqs:{}, renewals:{}};
+
+function _setupAdminNotifications(){
+  var wrap = document.getElementById('notif-wrap');
+  if(wrap) wrap.style.display = 'flex';
+  db.ref('pharma-form/_org_requests').on('value', function(snap){
+    _notifData.orgReqs = snap.val()||{};
+    _refreshNotif();
+  });
+  db.ref('pharma-form/_cpe_renewals').on('value', function(snap){
+    _notifData.renewals = snap.val()||{};
+    _refreshNotif();
+  });
+  document.addEventListener('click', function(e){
+    var wrap2 = document.getElementById('notif-wrap');
+    var panel = document.getElementById('notif-panel');
+    if(wrap2 && panel && !wrap2.contains(e.target) && panel.style.display !== 'none')
+      panel.style.display = 'none';
+  });
+}
+
+function _collectNotifItems(){
+  var items = [];
+  Object.entries(_notifData.orgReqs).forEach(function(e){
+    var r = e[1];
+    if(r && r.status === 'รอตรวจสอบ')
+      items.push({type:'org', name:r.name||'—', time:r.submittedAt||''});
+  });
+  Object.entries(_notifData.renewals).forEach(function(e){
+    var subs = e[1]||{};
+    Object.entries(subs).forEach(function(se){
+      var v = se[1]||{};
+      if(v.status === 'รอตรวจสอบ')
+        items.push({type:'renew', name:v.orgName||e[0], time:v.submittedAt||''});
+    });
+  });
+  return items.sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
+}
+
+function _refreshNotif(){
+  var items = _collectNotifItems();
+  window._lastNotifItems = items;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.textContent = items.length > 9 ? '9+' : items.length; badge.classList.toggle('show', items.length > 0); }
+  var panel = document.getElementById('notif-panel');
+  if(panel && panel.style.display !== 'none') _renderNotifList(items);
+}
+
+function _renderNotifList(items){
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!items.length){
+    list.innerHTML = '<div style="padding:22px 16px;text-align:center;font-size:.82rem;color:var(--sub)">🎉 ไม่มีการแจ้งเตือนใหม่</div>';
+    return;
+  }
+  list.innerHTML = items.map(function(n){
+    var isOrg = n.type === 'org';
+    var typeLabel = isOrg ? 'ลงทะเบียนหน่วยงาน' : 'ส่งเอกสารต่ออายุ';
+    var typeBg    = isOrg ? '#E6F1FB' : '#FCEBEB';
+    var typeColor = isOrg ? '#0C447C' : '#A32D2D';
+    var typeBdr   = isOrg ? '#85B7EB' : '#F09595';
+    var icon      = isOrg ? '🏢' : '📄';
+    var timeStr   = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border)">'
+      +'<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px">'
+        +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444;animation:notif-pulse 1.5s ease-out infinite"></div>'
+        +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444"></div>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">'
+          +'<span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+typeBg+';color:'+typeColor+';border:0.5px solid '+typeBdr+'">'+typeLabel+'</span>'
+          +'<span style="font-size:.68rem;color:var(--sub)">'+timeStr+'</span>'
+        +'</div>'
+        +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+icon+' '+n.name+'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function toggleNotifPanel(){
+  var p = document.getElementById('notif-panel');
+  if(!p) return;
+  var shown = p.style.display !== 'none';
+  p.style.display = shown ? 'none' : 'block';
+  if(!shown) _renderNotifList(window._lastNotifItems||[]);
+}
 
 /* ════════════════════════════════
    GOOGLE DRIVE UPLOAD via Apps Script
