@@ -4546,7 +4546,11 @@ function loadAllCpeConferences(){
             '<span style="font-size:.66rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.25);border-radius:20px;padding:1px 8px">'+_cancelled.length+' รายการ</span>'+
             '<button onclick="var s=document.getElementById(\''+_cancelledId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'+
           '</div>'+
-          '<div id="'+_cancelledId+'">'+_cancelled.map(buildCancelledCard).join('')+'</div>'+
+          '<div id="'+_cancelledId+'" style="display:none">'+_cancelled.map(buildCancelledCard).join('')+'</div>'+
+          '<div style="background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'+
+            '<span style="font-size:15px">🚫</span>'+
+            '<span style="font-size:.72rem;color:#991b1b">'+_cancelled.length+' รายการถูกยกเลิก — user ได้รับแจ้งเตือนแล้ว</span>'+
+          '</div>'+
         '</div>';
     }
 
