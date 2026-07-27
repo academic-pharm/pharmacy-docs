@@ -5298,10 +5298,10 @@ function openPaymentReviewModal(cid){
 
     // Footer
     '<div style="padding:.9rem 1.25rem 1.25rem;display:flex;gap:8px">' +
-      '<button onclick="closePaymentReviewModal()" style="flex:1;padding:9px;background:#f1f5f9;border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit">ยกเลิก</button>' +
       '<button id="pay-review-confirm-btn" onclick="confirmPaymentReview(\''+cid+'\')" '+
         'style="flex:2;padding:9px;background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">'+
         '✅ ยืนยัน & แจ้ง User</button>' +
+      '<button onclick="closePaymentReviewModal()" style="flex:1;padding:9px;background:#f1f5f9;border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit">ยกเลิก</button>' +
     '</div>';
 
   document.getElementById('pay-review-modal').style.display = 'flex';
@@ -6920,11 +6920,11 @@ document.addEventListener('keydown',function(e){
     </div>
     <!-- footer -->
     <div style="padding:.9rem 1.25rem 1.25rem;display:flex;gap:8px">
-      <button onclick="closeResultModal()" style="flex:1;padding:9px;background:#f1f5f9;border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit">ยกเลิก</button>
       <button id="result-modal-confirm-btn" onclick="confirmCPEResultModal()"
         style="flex:2;padding:9px;background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">
         ✅ ยืนยัน &amp; แจ้ง User
       </button>
+      <button onclick="closeResultModal()" style="flex:1;padding:9px;background:#f1f5f9;border:none;border-radius:8px;font-size:.83rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit">ยกเลิก</button>
     </div>
   </div>
 </div>
