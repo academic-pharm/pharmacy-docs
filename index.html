@@ -217,6 +217,11 @@ nav{
 /* arrow CTA */
 .acard-arrow{display:inline-flex;align-items:center;gap:6px;font-family:'Prompt',sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.04em;color:#16181f;margin-top:auto;transition:gap .18s}
 .acard:hover .acard-arrow{gap:10px}
+.card-pdot{display:none;position:absolute;top:16px;right:16px;width:11px;height:11px}
+.card-pdot.show{display:block}
+.card-pdot::before{content:'';position:absolute;inset:0;border-radius:50%;background:#ef4444;animation:pdot-ring 1.5s ease-out infinite}
+.card-pdot::after{content:'';position:absolute;inset:0;border-radius:50%;background:#ef4444}
+@keyframes pdot-ring{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
 
 /* visibility */
 #cpe-card,#proj-card{display:none}
@@ -584,6 +589,7 @@ footer{
 
     <!-- ADMIN FORM -->
     <a class="acard" id="admin-card" href="academic-form-system.html" style="--fd:5.3s;--fdelay:.8s">
+      <span class="card-pdot" id="academic-pdot" title="มีรายการรอดำเนินการ"></span>
       <div class="acard-icon">📋</div>
       <div>
         <div class="acard-num" style="font-size:26px;line-height:1.15">ฟอร์มวิชาการ</div>
@@ -599,6 +605,7 @@ footer{
 
     <!-- CPE FORM -->
     <a class="acard" id="cpe-form-card" href="cpe-form-system.html" style="--fd:4.8s;--fdelay:.95s;animation-delay:.34s">
+      <span class="card-pdot" id="cpe-pdot" title="มีคำขอรอตรวจสอบ"></span>
       <div class="acard-icon">💊</div>
       <div>
         <div class="acard-num" style="font-size:26px;line-height:1.15">ฟอร์ม CPE</div>
@@ -1303,6 +1310,15 @@ document.addEventListener('DOMContentLoaded',()=>{
         const raw=snap.val()||{};
         processData(raw);
         processCPE(raw['_all_cpe_conferences']);
+        // pulse dots
+        var _confPending=Object.values(raw['_all_cpe_conferences']||{}).filter(function(c){return !c.status||c.status==='pending_review';}).length;
+        var _dot1=document.getElementById('academic-pdot');
+        if(_dot1) _dot1.classList.toggle('show',_confPending>0);
+        var _orgPending=Object.values(raw['_org_requests']||{}).filter(function(r){return r.status==='รอตรวจสอบ';}).length;
+        var _renewPending=0;
+        Object.values(raw['_cpe_renewals']||{}).forEach(function(subs){Object.values(subs||{}).forEach(function(v){if(v.status==='รอตรวจสอบ')_renewPending++;});});
+        var _dot2=document.getElementById('cpe-pdot');
+        if(_dot2) _dot2.classList.toggle('show',(_orgPending+_renewPending)>0);
       }catch(e){
         console.error(e);
         const pill=document.getElementById('idxStatusPill');
