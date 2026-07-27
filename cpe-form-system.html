@@ -1877,6 +1877,13 @@ function _refreshNotif(){
   if(badge){ badge.textContent = unseenCount > 9 ? '9+' : unseenCount; badge.classList.toggle('show', unseenCount > 0); }
   var panel = document.getElementById('notif-panel');
   if(panel && panel.style.display !== 'none') _renderNotifList(items);
+  // จุด pulse-dot สีแดงที่เมนู "หน้าหลัก CPE" — ขึ้นเมื่อมีคำขอลงทะเบียนหน่วยงาน
+  // หรือเอกสารต่ออายุสถาบันสมทบที่ผู้ใช้ส่งมา "รอตรวจสอบ" (ไม่ว่าจะเคยเปิดดูแล้วหรือไม่)
+  var mainDot = document.getElementById('tab-dot-admin-manage');
+  if(mainDot){
+    var needsAction = items.some(function(n){ return n.type === 'org' || n.type === 'renew'; });
+    mainDot.style.display = needsAction ? 'inline-block' : 'none';
+  }
 }
 
 function _renderNotifList(items){
@@ -2509,8 +2516,7 @@ function renderOrgRequests(data){
   var pending = Object.entries(data).filter(function(e){ return e[1].status==='รอตรวจสอบ'; });
   if(pending.length){ badge.textContent=pending.length+' รายการ'; badge.style.display='inline'; }
   else { badge.style.display='none'; }
-  var dot = document.getElementById('tab-dot-admin-manage');
-  if(dot) dot.style.display = pending.length ? 'inline-block' : 'none';
+  // จุดแจ้งเตือนที่ sidebar (si-main) รวมทั้งคำขอลงทะเบียนหน่วยงาน + เอกสารต่ออายุ ดูฟังก์ชัน _refreshNotif()
   if(!pending.length){
     wrap.innerHTML='<div style="padding:18px;text-align:center;color:#6a6d77;font-size:.83rem">ไม่มีคำขอรอตรวจสอบ</div>';
     return;
