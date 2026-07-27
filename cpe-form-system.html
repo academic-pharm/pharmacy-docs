@@ -1771,6 +1771,13 @@ function getCanonicalEmail(){
 var _checkAdmin = (typeof isAdmin === 'function') ? isAdmin : function(){ return false; };
 var currentUser=null, isAdmin=false;
 
+/* ต้องประกาศไว้ตั้งแต่ต้นไฟล์ (ก่อน initAuth IIFE ด้านล่าง) เพราะ initAuth เรียก
+   sidebarGo('main') แบบ synchronous ทันที ซึ่งอาจไปเรียก _markMainNotifsSeen()
+   ที่ต้องใช้ตัวแปรเหล่านี้ — ถ้าประกาศไว้ท้ายไฟล์เหมือนเดิมจะยังเป็น undefined ตอนนั้น */
+var _notifData = {orgReqs:{}, renewals:{}, conferences:{}};
+var _seenNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_seen')||'[]')); } catch(ex){ return new Set(); } })();
+var _seenConfAction = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_conf_seen')||'[]')); } catch(ex){ return new Set(); } })();
+
 /* ════════════════════════════════
    AUTH INIT
 ════════════════════════════════ */
@@ -1810,12 +1817,11 @@ var currentUser=null, isAdmin=false;
 
 /* ════════════════════════════════
    ADMIN NOTIFICATIONS
+   (ตัวแปร _notifData / _seenNotifs / _seenConfAction ถูกย้ายไปประกาศไว้
+   ที่ต้นไฟล์แล้ว ดูใกล้ๆ "var currentUser=null, isAdmin=false;")
 ════════════════════════════════ */
-var _notifData = {orgReqs:{}, renewals:{}, conferences:{}};
-var _seenNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_seen')||'[]')); } catch(ex){ return new Set(); } })();
 // จุดแดงเมนู "ประชุมวิชาการ" (admin) — เก็บ key ที่เคยเปิดดูแล้วแยกต่างหาก
 // key = cid + step ดังนั้นถ้ารายการขยับ step (เช่น admin ดำเนินการต่อ) จะนับเป็น "ยังไม่เห็น" ใหม่โดยอัตโนมัติ
-var _seenConfAction = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_conf_seen')||'[]')); } catch(ex){ return new Set(); } })();
 function _markConfActionSeen(){
   if(!isAdmin) return;
   var items = window._lastConfNeedAction || [];
