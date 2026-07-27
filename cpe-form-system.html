@@ -367,6 +367,10 @@ body::after{display:none}
   color:var(--txt);transition:.13s;flex-shrink:0}
 .sidebar-item:hover{background:rgba(90,123,255,.09);color:#5a7bff}
 .sidebar-item.active{background:rgba(90,123,255,.13);color:#5a7bff;font-weight:700}
+.sidebar-item.si-locked{opacity:.42;cursor:not-allowed}
+.sidebar-item.si-locked:hover{background:transparent;color:var(--sub)}
+.si-lock-icon{display:none;margin-left:auto;font-size:.68rem;color:var(--sub);flex-shrink:0}
+.sidebar-item.si-locked .si-lock-icon{display:inline-block}
 .sidebar-item .si-icon{font-size:.9rem;width:20px;text-align:center;flex-shrink:0}
 .sidebar-item .si-badge{margin-left:auto;background:#ef4444;color:#fff;border-radius:99px;
   font-size:.58rem;font-weight:700;padding:1px 7px;display:none}
@@ -485,13 +489,15 @@ body::after{display:none}
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">บริการ</div>
-  <button class="sidebar-item" id="si-conf" onclick="sidebarGo('conf')">
+  <button class="sidebar-item si-locked" id="si-conf" onclick="sidebarGo('conf')">
     <span class="si-icon">🎓</span> ประชุมวิชาการ
     <span id="tab-dot-admin-conf" style="display:none;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;margin-left:auto;animation:pulse-dot 1.4s ease infinite;animation-delay:.3s"></span>
+    <span class="si-lock-icon">🔒</span>
   </button>
-  <button class="sidebar-item" id="si-article" onclick="sidebarGo('article')">
+  <button class="sidebar-item si-locked" id="si-article" onclick="sidebarGo('article')">
     <span class="si-icon">📝</span> บทความวิชาการ
     <span class="si-badge" id="art-sidebar-badge"></span>
+    <span class="si-lock-icon">🔒</span>
   </button>
   <button class="sidebar-item" id="si-search" onclick="sidebarGo('search')">
     <span class="si-icon">🔍</span> ค้นหาหน่วยงาน
@@ -910,6 +916,9 @@ body::after{display:none}
     <p id="renew-status-org-label">ติดตามสถานะการต่ออายุการรับรองหน่วยงาน CPE</p>
   </div>
 
+  <!-- CPE unlock notice (shown only for non-admin users) -->
+  <div id="cpe-unlock-notice" style="display:none;margin-bottom:14px"></div>
+
   <!-- Stepper -->
   <div class="fsec">
     <div class="fsec-title">📊 ขั้นตอนการต่ออายุ</div>
@@ -1265,6 +1274,28 @@ body::after{display:none}
 
 </div><!-- /container -->
 </div><!-- /view-article -->
+
+<!-- ════════════════════════════════
+     VIEW: ล็อค (ยังไม่ผ่านการรับรอง)
+════════════════════════════════ -->
+<div id="view-cpe-locked" style="display:none">
+<div class="container">
+  <div class="hero">
+    <h2 id="cpe-locked-title">🔒 ยังไม่สามารถเข้าใช้งานได้</h2>
+    <p id="cpe-locked-sub">รอรับเอกสารรับรองจาก admin ก่อน</p>
+  </div>
+  <div class="fsec" style="text-align:center;padding:48px 24px">
+    <div style="width:64px;height:64px;border-radius:16px;background:rgba(200,210,230,.15);border:1px solid rgba(200,210,230,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px">🔒</div>
+    <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:10px" id="cpe-locked-heading">หัวข้อนี้ยังถูกล็อค</div>
+    <div style="font-size:.84rem;color:var(--sub);max-width:340px;margin:0 auto 24px;line-height:1.7" id="cpe-locked-desc">
+      admin จะต้องส่งเอกสารรับรองพร้อมรหัสหน่วยงาน วันที่ผ่านการรับรอง และวันหมดอายุ ก่อนที่หัวข้อนี้จะถูกปลดล็อค
+    </div>
+    <button class="btn btn-primary" onclick="sidebarGo('renew-status')" style="display:inline-flex;align-items:center;gap:7px">
+      <span>📊</span> ดูสถานะการต่ออายุ
+    </button>
+  </div>
+</div>
+</div>
 
 </div><!-- /main-wrap -->
 
@@ -1754,6 +1785,8 @@ var currentUser=null, isAdmin=false;
     // Show admin section in sidebar
     document.getElementById('sb-admin-divider').style.display = 'block';
     document.getElementById('sb-admin-label').style.display   = 'block';
+    // Admin always unlocked — apply immediately (before Firebase callback)
+    _cpeUnlocked = true; _applySidebarLock();
     sidebarGo('main');
     loadOrgRequests();
     loadAllCpeConferences();
@@ -2097,7 +2130,7 @@ function switchTab(id){
 }
 
 function showView(id, orgKey, orgName){
-  ['status','search','renew','renew-status','conference','admin-renewals','article'].forEach(v=>{ var _v=document.getElementById('view-'+v); if(_v) _v.style.display='none'; });
+  ['status','search','renew','renew-status','conference','admin-renewals','article','cpe-locked'].forEach(v=>{ var _v=document.getElementById('view-'+v); if(_v) _v.style.display='none'; });
   // ซ่อน renew success prompt เมื่อออกจากหน้า renew
   if(id !== 'renew'){ var _rcp=document.getElementById('renew-conf-prompt'); if(_rcp) _rcp.style.display='none'; }
   // reset conference status card เมื่อออกจากหน้า conference
@@ -2553,6 +2586,12 @@ function loadMyOrgRequests(){
     _myApprovedOrgs = myReqs.filter(function(e){ return e[1].status === 'อนุมัติแล้ว'; }).map(function(e){
       return { orgKey: e[1].orgKey||'', orgName: e[1].name||'' };
     });
+    // ตรวจสอบว่า org มีรหัสและวันที่รับรองครบหรือไม่ → ปลดล็อค ประชุมวิชาการ + บทความวิชาการ
+    _cpeUnlocked = myReqs.some(function(e){
+      var r = e[1];
+      return r.status === 'อนุมัติแล้ว' && r.orgCode && r.registrationDate && r.expiryDate;
+    });
+    _applySidebarLock();
     // อัปเดต dot แจ้งเตือนสถานะต่ออายุ
     if(_myApprovedOrgs.length) updateRenewStatusDot(_myApprovedOrgs[0].orgKey);
 
@@ -2790,6 +2829,43 @@ function dismissRejectedReq(reqKey){
 var _myConfs = {};      // orgNameId → [conference, ...]
 var _myConfsById = {};  // confId    → conference
 var _myApprovedOrgs = []; // [{orgKey, orgName}] — populated by loadMyOrgRequests
+var _cpeUnlocked = false; // true when approved org has orgCode + registrationDate + expiryDate
+
+/* Apply / remove lock on ประชุมวิชาการ + บทความวิชาการ sidebar items */
+function _applySidebarLock(){
+  if(isAdmin){ _cpeUnlocked = true; } // admin always unlocked
+  var _siConf    = document.getElementById('si-conf');
+  var _siArticle = document.getElementById('si-article');
+  if(_cpeUnlocked){
+    if(_siConf)    { _siConf.classList.remove('si-locked'); }
+    if(_siArticle) { _siArticle.classList.remove('si-locked'); }
+  } else {
+    if(_siConf)    { _siConf.classList.add('si-locked'); }
+    if(_siArticle) { _siArticle.classList.add('si-locked'); }
+  }
+  // Update the unlock notice on renew-status page
+  var _nb = document.getElementById('cpe-unlock-notice');
+  if(_nb && !isAdmin){
+    if(_cpeUnlocked){
+      _nb.style.display = 'block';
+      _nb.innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.25);border-radius:10px">'
+        +'<div style="width:28px;height:28px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:14px;font-weight:700">🔓</div>'
+        +'<div>'
+          +'<div style="font-size:.78rem;font-weight:700;color:#065f46">ปลดล็อคแล้ว — ใช้งานประชุมวิชาการและบทความวิชาการได้</div>'
+          +'<div style="font-size:.69rem;color:#059669;margin-top:1px">คลิกเมนูในแถบซ้ายมือเพื่อเข้าใช้งาน</div>'
+        +'</div>'
+        +'</div>';
+    } else {
+      _nb.style.display = 'block';
+      _nb.innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.28);border-radius:10px">'
+        +'<span style="font-size:16px;flex-shrink:0">⏳</span>'
+        +'<div style="font-size:.77rem;color:#b45309">รอ admin ส่งเอกสารรับรองพร้อมรหัสหน่วยงาน วันที่ผ่านการรับรอง และวันหมดอายุ — ประชุมวิชาการและบทความวิชาการยังถูกล็อคอยู่</div>'
+        +'</div>';
+    }
+  }
+}
 
 function injectConfStatuses(){
   function _fd(iso){
@@ -5899,8 +5975,24 @@ function sidebarGo(section){
     showView('status');
     switchTab('admin-manage');
   } else if(section === 'article'){
+    if(!isAdmin && !_cpeUnlocked){
+      var _lt=document.getElementById('cpe-locked-title'),_ls=document.getElementById('cpe-locked-sub'),_lh=document.getElementById('cpe-locked-heading');
+      if(_lt) _lt.textContent='🔒 บทความวิชาการ';
+      if(_ls) _ls.textContent='รอรับเอกสารรับรองจาก admin ก่อนจึงจะเข้าใช้งานได้';
+      if(_lh) _lh.textContent='ส่วนบทความวิชาการยังถูกล็อค';
+      showView('cpe-locked');
+      return;
+    }
     showView('article');
   } else if(section === 'conf'){
+    if(!isAdmin && !_cpeUnlocked){
+      var _lt2=document.getElementById('cpe-locked-title'),_ls2=document.getElementById('cpe-locked-sub'),_lh2=document.getElementById('cpe-locked-heading');
+      if(_lt2) _lt2.textContent='🔒 ประชุมวิชาการ';
+      if(_ls2) _ls2.textContent='รอรับเอกสารรับรองจาก admin ก่อนจึงจะเข้าใช้งานได้';
+      if(_lh2) _lh2.textContent='ส่วนประชุมวิชาการยังถูกล็อค';
+      showView('cpe-locked');
+      return;
+    }
     showView('status');
     if(isAdmin){ switchTab('admin-conf'); } else {
       // ซ่อน my-requests-section ในหน้าประชุมวิชาการ
@@ -5951,6 +6043,8 @@ function syncSidebarActive(viewId){
     var el = document.getElementById('si-renew-status'); if(el) el.classList.add('active');
   } else if(viewId === 'article'){
     var el = document.getElementById('si-article'); if(el) el.classList.add('active');
+  } else if(viewId === 'cpe-locked'){
+    // keep whichever item was active — do not change active state
   }
 }
 
