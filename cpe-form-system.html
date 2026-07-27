@@ -3582,8 +3582,8 @@ async function submitRenewalDocs(){
     }
   }
   if(uploadErrors.length){
-    showToast('⚠️ อัปโหลดไม่สำเร็จ: '+uploadErrors.join(' | '),'err');
-    return;
+    // แจ้งเตือนแต่ไม่หยุด — ยังคงบันทึก Firebase เพื่อให้ stepper แสดงถูกต้อง
+    showToast('⚠️ อัปโหลดไฟล์ไม่สำเร็จ กำลังบันทึกข้อมูลต่อ...','warn');
   }
   try{
     var key = orgKey||('anon_'+Date.now());
