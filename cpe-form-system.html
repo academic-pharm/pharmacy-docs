@@ -40,6 +40,12 @@ body::after{display:none}
 #notif-badge.show{display:flex}
 #notif-panel{display:none;position:absolute;right:0;top:calc(100% + 8px);width:308px;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.1)}
 @keyframes notif-pulse{0%{transform:scale(1);opacity:.65}100%{transform:scale(2.5);opacity:0}}
+#user-notif-wrap{position:relative;display:none}
+#user-notif-btn{background:none;border:0.5px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.84rem;color:var(--txt);display:flex;align-items:center;gap:4px;position:relative;white-space:nowrap}
+#user-notif-btn:hover{background:rgba(16,185,129,.08)}
+#user-notif-badge{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;border-radius:99px;background:#10b981;color:#fff;font-size:.6rem;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 3px;pointer-events:none;border:2px solid var(--bg)}
+#user-notif-badge.show{display:flex}
+#user-notif-panel{display:none;position:absolute;right:0;top:calc(100% + 8px);width:308px;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.1)}
 .navbar-info{flex:1}
 .navbar-info h1{font-size:.9rem;font-weight:700;letter-spacing:.04em;color:var(--txt);line-height:1.2}
 .navbar-info p{font-size:.68rem;color:var(--sub)}
@@ -520,6 +526,18 @@ body::after{display:none}
         <button onclick="toggleNotifPanel()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--sub);padding:0">✕</button>
       </div>
       <div id="notif-list" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <div id="user-notif-wrap">
+    <button id="user-notif-btn" onclick="toggleUserNotifPanel()" aria-label="การแจ้งเตือน" title="การแจ้งเตือน">
+      🔔 <span id="user-notif-badge"></span>
+    </button>
+    <div id="user-notif-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:0.5px solid var(--border);background:var(--surface)">
+        <span style="font-size:.82rem;font-weight:700;color:var(--txt)">การแจ้งเตือน</span>
+        <button onclick="toggleUserNotifPanel()" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--sub);padding:0">✕</button>
+      </div>
+      <div id="user-notif-list" style="max-height:340px;overflow-y:auto"></div>
     </div>
   </div>
   <button class="btn-home" onclick="location.href='index.html'" style="margin-left:4px">← กลับหน้าแรก</button>
@@ -1742,6 +1760,7 @@ var currentUser=null, isAdmin=false;
     _setupAdminNotifications();
   } else {
     sidebarGo('main');
+    _setupUserNotifications();
   }
   loadMyOrgRequests();
   loadMyConferences();
@@ -1814,7 +1833,8 @@ function _renderNotifList(items){
     var typeBdr   = isOrg ? '#85B7EB' : '#F09595';
     var icon      = isOrg ? '🏢' : '📄';
     var timeStr   = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border)">'
+    var navFn = isOrg ? "sidebarGo('main');toggleNotifPanel()" : "showView('admin-renewals');toggleNotifPanel()";
+    return '<div onclick="'+navFn+'" style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
       +'<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px">'
         +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444;animation:notif-pulse 1.5s ease-out infinite"></div>'
         +'<div style="position:absolute;inset:0;border-radius:50%;background:#ef4444"></div>'
@@ -1826,6 +1846,7 @@ function _renderNotifList(items){
         +'</div>'
         +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+icon+' '+n.name+'</div>'
       +'</div>'
+      +'<div style="font-size:13px;color:var(--sub);opacity:.45;margin-top:3px">›</div>'
     +'</div>';
   }).join('');
 }
@@ -1836,6 +1857,121 @@ function toggleNotifPanel(){
   var shown = p.style.display !== 'none';
   p.style.display = shown ? 'none' : 'block';
   if(!shown) _renderNotifList(window._lastNotifItems||[]);
+}
+
+/* ════════════════════════════════
+   USER NOTIFICATIONS (from admin actions)
+════════════════════════════════ */
+var _userNotifData = {orgReqs:{}, renewals:{}};
+var _userMyEmail = '';
+
+function _setupUserNotifications(){
+  var wrap = document.getElementById('user-notif-wrap');
+  if(wrap) wrap.style.display = 'flex';
+  _userMyEmail = (getCanonicalEmail()||'').toLowerCase();
+  if(!_userMyEmail) return;
+
+  db.ref('pharma-form/_org_requests').on('value', function(snap){
+    var all = snap.val()||{};
+    _userNotifData.orgReqs = {};
+    Object.entries(all).forEach(function(e){
+      if((e[1].submittedBy||'').toLowerCase() === _userMyEmail)
+        _userNotifData.orgReqs[e[0]] = e[1];
+    });
+    _refreshUserNotif();
+  });
+
+  db.ref('pharma-form/_cpe_renewals').on('value', function(snap){
+    _userNotifData.renewals = snap.val()||{};
+    _refreshUserNotif();
+  });
+
+  document.addEventListener('click', function(e){
+    var wrap2 = document.getElementById('user-notif-wrap');
+    var panel = document.getElementById('user-notif-panel');
+    if(wrap2 && panel && !wrap2.contains(e.target) && panel.style.display !== 'none')
+      panel.style.display = 'none';
+  });
+}
+
+function _collectUserNotifItems(){
+  var items = [];
+  var myOrgKeys = {};
+
+  // Org request results from admin
+  Object.entries(_userNotifData.orgReqs).forEach(function(e){
+    var key = e[0], r = e[1];
+    if(!r) return;
+    if(r.status === 'อนุมัติแล้ว'){
+      if(r.orgKey) myOrgKeys[r.orgKey] = true;
+      items.push({type:'org_approved', name:r.name||'—', time:r.completedAt||r.submittedAt||'', key:key});
+    } else if(r.status === 'ปฏิเสธ'){
+      items.push({type:'org_rejected', name:r.name||'—', time:r.rejectedAt||r.submittedAt||'', key:key});
+    }
+  });
+
+  // Renewal completions from admin
+  Object.entries(_userNotifData.renewals).forEach(function(e){
+    var orgKey = e[0], subs = e[1]||{};
+    if(!myOrgKeys[orgKey]) return;
+    Object.entries(subs).forEach(function(se){
+      var v = se[1]||{};
+      if(v.status === 'ต่ออายุแล้ว')
+        items.push({type:'renew_done', name:v.orgName||orgKey, time:v.completedAt||'', key:orgKey+'_'+se[0]});
+    });
+  });
+
+  return items.sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
+}
+
+function _refreshUserNotif(){
+  var items = _collectUserNotifItems();
+  window._lastUserNotifItems = items;
+  var badge = document.getElementById('user-notif-badge');
+  if(badge){ badge.textContent = items.length > 9 ? '9+' : items.length; badge.classList.toggle('show', items.length > 0); }
+  var panel = document.getElementById('user-notif-panel');
+  if(panel && panel.style.display !== 'none') _renderUserNotifList(items);
+}
+
+function _renderUserNotifList(items){
+  var list = document.getElementById('user-notif-list');
+  if(!list) return;
+  if(!items.length){
+    list.innerHTML = '<div style="padding:22px 16px;text-align:center;font-size:.82rem;color:var(--sub)">🎉 ไม่มีการแจ้งเตือนใหม่</div>';
+    return;
+  }
+  var cfgMap = {
+    org_approved: {label:'อนุมัติแล้ว',  bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'คำขอลงทะเบียนหน่วยงานได้รับการอนุมัติ', nav:"sidebarGo('main')"},
+    org_rejected: {label:'ไม่อนุมัติ',   bg:'#FCEBEB',color:'#A32D2D',bdr:'#F09595',dot:'#ef4444',title:'คำขอลงทะเบียนหน่วยงานถูกปฏิเสธ',       nav:"sidebarGo('main')"},
+    renew_done:   {label:'ต่ออายุสำเร็จ',bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'เอกสารรับรองหน่วยงานพร้อมแล้ว',        nav:"sidebarGo('renew-status')"}
+  };
+  list.innerHTML = items.map(function(n){
+    var cfg = cfgMap[n.type]||{label:n.type,bg:'#eee',color:'#333',bdr:'#ccc',dot:'#888',title:n.name,nav:''};
+    var timeStr = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    return '<div onclick="'+cfg.nav+';toggleUserNotifPanel()" style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'rgba(90,123,255,.05)\'" onmouseout="this.style.background=\'\'">'
+      +'<div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:5px">'
+        +'<div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+';animation:notif-pulse 1.5s ease-out infinite"></div>'
+        +'<div style="position:absolute;inset:0;border-radius:50%;background:'+cfg.dot+'"></div>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">'
+          +'<span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+cfg.bg+';color:'+cfg.color+';border:0.5px solid '+cfg.bdr+'">'+cfg.label+'</span>'
+          +'<span style="font-size:.68rem;color:var(--sub)">'+timeStr+'</span>'
+        +'</div>'
+        +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+cfg.title+'</div>'
+        +'<div style="font-size:.72rem;color:var(--sub);margin-top:1px">🏢 '+n.name+'</div>'
+      +'</div>'
+      +'<div style="font-size:13px;color:var(--sub);opacity:.45;margin-top:3px">›</div>'
+    +'</div>';
+  }).join('');
+}
+
+function toggleUserNotifPanel(){
+  var p = document.getElementById('user-notif-panel');
+  if(!p) return;
+  var shown = p.style.display !== 'none';
+  p.style.display = shown ? 'none' : 'block';
+  if(!shown) _renderUserNotifList(window._lastUserNotifItems||[]);
 }
 
 /* ════════════════════════════════
