@@ -4349,7 +4349,9 @@ function loadAllCpeConferences(){
       var stepLabels={1:'ขั้นที่ 1 · ส่งผู้ทรงฯ',2:'ขั้นที่ 2 · รอผู้ทรง',3:'ขั้นที่ 3 · รอชำระเงิน',4:'ขั้นที่ 4 · ตรวจสอบชำระ'};
       var actionBtn='';
       if(st==='pending_review'){
-        actionBtn='<button onclick="openExpertModal(\''+safeCid+'\',\''+cid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-family:inherit">📧 ส่งผู้ทรงฯ</button>';
+        actionBtn=
+          '<button onclick="openCancelConfModal(\''+safeCid+'\',\''+cid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:500;color:#dc2626;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.25);border-radius:7px;padding:5px 10px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;font-family:inherit"><span style="font-size:13px;line-height:1">🚫</span> ยกเลิกคำขอ</button>'+
+          '<button onclick="openExpertModal(\''+safeCid+'\',\''+cid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:700;color:#b45309;background:none;border:1px solid rgba(217,119,6,.4);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-family:inherit">📧 ส่งผู้ทรงฯ</button>';
       } else if(st==='sent_to_experts'){
         actionBtn='<button onclick="openResultModal(\''+safeCid+'\',\''+cid+'\')" style="flex-shrink:0;font-size:.72rem;font-weight:700;color:#0369a1;background:none;border:1px solid rgba(14,165,233,.4);border-radius:7px;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-family:inherit">✅ ยืนยันผล CPE</button>';
       } else if(st==='result_confirmed'&&ps==='pending_receipt'){
@@ -5113,6 +5115,53 @@ function closeConfDetailModal(){
    ADMIN: PAYMENT REVIEW MODAL
 ════════════════════════════════ */
 // ── CPE Result Modal ──
+/* ── Cancel Conference Modal ── */
+var _cancelConf = { safeCid:'', cid:'' };
+
+function openCancelConfModal(safeCid, cid){
+  _cancelConf.safeCid = safeCid;
+  _cancelConf.cid = cid;
+  var c = _adminConfs[cid];
+  var el = document.getElementById('cancel-conf-modal-name');
+  if(el) el.textContent = (c&&c.confName?c.confName:'?') + ' · ' + (c&&c.orgName?c.orgName:'?');
+  var ta = document.getElementById('cancel-conf-reason');
+  if(ta) ta.value = '';
+  document.getElementById('cancel-conf-modal').style.display = 'flex';
+}
+
+function closeCancelConfModal(){
+  document.getElementById('cancel-conf-modal').style.display = 'none';
+}
+
+async function confirmCancelConf(){
+  var cid = _cancelConf.cid;
+  var c = _adminConfs[cid];
+  if(!c){ showToast('ไม่พบข้อมูลประชุม','err'); return; }
+  var reason = ((document.getElementById('cancel-conf-reason')||{}).value||'').trim();
+  var btn = document.getElementById('cancel-conf-confirm-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดำเนินการ...'; }
+  try{
+    var now = new Date().toISOString();
+    await db.ref('pharma-form/_all_cpe_conferences/'+cid).update({
+      status: 'cancelled', cancelledAt: now, cancelReason: reason||''
+    });
+    var userKey = emailToFbKey(c.createdBy||'');
+    if(userKey && c.id){
+      db.ref('pharma-form/'+userKey+'/cpe-conferences/'+c.id).update({
+        status: 'cancelled', cancelledAt: now, cancelReason: reason||''
+      }).catch(function(){});
+    }
+    fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:'update_conference_row', confId:cid, status:'ยกเลิกแล้ว'
+    })}).catch(function(){});
+    showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
+    closeCancelConfModal();
+  } catch(err){
+    showToast('เกิดข้อผิดพลาด: '+err.message,'err');
+    if(btn){ btn.disabled=false; btn.textContent='🚫 ยืนยันยกเลิก'; }
+  }
+}
+
 var _resultModalCid = null;
 var _resultModalFile = null;
 
@@ -6952,6 +7001,40 @@ document.addEventListener('keydown',function(e){
     style="max-width:520px;width:100%;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18)">
   </div>
 </div>
+<!-- ══ CPE Conf: Cancel Modal ══ -->
+<div id="cancel-conf-modal"
+  onclick="if(event.target===this)closeCancelConfModal()"
+  style="display:none;position:fixed;inset:0;z-index:1090;background:rgba(15,20,40,.42);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px">
+  <div style="max-width:400px;width:calc(100% - 32px);background:#ffffff;border-radius:14px;border:0.5px solid rgba(200,210,230,.6);box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;font-family:inherit">
+    <!-- Header -->
+    <div style="padding:16px 20px 14px;border-bottom:0.5px solid rgba(0,0,0,.07);display:flex;align-items:flex-start;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🚫</div>
+        <div>
+          <div style="font-size:.9rem;font-weight:600;color:#111827;line-height:1.3">ยกเลิกคำขอ</div>
+          <div id="cancel-conf-modal-name" style="font-size:.72rem;color:#9ca3af;margin-top:2px">-</div>
+        </div>
+      </div>
+      <button onclick="closeCancelConfModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:inherit">✕</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fef2f2;border:0.5px solid rgba(220,38,38,.2);border-radius:9px;padding:11px 14px;font-size:.8rem;color:#991b1b;line-height:1.6">
+        ⚠️ หลังจากยกเลิก ระบบจะแจ้ง user ให้ทราบ และ user จะสามารถส่งเอกสารมาใหม่ได้
+      </div>
+      <div>
+        <label for="cancel-conf-reason" style="font-size:.72rem;font-weight:600;color:#374151;display:block;margin-bottom:5px">เหตุผล <span style="color:#9ca3af;font-weight:400">(ไม่จำเป็น)</span></label>
+        <textarea id="cancel-conf-reason" placeholder="เช่น เอกสารโครงการไม่ครบถ้วน, กำหนดการไม่ถูกต้อง ..." style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:9px 12px;font-size:.82rem;outline:none;background:#fff;font-family:inherit;box-sizing:border-box;resize:none;height:76px;color:#374151"></textarea>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="display:flex;gap:8px;padding:12px 20px;border-top:0.5px solid rgba(0,0,0,.07);background:#fafafa">
+      <button id="cancel-conf-confirm-btn" onclick="confirmCancelConf()" style="flex:2;background:#dc2626;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">🚫 ยืนยันยกเลิก</button>
+      <button onclick="closeCancelConfModal()" style="flex:1;background:transparent;color:#6b7280;border:0.5px solid rgba(0,0,0,.18);border-radius:9px;padding:10px 16px;font-size:.82rem;cursor:pointer;font-family:inherit">ปิด</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ CPE Conf: Send-to-Experts Modal ══ -->
 <div id="expert-send-modal"
   onclick="if(event.target===this)closeExpertModal()"
