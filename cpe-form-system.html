@@ -749,6 +749,9 @@ body::after{display:none}
     <p id="renew-org-label">ขั้นตอนการต่ออายุการรับรองหน่วยงาน CPE</p>
   </div>
 
+  <!-- แสดงเมื่อต่ออายุสมบูรณ์แล้ว (ล็อค upload form) -->
+  <div id="renew-complete-notice" style="display:none"></div>
+
   <!-- 3 ขั้นตอน (upload form) -->
   <div class="fsec" id="renew-upload-section">
     <div class="fsec-title">📋 ขั้นตอนการต่ออายุ</div>
@@ -2160,11 +2163,13 @@ function showView(id, orgKey, orgName){
     var rv=document.getElementById('view-renew');
     rv.dataset.orgKey=orgKey||'';
     if(orgName) document.getElementById('renew-org-label').textContent='หน่วยงาน: '+orgName;
-    // แสดง upload form เสมอ (ซ่อนโดย submitRenewalDocs เมื่อส่งแล้ว)
+    // แสดง upload form เสมอ (ซ่อนโดย submitRenewalDocs หรือ _checkRenewalLock)
     var _up=document.getElementById('renew-upload-section'); if(_up) _up.style.display='';
     var _sm=document.getElementById('renew-submit-section'); if(_sm) _sm.style.display='';
     var _cp=document.getElementById('renew-conf-prompt');    if(_cp) _cp.style.display='none';
-    if(isAdmin && orgKey) loadRenewSubmissions(orgKey);
+    var _cn=document.getElementById('renew-complete-notice'); if(_cn) _cn.style.display='none';
+    if(isAdmin && orgKey){ loadRenewSubmissions(orgKey); }
+    else if(orgKey){ _checkRenewalLock(orgKey); }
   }
   if(id==='renew-status'){
     var rsv=document.getElementById('view-renew-status');
@@ -3556,6 +3561,66 @@ function handleRenewDrop(type, event){
   if(zone) zone.classList.remove('drag');
   var file = event.dataTransfer.files[0]; if(!file) return;
   handleRenewFile(type, { files:[file] });
+}
+
+function _checkRenewalLock(orgKey){
+  if(!orgKey) return;
+  var _unsub2 = firebase.auth().onAuthStateChanged(function(user){
+    _unsub2();
+    if(!user) return;
+    db.ref('pharma-form/_cpe_renewals/'+orgKey).orderByKey().limitToLast(1).once('value',function(snap){
+      var data = snap.val();
+      if(!data || !Object.keys(data).length) return; // ยังไม่เคยส่ง → แสดง upload ปกติ
+      var latest = Object.values(data)[0];
+      if(latest.status !== 'ต่ออายุแล้ว') return; // ยังไม่สมบูรณ์ → แสดง upload ปกติ
+      // ต่ออายุสมบูรณ์แล้ว → ล็อค upload form
+      var _up = document.getElementById('renew-upload-section');
+      var _sm = document.getElementById('renew-submit-section');
+      var _cn = document.getElementById('renew-complete-notice');
+      if(_up) _up.style.display = 'none';
+      if(_sm) _sm.style.display = 'none';
+      if(!_cn) return;
+      // คำนวณวันที่
+      var completedAt = latest.completedAt ? new Date(latest.completedAt).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}) : '';
+      // หาวันหมดอายุจาก allOrgs หรือ _cpe_orgs
+      var orgData = allOrgs[orgKey] || {};
+      var expiryDate = orgData.expiryDate || '';
+      var expiryStr = '';
+      var reminderStr = '';
+      if(expiryDate){
+        var expD = new Date(expiryDate);
+        expiryStr = expD.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
+        var remD = new Date(expD); remD.setDate(remD.getDate()-90);
+        reminderStr = remD.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'});
+      }
+      _cn.style.display = 'block';
+      _cn.innerHTML =
+        '<div class="fsec" style="margin-bottom:0">'
+        // แถบสีเขียว — สมบูรณ์
+        +'<div style="display:flex;align-items:flex-start;gap:12px;padding:16px 18px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,105,.25);border-radius:12px;margin-bottom:12px">'
+          +'<div style="width:32px;height:32px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><span style="color:#fff;font-size:15px">✓</span></div>'
+          +'<div>'
+            +'<div style="font-size:.9rem;font-weight:700;color:#065f46;margin-bottom:3px">การต่ออายุสมบูรณ์แล้ว</div>'
+            +(completedAt ? '<div style="font-size:.8rem;color:#059669">ต่ออายุเมื่อ '+completedAt+(expiryStr?' · มีผลถึง '+expiryStr:'')+'</div>' : '')
+          +'</div>'
+        +'</div>'
+        // แถบแจ้งเตือนครั้งถัดไป
+        +'<div style="padding:14px 16px;background:rgba(90,123,255,.04);border:0.5px solid rgba(90,123,255,.18);border-radius:10px;display:flex;align-items:flex-start;gap:10px">'
+          +'<div style="font-size:16px;flex-shrink:0;margin-top:1px">🔔</div>'
+          +'<div style="flex:1">'
+            +'<div style="font-size:.84rem;font-weight:600;color:var(--txt);margin-bottom:4px">การแจ้งเตือนต่ออายุครั้งถัดไป</div>'
+            +'<div style="font-size:.8rem;color:var(--sub);line-height:1.65">ระบบจะแจ้งเตือนอัตโนมัติ <strong style="color:var(--txt);font-weight:600">90 วัน</strong> ก่อนวันหมดอายุ'+(reminderStr?' (ประมาณ '+reminderStr+')':'')+'</div>'
+          +'</div>'
+        +'</div>'
+        // ปุ่มล็อค
+        +'<div style="margin-top:14px;padding:22px 20px;background:rgba(200,210,230,.06);border:0.5px solid rgba(200,210,230,.3);border-radius:10px;text-align:center">'
+          +'<div style="font-size:20px;margin-bottom:8px">🔒</div>'
+          +'<div style="font-size:.88rem;font-weight:600;color:var(--txt);margin-bottom:5px">ยังไม่ถึงเวลาต่ออายุ</div>'
+          +'<div style="font-size:.78rem;color:var(--sub);max-width:300px;margin:0 auto;line-height:1.7">ระบบจะเปิดให้ส่งเอกสารต่ออายุอีกครั้งเมื่อได้รับการแจ้งเตือน 90 วันก่อนหมดอายุ</div>'
+        +'</div>'
+        +'</div>';
+    });
+  });
 }
 
 async function submitRenewalDocs(){
