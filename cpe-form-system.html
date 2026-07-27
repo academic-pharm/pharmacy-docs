@@ -4485,8 +4485,8 @@ function _buildExpertModalContent(c){
   function fileChip(url, name, icon, iconColor){
     if(!url) return '';
     return '<a href="'+url+'" target="_blank" rel="noopener" '+
-      'style="display:inline-flex;align-items:center;gap:6px;background:rgba(200,210,230,.18);'+
-      'border:0.5px solid rgba(200,210,230,.8);border-radius:8px;padding:5px 10px;'+
+      'style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.06);'+
+      'border:0.5px solid rgba(0,0,0,.14);border-radius:8px;padding:5px 10px;'+
       'font-size:.75rem;color:#374151;text-decoration:none;max-width:190px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
       '<span style="flex-shrink:0;color:'+iconColor+'">'+icon+'</span>'+
       '<span style="overflow:hidden;text-overflow:ellipsis">'+(escHtml(name||'เอกสาร'))+'</span></a>';
@@ -4501,20 +4501,21 @@ function _buildExpertModalContent(c){
   var hasPdf  = c.files&&c.files.resolution_pdf&&c.files.resolution_pdf.url;
   var hasWord = c.files&&c.files.resolution_word&&c.files.resolution_word.url;
 
-  function uploadZone(has, fileObj, zoneId, inputId, accept, fileType, icon, bg, tc, bd){
+  function uploadZone(has, fileObj, zoneId, inputId, accept, fileType, icon){
     var inner = has
       ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
           '<a href="'+fileObj.url+'" target="_blank" rel="noopener" '+
-          'style="display:inline-flex;align-items:center;gap:6px;background:'+bg+';color:'+tc+';'+
-          'border:1px solid '+bd+';border-radius:8px;padding:5px 11px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap">'+
+          'style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.06);'+
+          'border:0.5px solid rgba(0,0,0,.14);border-radius:8px;padding:5px 10px;'+
+          'font-size:.75rem;color:#374151;text-decoration:none;max-width:240px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
           icon+' '+(escHtml(fileObj.name||fileType))+'</a>'+
-          '<label for="'+inputId+'" style="cursor:pointer;font-size:.72rem;color:#6b7280;text-decoration:underline;white-space:nowrap">เปลี่ยนไฟล์</label>'+
+          '<label for="'+inputId+'" style="cursor:pointer;font-size:.72rem;color:#9ca3af;white-space:nowrap;text-decoration:underline">เปลี่ยนไฟล์</label>'+
         '</div>'
       : '<label for="'+inputId+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;width:100%;padding:6px 0">'+
           '<span style="font-size:22px;color:#d1d5db">⬆</span>'+
           '<span style="font-size:.76rem;color:#9ca3af">คลิกหรือลากไฟล์มาวางที่นี่</span>'+
         '</label>';
-    return '<div id="'+zoneId+'" style="border:1.5px dashed rgba(200,210,230,.8);border-radius:10px;padding:'+(has?'10px 14px':'14px')+';min-height:50px;display:flex;align-items:center">'+
+    return '<div id="'+zoneId+'" style="border:1.5px dashed rgba(200,210,230,.7);border-radius:10px;padding:'+(has?'10px 14px':'14px')+';min-height:50px;display:flex;align-items:center">'+
       inner+
       '<input type="file" id="'+inputId+'" accept="'+accept+'" style="display:none" onchange="expertUploadFile(this,\''+fileType+'\')">'+
       '</div>';
@@ -4550,13 +4551,13 @@ function _buildExpertModalContent(c){
       // Extra PDF
       '<div>',
         '<div style="font-size:.68rem;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">เอกสารเพิ่มเติม (PDF) — 1 ไฟล์</div>',
-        uploadZone(hasPdf, hasPdf&&c.files.resolution_pdf, 'em-pdf-zone','em-extra-pdf','.pdf','pdf','📄','#fff7ed','#c2410c','#fed7aa'),
+        uploadZone(hasPdf, hasPdf&&c.files.resolution_pdf, 'em-pdf-zone','em-extra-pdf','.pdf','pdf','📄'),
       '</div>',
 
       // Extra Word
       '<div>',
         '<div style="font-size:.68rem;font-weight:600;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">เอกสารเพิ่มเติม (Word) — 1 ไฟล์</div>',
-        uploadZone(hasWord, hasWord&&c.files.resolution_word, 'em-word-zone','em-extra-word','.doc,.docx','word','📝','#eff6ff','#1d4ed8','#bfdbfe'),
+        uploadZone(hasWord, hasWord&&c.files.resolution_word, 'em-word-zone','em-extra-word','.doc,.docx','word','📝'),
       '</div>',
 
       // File count bar
@@ -4617,19 +4618,17 @@ function _expertModalRefreshZone(fileType){
   var fileInfo = fileType==='pdf' ? (c.files&&c.files.resolution_pdf) : (c.files&&c.files.resolution_word);
   var inputId  = fileType==='pdf' ? 'em-extra-pdf' : 'em-extra-word';
   var accept   = fileType==='pdf' ? '.pdf' : '.doc,.docx';
-  var icon     = fileType==='pdf' ? '📄' : '📝';
-  var bg       = fileType==='pdf' ? '#fff7ed' : '#eff6ff';
-  var tc       = fileType==='pdf' ? '#c2410c' : '#1d4ed8';
-  var bd       = fileType==='pdf' ? '#fed7aa' : '#bfdbfe';
+  var icon = fileType==='pdf' ? '📄' : '📝';
   if(fileInfo&&fileInfo.url){
     zone.style.padding = '10px 14px';
     zone.innerHTML =
       '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
         '<a href="'+fileInfo.url+'" target="_blank" rel="noopener" '+
-        'style="display:inline-flex;align-items:center;gap:6px;background:'+bg+';color:'+tc+';'+
-        'border:1px solid '+bd+';border-radius:8px;padding:5px 11px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap">'+
+        'style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.06);'+
+        'border:0.5px solid rgba(0,0,0,.14);border-radius:8px;padding:5px 10px;'+
+        'font-size:.75rem;color:#374151;text-decoration:none;max-width:240px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+
         icon+' '+(escHtml(fileInfo.name||fileType))+'</a>'+
-        '<label for="'+inputId+'" style="cursor:pointer;font-size:.72rem;color:#6b7280;text-decoration:underline;white-space:nowrap">เปลี่ยนไฟล์</label>'+
+        '<label for="'+inputId+'" style="cursor:pointer;font-size:.72rem;color:#9ca3af;white-space:nowrap;text-decoration:underline">เปลี่ยนไฟล์</label>'+
       '</div>'+
       '<input type="file" id="'+inputId+'" accept="'+accept+'" style="display:none" onchange="expertUploadFile(this,\''+fileType+'\')">';
   }
