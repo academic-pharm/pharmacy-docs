@@ -3588,6 +3588,8 @@ async function submitRenewalDocs(){
   try{
     var key = orgKey||('anon_'+Date.now());
     await db.ref('pharma-form/_cpe_renewals/'+key+'/'+Date.now()).set(record);
+    window._lastRenewalSubmittedKey  = key;
+    window._lastRenewalSubmittedName = orgName;
   }catch(e){
     showToast('❌ บันทึกไม่สำเร็จ: '+e.message+' (อาจต้องตรวจสอบ Firebase Rules)','err');
     return;
@@ -3817,6 +3819,16 @@ function loadRenewStatusView(orgKey){
         +'<div style="font-size:.88rem;font-weight:700;color:#991b1b;margin-bottom:6px">❌ เอกสารไม่ถูกต้อง กรุณาส่งเอกสารใหม่อีกครั้ง</div>'
         +'<div style="font-size:.8rem;color:#b91c1c;margin-bottom:12px">เจ้าหน้าที่ตรวจสอบแล้วพบว่าเอกสารที่ส่งมาไม่ถูกต้องหรือไม่ครบถ้วน กรุณาตรวจสอบและส่งเอกสารใหม่อีกครั้ง</div>'
         +'<button class="btn btn-primary btn-sm" onclick="sidebarGo(\'renewal\')">📤 ส่งเอกสารใหม่ →</button>'
+        +'</div>';
+    } else if(status==='รอตรวจสอบ'){
+      msg='<div style="padding:12px 16px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.25);border-radius:10px;margin-top:4px">'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+        +'<span style="font-size:18px;flex-shrink:0">🕐</span>'
+        +'<div style="flex:1">'
+          +'<div style="font-size:.88rem;font-weight:700;color:#1e40af;margin-bottom:3px">รอ admin ตรวจสอบเอกสาร</div>'
+          +'<div style="font-size:.8rem;color:#3b82f6;line-height:1.6">เอกสารของท่านถูกส่งแล้ว กรุณารอ admin ดำเนินการตรวจสอบ ซึ่งอาจใช้เวลาประมาณ 3–5 วันทำการ</div>'
+        +'</div>'
+        +'</div>'
         +'</div>';
     } else if(status==='ต่ออายุแล้ว'){
       var _d=document.getElementById('tab-dot-renew-status'); if(_d) _d.style.display='none';
@@ -6081,8 +6093,8 @@ function sidebarGo(section){
     if(isAdmin){
       showView('admin-renewals');
     } else {
-      var _rsKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : '');
-      var _rsName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
+      var _rsKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : (window._lastRenewalSubmittedKey||''));
+      var _rsName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : (window._lastRenewalSubmittedName||''));
       showView('renew-status', _rsKey, _rsName);
     }
   }
