@@ -480,12 +480,14 @@ body::after{display:none}
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">ระบบต่ออายุสถาบันสมทบ</div>
-  <button class="sidebar-item" id="si-renewal" onclick="sidebarGo('renewal')">
+  <button class="sidebar-item si-locked" id="si-renewal" onclick="sidebarGo('renewal')">
     <span class="si-icon">🔄</span> ต่ออายุสถาบันสมทบ
+    <span class="si-lock-icon">🔒</span>
   </button>
-  <button class="sidebar-item" id="si-renew-status" onclick="sidebarGo('renew-status')">
+  <button class="sidebar-item si-locked" id="si-renew-status" onclick="sidebarGo('renew-status')">
     <span class="si-icon">📊</span> สถานะการต่ออายุ
     <span id="tab-dot-renew-status" style="display:none;width:8px;height:8px;border-radius:50%;background:#f97316;flex-shrink:0;margin-left:auto;animation:pulse-dot 1.4s ease infinite;animation-delay:.2s"></span>
+    <span class="si-lock-icon">🔒</span>
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">บริการ</div>
@@ -559,6 +561,8 @@ body::after{display:none}
     <p id="hero-sub">ค้นหาหน่วยงานเพื่อตรวจสอบสถานะการรับรอง CPE</p>
   </div>
 
+  <!-- Renewal lock notice (แสดงเมื่อ user ยังไม่ลงทะเบียน org) -->
+  <div id="renewal-lock-notice" style="display:none;margin-bottom:14px"></div>
   <!-- Registration Card (ทุกคนเห็น) -->
   <div class="reg-card" onclick="showRegisterModal()">
     <div class="reg-card-icon">📋</div>
@@ -1290,7 +1294,7 @@ body::after{display:none}
     <div style="font-size:.84rem;color:var(--sub);max-width:340px;margin:0 auto 24px;line-height:1.7" id="cpe-locked-desc">
       admin จะต้องส่งเอกสารรับรองพร้อมรหัสหน่วยงาน วันที่ผ่านการรับรอง และวันหมดอายุ ก่อนที่หัวข้อนี้จะถูกปลดล็อค
     </div>
-    <button class="btn btn-primary" onclick="sidebarGo('renew-status')" style="display:inline-flex;align-items:center;gap:7px">
+    <button class="btn btn-primary" id="cpe-locked-btn" onclick="sidebarGo('renew-status')" style="display:inline-flex;align-items:center;gap:7px">
       <span>📊</span> ดูสถานะการต่ออายุ
     </button>
   </div>
@@ -1787,6 +1791,7 @@ var currentUser=null, isAdmin=false;
     document.getElementById('sb-admin-label').style.display   = 'block';
     // Admin always unlocked — apply immediately (before Firebase callback)
     _cpeUnlocked = true; _applySidebarLock();
+    _renewalUnlocked = true; _applyRenewalLock();
     sidebarGo('main');
     loadOrgRequests();
     loadAllCpeConferences();
@@ -2139,6 +2144,17 @@ function showView(id, orgKey, orgName){
     var _car2=document.getElementById('conf-action-row');    if(_car2) _car2.style.display='flex';
   }
   document.getElementById('view-'+id).style.display='block';
+  // reset reg-card กลับเป็น "ลงทะเบียนหน่วยงาน CPE" ทุกครั้งที่กลับหน้าหลัก
+  if(id === 'status'){
+    var _rc0=document.querySelector('.reg-card');
+    if(_rc0){
+      _rc0.setAttribute('onclick','showRegisterModal()');
+      var _rci0=_rc0.querySelector('.reg-card-icon'); if(_rci0) _rci0.textContent='📋';
+      var _rch0=_rc0.querySelector('.reg-card-text h3'); if(_rch0) _rch0.textContent='ลงทะเบียนหน่วยงาน CPE';
+      var _rcp0=_rc0.querySelector('.reg-card-text p'); if(_rcp0) _rcp0.textContent='หน่วยงานที่ต้องการขอรับรองหน่วยกิตการศึกษาต่อเนื่อง กรอกข้อมูลเพื่อยื่นคำขอ';
+      var _rcb0=_rc0.querySelector('.reg-card-btn'); if(_rcb0){ _rcb0.textContent='ลงทะเบียน →'; _rcb0.setAttribute('onclick','showRegisterModal();event.stopPropagation()'); }
+    }
+  }
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='renew'){
     var rv=document.getElementById('view-renew');
@@ -2592,6 +2608,9 @@ function loadMyOrgRequests(){
       return r.status === 'อนุมัติแล้ว' && r.orgCode && r.registrationDate && r.expiryDate;
     });
     _applySidebarLock();
+    // ตรวจสอบว่า user เคยยื่นคำขอลงทะเบียนหน่วยงานแล้วหรือยัง → ปลดล็อค ต่ออายุสถาบัน + สถานะการต่ออายุ
+    _renewalUnlocked = myReqs.length > 0;
+    _applyRenewalLock();
     // อัปเดต dot แจ้งเตือนสถานะต่ออายุ
     if(_myApprovedOrgs.length) updateRenewStatusDot(_myApprovedOrgs[0].orgKey);
 
@@ -2830,6 +2849,7 @@ var _myConfs = {};      // orgNameId → [conference, ...]
 var _myConfsById = {};  // confId    → conference
 var _myApprovedOrgs = []; // [{orgKey, orgName}] — populated by loadMyOrgRequests
 var _cpeUnlocked = false; // true when approved org has orgCode + registrationDate + expiryDate
+var _renewalUnlocked = false; // true when user has ANY org request submitted (any status)
 
 /* Apply / remove lock on ประชุมวิชาการ + บทความวิชาการ sidebar items */
 function _applySidebarLock(){
@@ -2863,6 +2883,37 @@ function _applySidebarLock(){
         +'<span style="font-size:16px;flex-shrink:0">⏳</span>'
         +'<div style="font-size:.77rem;color:#b45309">รอ admin ส่งเอกสารรับรองพร้อมรหัสหน่วยงาน วันที่ผ่านการรับรอง และวันหมดอายุ — ประชุมวิชาการและบทความวิชาการยังถูกล็อคอยู่</div>'
         +'</div>';
+    }
+  }
+}
+
+/* Apply / remove lock on ต่ออายุสถาบันสมทบ + สถานะการต่ออายุ sidebar items */
+function _applyRenewalLock(){
+  if(isAdmin){ _renewalUnlocked = true; }
+  var siRenew  = document.getElementById('si-renewal');
+  var siStatus = document.getElementById('si-renew-status');
+  if(_renewalUnlocked){
+    if(siRenew)  siRenew.classList.remove('si-locked');
+    if(siStatus) siStatus.classList.remove('si-locked');
+  } else {
+    if(siRenew)  siRenew.classList.add('si-locked');
+    if(siStatus) siStatus.classList.add('si-locked');
+  }
+  // Update amber notice on main page
+  var nb = document.getElementById('renewal-lock-notice');
+  if(nb && !isAdmin){
+    if(!_renewalUnlocked){
+      nb.style.display = 'block';
+      nb.innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px;padding:11px 15px;background:rgba(217,119,6,.06);border:1px solid rgba(217,119,6,.3);border-radius:10px">'
+        +'<span style="font-size:15px;flex-shrink:0">⚠️</span>'
+        +'<div style="flex:1">'
+          +'<div style="font-size:.8rem;font-weight:700;color:#b45309;margin-bottom:2px">กรุณาลงทะเบียนหน่วยงาน CPE ก่อน</div>'
+          +'<div style="font-size:.72rem;color:#b45309">ลงทะเบียนหน่วยงานเพื่อปลดล็อคระบบต่ออายุสถาบันสมทบ</div>'
+        +'</div>'
+        +'</div>';
+    } else {
+      nb.style.display = 'none';
     }
   }
 }
@@ -6003,10 +6054,30 @@ function sidebarGo(section){
   } else if(section === 'search'){
     showView('search');
   } else if(section === 'renewal'){
+    if(!isAdmin && !_renewalUnlocked){
+      var _lt_r=document.getElementById('cpe-locked-title'),_ls_r=document.getElementById('cpe-locked-sub'),_lh_r=document.getElementById('cpe-locked-heading'),_ld_r=document.getElementById('cpe-locked-desc'),_lb_r=document.getElementById('cpe-locked-btn');
+      if(_lt_r) _lt_r.textContent='🔒 ต่ออายุสถาบันสมทบ';
+      if(_ls_r) _ls_r.textContent='กรุณาลงทะเบียนหน่วยงาน CPE ก่อนจึงจะเข้าใช้งานได้';
+      if(_lh_r) _lh_r.textContent='ส่วนต่ออายุสถาบันสมทบยังถูกล็อค';
+      if(_ld_r) _ld_r.textContent='ลงทะเบียนหน่วยงาน CPE ก่อน จึงจะสามารถยื่นเอกสารต่ออายุได้';
+      if(_lb_r){ _lb_r.innerHTML='<span>📋</span> ลงทะเบียนหน่วยงาน CPE'; _lb_r.onclick=function(){ showRegisterModal(); }; }
+      showView('cpe-locked');
+      return;
+    }
     var _rKey  = selectedOrg ? (selectedOrg._key || Object.keys(allOrgs).find(function(k){ return allOrgs[k]===selectedOrg; })||'') : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgKey : '');
     var _rName = selectedOrg ? selectedOrg.name : (_myApprovedOrgs.length ? _myApprovedOrgs[0].orgName : '');
     showView('renew', _rKey, _rName);
   } else if(section === 'renew-status'){
+    if(!isAdmin && !_renewalUnlocked){
+      var _lt_rs=document.getElementById('cpe-locked-title'),_ls_rs=document.getElementById('cpe-locked-sub'),_lh_rs=document.getElementById('cpe-locked-heading'),_ld_rs=document.getElementById('cpe-locked-desc'),_lb_rs=document.getElementById('cpe-locked-btn');
+      if(_lt_rs) _lt_rs.textContent='🔒 สถานะการต่ออายุ';
+      if(_ls_rs) _ls_rs.textContent='กรุณาลงทะเบียนหน่วยงาน CPE ก่อนจึงจะเข้าใช้งานได้';
+      if(_lh_rs) _lh_rs.textContent='ส่วนสถานะการต่ออายุยังถูกล็อค';
+      if(_ld_rs) _ld_rs.textContent='ลงทะเบียนหน่วยงาน CPE ก่อน จึงจะสามารถติดตามสถานะการต่ออายุได้';
+      if(_lb_rs){ _lb_rs.innerHTML='<span>📋</span> ลงทะเบียนหน่วยงาน CPE'; _lb_rs.onclick=function(){ showRegisterModal(); }; }
+      showView('cpe-locked');
+      return;
+    }
     if(isAdmin){
       showView('admin-renewals');
     } else {
