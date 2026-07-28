@@ -1587,6 +1587,53 @@ body::after{display:none}
   </div>
 </div>
 
+<!-- ADMIN RENEW MODAL -->
+<div id="arm-modal" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(10,12,24,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;box-sizing:border-box;animation:odm-fade .18s ease" onclick="if(event.target===this)closeAdminRenewModal()">
+  <div style="background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(30,50,120,.22);width:100%;max-width:480px;display:flex;flex-direction:column;overflow:hidden;animation:odm-up .22s cubic-bezier(.32,.72,0,1)">
+    <!-- header -->
+    <div class="odm-header">
+      <div>
+        <div class="odm-title" id="arm-title">ต่ออายุสถาบัน</div>
+        <div class="odm-sub" id="arm-sub"></div>
+      </div>
+      <button class="odm-close" onclick="closeAdminRenewModal()">✕</button>
+    </div>
+    <!-- body -->
+    <div class="odm-body" style="display:flex;flex-direction:column;gap:14px">
+      <!-- current dates (read-only) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#f3f4f6;border-radius:10px;padding:10px 14px">
+          <div style="font-size:.72rem;color:#6a6d77;margin-bottom:3px">วันที่รับรองปัจจุบัน</div>
+          <div id="arm-cur-reg" style="font-size:.88rem;font-weight:600;color:#374151">-</div>
+        </div>
+        <div style="background:#f3f4f6;border-radius:10px;padding:10px 14px">
+          <div style="font-size:.72rem;color:#6a6d77;margin-bottom:3px">วันหมดอายุปัจจุบัน</div>
+          <div id="arm-cur-exp" style="font-size:.88rem;font-weight:600;color:#374151">-</div>
+        </div>
+      </div>
+      <!-- new dates inputs -->
+      <div>
+        <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px">วันที่ต่ออายุ (วันที่รับรองใหม่)</label>
+        <input type="date" id="arm-new-reg" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:9px;font-size:.9rem;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#5a7bff'" onblur="this.style.borderColor='#d1d5db'">
+      </div>
+      <div>
+        <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px">วันหมดอายุใหม่ <span style="color:#ef4444">*</span></label>
+        <input type="date" id="arm-new-exp" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:9px;font-size:.9rem;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#5a7bff'" onblur="this.style.borderColor='#d1d5db'">
+      </div>
+      <!-- info box -->
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;font-size:.8rem;color:#1d4ed8;display:flex;align-items:flex-start;gap:8px">
+        <span style="flex-shrink:0;margin-top:1px">🔔</span>
+        <span>ระบบจะแจ้งเตือนสถาบันอัตโนมัติ 90 วัน ก่อนวันหมดอายุใหม่</span>
+      </div>
+    </div>
+    <!-- footer -->
+    <div class="odm-footer">
+      <button class="btn btn-primary" style="background:#16a34a;border-color:#16a34a" onclick="confirmAdminRenew()">✅ ยืนยันต่ออายุ</button>
+      <button class="btn btn-outline" onclick="closeAdminRenewModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2328,7 +2375,7 @@ function renderOrgList(){
       +'<span class="olr-expiry '+cls+'" title="'+fmtDate(o.expiryDate)+'">'+exLabel+'</span>'
       +'<div class="olr-btns">'
         +'<button class="btn btn-outline btn-sm" onclick="openOrgDetail(\''+k+'\')">📄 รายละเอียด</button>'
-        +'<button class="btn btn-green btn-sm" onclick="showView(\'renew\',\''+k+'\',\''+o.name.replace(/'/g,"\\'")+'\')" >✏️ ต่ออายุ</button>'
+        +'<button class="btn btn-green btn-sm" onclick="openAdminRenewModal(\''+k+'\')">✏️ ต่ออายุ</button>'
         +'<button class="btn btn-danger btn-sm" onclick="deleteOrg(\''+k+'\')">🗑</button>'
       +'</div>'
       +'</div>';
@@ -2460,6 +2507,65 @@ function saveOrgEdit(key){
   }catch(e){ console.warn(e); }
   renderOrgList();
   showToast('✓ ต่ออายุสถาบัน "'+allOrgs[key].name+'" แล้ว');
+}
+
+/* ════════════════════════════════
+   ADMIN RENEW MODAL
+════════════════════════════════ */
+function openAdminRenewModal(key){
+  var o=allOrgs[key]; if(!o) return;
+  document.getElementById('arm-title').textContent=o.name||'ต่ออายุสถาบัน';
+  document.getElementById('arm-sub').textContent='รหัสสถาบัน: '+(o.orgCode||o.code||'-');
+  var fmtDate=function(d){ return d?new Date(d).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}):'-'; };
+  document.getElementById('arm-cur-reg').textContent=fmtDate(o.registrationDate||o.approvalDate);
+  document.getElementById('arm-cur-exp').textContent=fmtDate(o.expiryDate);
+  var today=new Date().toISOString().slice(0,10);
+  var nextYear=new Date(Date.now()+365*24*60*60*1000).toISOString().slice(0,10);
+  document.getElementById('arm-new-reg').value=today;
+  document.getElementById('arm-new-exp').value=nextYear;
+  var modal=document.getElementById('arm-modal');
+  modal.dataset.key=key;
+  modal.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeAdminRenewModal(){
+  document.getElementById('arm-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function confirmAdminRenew(){
+  var modal=document.getElementById('arm-modal');
+  var key=modal.dataset.key;
+  var o=allOrgs[key]; if(!o){ showToast('ไม่พบสถาบัน','err'); return; }
+  var newReg=document.getElementById('arm-new-reg').value;
+  var newExp=document.getElementById('arm-new-exp').value;
+  if(!newExp){ showToast('กรุณาระบุวันหมดอายุใหม่','err'); return; }
+  o.expiryDate=newExp;
+  if(newReg){ o.registrationDate=newReg; o.approvalDate=newReg; }
+  o.updatedAt=new Date().toISOString();
+  var ts=Date.now();
+  try{
+    db.ref('pharma-form/_cpe_orgs/'+key).update({
+      expiryDate:newExp,
+      registrationDate:newReg||o.registrationDate||'',
+      approvalDate:newReg||o.approvalDate||'',
+      orgCode:o.orgCode||o.code||'',
+      updatedAt:o.updatedAt
+    }).catch(function(e){ console.warn('Firebase update failed:',e.message); });
+  }catch(e){ console.warn(e); }
+  try{
+    db.ref('pharma-form/_cpe_renewals/'+key+'/'+ts).set({
+      status:'ต่ออายุแล้ว',
+      registrationDate:newReg||'',
+      expiryDate:newExp,
+      completedAt:o.updatedAt,
+      completedBy:getCanonicalEmail(),
+      adminDirect:true
+    }).catch(function(e){ console.warn('Firebase renewal write failed:',e.message); });
+  }catch(e){ console.warn(e); }
+  closeAdminRenewModal();
+  renderOrgList();
+  updateOrgStats();
+  showToast('✓ ต่ออายุสถาบัน "'+o.name+'" แล้ว');
 }
 
 function deleteOrg(key){
@@ -7379,7 +7485,9 @@ function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     var m=document.getElementById('org-detail-modal');
-    if(m && m.style.display!=='none') closeOrgDetail();
+    if(m && m.style.display!=='none'){ closeOrgDetail(); return; }
+    var arm=document.getElementById('arm-modal');
+    if(arm && arm.style.display!=='none') closeAdminRenewModal();
   }
 });
 </script>
