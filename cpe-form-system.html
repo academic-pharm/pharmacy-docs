@@ -691,7 +691,6 @@ body::after{display:none}
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
       <button class="btn btn-primary btn-sm" onclick="addOrg()">＋ เพิ่มสถาบัน</button>
-      <button class="btn btn-outline btn-sm" onclick="toggleOrgList()" id="btn-manage">📋 จัดการรายชื่อ</button>
       <button class="btn btn-outline btn-sm" onclick="seedAllOrgs()" id="btn-seed" style="font-size:.72rem">📥 นำเข้าข้อมูลเริ่มต้น</button>
       <button class="btn btn-green btn-sm" onclick="showView('admin-renewals')" style="font-size:.78rem">📁 เอกสารต่ออายุทั้งหมด</button>
     </div>
@@ -705,10 +704,10 @@ body::after{display:none}
       <div id="org-requests-wrap" style="border:1px solid rgba(200,210,230,.4);border-radius:10px;overflow:hidden;max-height:400px;overflow-y:auto;background:#fafbff"></div>
     </div>
 
-    <!-- Org management list (toggle) -->
-    <div id="org-list-panel" style="display:none;margin-top:18px">
+    <!-- Org management list (always visible) -->
+    <div id="org-list-panel" style="display:block;margin-top:18px">
       <div style="font-size:.8rem;font-weight:700;color:var(--sub);letter-spacing:.05em;margin-bottom:10px">รายชื่อสถาบันทั้งหมด</div>
-      <div id="org-list-wrap" style="border:1px solid rgba(200,210,230,.4);border-radius:10px;overflow:hidden;max-height:360px;overflow-y:auto"></div>
+      <div id="org-list-wrap" style="border:1px solid rgba(200,210,230,.4);border-radius:10px;overflow:hidden;max-height:520px;overflow-y:auto"></div>
     </div>
   </div>
 
@@ -1813,6 +1812,7 @@ var _seenConfAction = (function(){ try{ return new Set(JSON.parse(localStorage.g
   loadMyOrgRequests();
   loadMyConferences();
   loadAllOrgs();
+  if(isAdmin){ renderOrgList(); updateOrgStats(); }
 })();
 
 /* ════════════════════════════════
@@ -2260,7 +2260,7 @@ function loadAllOrgs(){
             allOrgs[k]=fbData[k];
           }
         });
-        if(document.getElementById('org-list-panel').style.display!=='none') renderOrgList();
+        renderOrgList();
         updateOrgStats();
       });
     }catch(e){ console.warn('Firebase DB listener error:',e.message); }
@@ -2568,12 +2568,16 @@ function renderOrgRequests(data){
     var key=e[0], r=e[1];
     var sk=key.replace(/'/g,"\\'");
     var _fmtSub=r.submittedAt?new Date(r.submittedAt).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}):'';
+    var isNew = !_seenNotifs.has(key);
+    var newDot = isNew
+      ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:pulse-dot 1.4s ease infinite;margin-left:6px;vertical-align:middle"></span>'
+      : '';
     return '<div id="req-item-'+key+'" style="border-radius:12px;overflow:hidden;border:0.5px solid var(--border);margin-bottom:14px">'
       +'<div style="height:3px;background:linear-gradient(90deg,#378ADD,#534AB7)"></div>'
       +'<div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px">'
         +'<div style="width:36px;height:36px;border-radius:9px;background:rgba(55,138,221,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">🏢</div>'
         +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:.88rem;font-weight:700;color:var(--text)">'+r.name+'</div>'
+          +'<div style="font-size:.88rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:4px">'+r.name+newDot+'</div>'
           +'<div style="font-size:.67rem;color:var(--text-muted);margin-top:1px">ยื่นเมื่อ '+_fmtSub+(r.submittedBy?' &nbsp;·&nbsp; '+r.submittedBy:'')+'</div>'
         +'</div>'
         +'<span style="font-size:.6rem;font-weight:700;color:#185FA5;background:#E6F1FB;border:0.5px solid #85B7EB;border-radius:20px;padding:3px 9px;white-space:nowrap;flex-shrink:0">รอตรวจสอบ</span>'
@@ -3482,7 +3486,7 @@ function addOrg(){
   document.getElementById('new-org-expiry').value='';
   document.getElementById('new-org-reg').value='';
   showToast('✓ เพิ่มสถาบัน "'+name+'" แล้ว');
-  if(document.getElementById('org-list-panel').style.display!=='none') renderOrgList();
+  renderOrgList();
   updateOrgStats();
   // Sync Firebase (best effort — ถ้า rules บล็อกก็ยังใช้ session นี้ได้)
   try{
