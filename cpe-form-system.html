@@ -3676,11 +3676,11 @@ function showStatus(org){
   const btns = document.getElementById('sc-btns');
   if(statusClass==='expired'){
     btns.innerHTML=`
-      <button class="btn btn-danger" onclick="goRenew()">📋 ดูวิธีต่ออายุ</button>`;
+      <button class="btn btn-danger" onclick="sidebarGo('renewal')">📋 ดูวิธีต่ออายุ</button>`;
   } else {
     btns.innerHTML=`
-      <button class="btn btn-primary" onclick="goConference()">🎓 ไปหน้าประชุมวิชาการ</button>
-      ${statusClass==='warning'?'<button class="btn btn-outline" onclick="goRenew()">🔄 ต่ออายุล่วงหน้า</button>':''}`;
+      <button class="btn btn-primary" onclick="sidebarGo('conf')">🎓 ประชุมวิชาการของฉัน</button>
+      ${statusClass==='warning'?'<button class="btn btn-outline" onclick="sidebarGo(\'renew-status\')">🔄 สถานะการต่ออายุ</button>':''}`;
   }
   // แสดงสถานะต่ออายุ (ถ้ามี)
   if(!isAdmin && org._key) loadMyRenewalStatus(org._key);
