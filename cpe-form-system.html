@@ -1839,7 +1839,7 @@ var currentUser=null, isAdmin=false;
 /* ต้องประกาศไว้ตั้งแต่ต้นไฟล์ (ก่อน initAuth IIFE ด้านล่าง) เพราะ initAuth เรียก
    sidebarGo('main') แบบ synchronous ทันที ซึ่งอาจไปเรียก _markMainNotifsSeen()
    ที่ต้องใช้ตัวแปรเหล่านี้ — ถ้าประกาศไว้ท้ายไฟล์เหมือนเดิมจะยังเป็น undefined ตอนนั้น */
-var _notifData = {orgReqs:{}, renewals:{}, conferences:{}};
+var _notifData = {orgReqs:{}, renewals:{}, conferences:{}, articles:{}};
 var _seenNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_seen')||'[]')); } catch(ex){ return new Set(); } })();
 var _seenConfAction = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_admin_conf_seen')||'[]')); } catch(ex){ return new Set(); } })();
 
@@ -1911,6 +1911,7 @@ function _markAdminSeen(key, nav){
   if(nav === 'main'){ sidebarGo('main'); toggleNotifPanel(); }
   else if(nav === 'renewals'){ showView('admin-renewals'); toggleNotifPanel(); }
   else if(nav === 'conf'){ sidebarGo('conf'); toggleNotifPanel(); }
+  else if(nav === 'article'){ sidebarGo('article'); toggleNotifPanel(); }
 }
 
 function _setupAdminNotifications(){
@@ -1926,6 +1927,10 @@ function _setupAdminNotifications(){
   });
   db.ref('pharma-form/_all_cpe_conferences').on('value', function(snap){
     _notifData.conferences = snap.val()||{};
+    _refreshNotif();
+  });
+  db.ref('pharma-form/_all_articles').on('value', function(snap){
+    _notifData.articles = snap.val()||{};
     _refreshNotif();
   });
   document.addEventListener('click', function(e){
@@ -1955,6 +1960,11 @@ function _collectNotifItems(){
     var c = e[1]||{};
     if(!c.status || c.status === 'pending_review')
       items.push({type:'conf', key:'conf_'+e[0], name:c.confName||c.orgName||'—', time:c.createdAt||'', nav:'conf'});
+  });
+  Object.entries(_notifData.articles).forEach(function(e){
+    var a = e[1]||{};
+    if(a.status === 'submitted')
+      items.push({type:'article', key:'art_'+e[0], name:a.articleTitle||a.title||'บทความวิชาการ', time:a.submittedAt||a.createdAt||'', nav:'article'});
   });
   return items.sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
 }
