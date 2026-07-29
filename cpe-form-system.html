@@ -5506,7 +5506,7 @@ async function confirmCPEResult(safeCid, cid){
       }
     }
     showToast('✅ ยืนยันผลการพิจารณาเรียบร้อย — แจ้ง User แล้ว');
-    logActivity({ category:'conference', activity:'result_confirmed',
+    logActivity({ category:'conference', activity:'admin_result_confirmed',
       org:c.orgName||'', ref:cid, detail:c.confName||'',
       fileName:resultPdfName, fileUrl:resultPdfUrl
     });
@@ -5561,7 +5561,7 @@ async function uploadResolutionFile(safeCid, cid, inputEl, fileType, onDone){
         else sheetUpdate.matiPdfUrl = json.url;
         fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(sheetUpdate)}).catch(function(){});
         showToast('✓ อัพโหลด ('+typeLabel+') เรียบร้อยแล้ว');
-        logActivity({ category:'conference', activity:'upload_resolution',
+        logActivity({ category:'conference', activity:'admin_upload_resolution',
           org:c.orgName||'', ref:cid, detail:'มติ CPE ('+typeLabel+'): '+(c.confName||''),
           fileName:file.name, fileUrl:json.url
         });
@@ -5627,7 +5627,7 @@ async function sendToExperts(){
     try { json = JSON.parse(_text); } catch(_){ json = {error:'ตอบกลับไม่ถูกต้อง: '+_text.substring(0,120)}; }
     if(json.success && !json.error){
       showToast('✓ ส่งอีเมลให้ผู้ทรงคุณวุฒิ '+emails.length+' ท่านแล้ว');
-      logActivity({ category:'conference', activity:'expert_sent',
+      logActivity({ category:'conference', activity:'admin_expert_sent',
         org:c.orgName||'', ref:cid,
         detail:'ส่งผู้ทรงคุณวุฒิ '+emails.length+' ท่าน: '+emails.join(', ')+' — '+c.confName
       });
@@ -5863,7 +5863,7 @@ async function confirmCancelConf(){
       action:'update_conference_row', confId:cid, status:'ยกเลิกแล้ว'
     })}).catch(function(){});
     showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
-    logActivity({ category:'conference', activity:'cancel',
+    logActivity({ category:'conference', activity:'admin_cancel',
       org:c.orgName||'', ref:cid, detail:c.confName||''
     });
     closeCancelConfModal();
@@ -6184,7 +6184,7 @@ function confirmPaymentReview(cid){
     .then(function(){
       closePaymentReviewModal();
       showToast('✅ ยืนยันการชำระค่าธรรมเนียมแล้ว — แจ้ง User เรียบร้อย','ok');
-      logActivity({ category:'payment', activity:'confirm', ref:cid, detail:c.confName||'',
+      logActivity({ category:'payment', activity:'admin_payment_confirm', ref:cid, detail:c.confName||'',
         org:c.orgName||'', fileName:payload.filename, fileUrl:_adminReceiptUrl
       });
     })
@@ -7536,7 +7536,7 @@ async function artConfirmSendToExperts(){
     var emailJson = await emailRes.json().catch(function(){ return {}; });
     if(emailJson.sent > 0){
       showToast('✅ ส่งอีเมลผู้ทรงคุณวุฒิ '+emailJson.sent+' ท่านแล้ว');
-      logActivity({ category:'article', activity:'expert_sent',
+      logActivity({ category:'article', activity:'admin_expert_sent',
         ref:aid, detail:'ส่งผู้ทรงคุณวุฒิ '+emailJson.sent+' ท่าน: '+experts.join(', '),
         org:a.userEmail||''
       });
@@ -7769,7 +7769,7 @@ async function confirmCancelRenewal(){
       status:'ถูกยกเลิก', rejectedAt:now, cancelReason:reason||''
     });
     showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
-    logActivity({ category:'renewal', activity:'cancel', ref:orgKey });
+    logActivity({ category:'renewal', activity:'admin_cancel', ref:orgKey });
     closeCancelRenewalModal();
     loadAllRenewals();
   }catch(e){
@@ -7835,7 +7835,7 @@ async function confirmCancelArt(){
       cancelReason: reason||''
     })}).catch(function(){});
     showToast('✓ ยกเลิกบทความแล้ว — user จะได้รับอีเมลแจ้งเตือน');
-    logActivity({ category:'article', activity:'cancel',
+    logActivity({ category:'article', activity:'admin_cancel',
       ref:aid, detail:a.articleTitle||'บทความวิชาการ', org:a.userEmail||''
     });
     closeCancelArtModal();
