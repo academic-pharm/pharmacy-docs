@@ -3931,7 +3931,7 @@ function loadAllRenewals(){
           return '<div style="padding:14px 16px;border:1px solid rgba(200,210,230,.4);border-radius:12px">'
             +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:8px">'
             +'<div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+orgLabel+'</div>'
-            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+statusBadge+'<span style="font-size:.73rem;color:var(--sub)">'+dt+'</span></div>'
+            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+statusBadge+'<span style="font-size:.73rem;color:var(--sub)">'+dt+'</span>'+(status!=='ถูกยกเลิก'&&status!=='ต่ออายุแล้ว'?'<button onclick="adminRejectRenewal(\''+orgKey+'\',\''+ts+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')+'</div>'
             +'</div>'
             +(fileLinks?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">'+fileLinks+'</div>':'')
             +actionHtml+'</div>';
@@ -4347,11 +4347,8 @@ function _buildRenewalSteps(v, orgKey, ts, safeTs){
   var b1='';
   if(s1==='active'){
     b1='<div style="'+T+'">ขั้นตอนที่ 1 — ยืนยันเอกสารของหน่วยงาน</div>'
-      +'<div style="'+D+'">ตรวจสอบเอกสารที่ user นำส่ง แล้วยืนยันหรือยกเลิก</div>'
-      +'<div style="display:flex;gap:8px">'
-      +'<button class="btn btn-green btn-sm" onclick="adminConfirmRenewal(\''+orgKey+'\',\''+ts+'\')">✅ ยืนยัน</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="adminRejectRenewal(\''+orgKey+'\',\''+ts+'\')">✕ ยกเลิก</button>'
-      +'</div>';
+      +'<div style="'+D+'">ตรวจสอบเอกสารที่ user นำส่ง แล้วยืนยัน</div>'
+      +'<button class="btn btn-green btn-sm" onclick="adminConfirmRenewal(\''+orgKey+'\',\''+ts+'\')">✅ ยืนยัน</button>';
   } else {
     var confAt=v.confirmedAt?new Date(v.confirmedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
     b1='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
@@ -4854,11 +4851,8 @@ function loadAllCpeConferences(){
       var b1='';
       if(s1==='active'){
         b1='<div style="'+T+'">ขั้นตอนที่ 1 — ตรวจสอบเอกสาร</div>'
-          +'<div style="'+D+'">ตรวจสอบเอกสารที่ user นำส่ง แล้วยืนยันหรือยกเลิก</div>'
-          +'<div style="display:flex;gap:7px;flex-wrap:wrap">'
-            +'<button class="btn btn-green btn-sm" onclick="confirmDocsApproval(\''+safeCid+'\',\''+cid+'\')">✅ ยืนยันเอกสาร</button>'
-            +'<button class="btn btn-danger btn-sm" onclick="openCancelConfModal(\''+safeCid+'\',\''+cid+'\')">🚫 ยกเลิกคำขอ</button>'
-          +'</div>';
+          +'<div style="'+D+'">ตรวจสอบเอกสารที่ user นำส่ง แล้วยืนยัน</div>'
+          +'<button class="btn btn-green btn-sm" onclick="confirmDocsApproval(\''+safeCid+'\',\''+cid+'\')">✅ ยืนยันเอกสาร</button>';
       } else {
         b1='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
           +'<div style="'+T+'">ขั้นตอนที่ 1 — ตรวจสอบเอกสาร</div>'
@@ -4975,6 +4969,7 @@ function loadAllCpeConferences(){
           '</div>'+
           '<div style="display:flex;align-items:center;gap:7px;flex-shrink:0">'+
             '<button id="conf-tog-'+safeCid+'" onclick="toggleConfCard(\''+safeCid+'\')" style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:#6b7280;background:none;border:1px solid rgba(200,210,230,.7);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit" onmouseover="this.style.background=\'rgba(200,210,230,.2)\'" onmouseout="this.style.background=\'none\'">รายละเอียด <span id="conf-tog-arrow-'+safeCid+'">▾</span></button>'+
+            (st!=='cancelled'?'<button onclick="openCancelConfModal(\''+safeCid+'\',\''+cid+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')+
           '</div>'+
         '</div>'+
         _buildAdminConfStepper(st, ps, c, safeCid, cid)+
@@ -7265,6 +7260,7 @@ function loadAdminArticles(){
         +   '<div style="display:flex;align-items:center;gap:7px;flex-shrink:0">'
         +     (actionBtn ? actionBtn : '')
         +     '<button id="art-tog-'+safeId+'" onclick="toggleArtCard(\''+safeId+'\')" style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:#6b7280;background:none;border:1px solid rgba(200,210,230,.7);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background=\'rgba(200,210,230,.2)\'" onmouseout="this.style.background=\'none\'">รายละเอียด <span id="art-tog-arrow-'+safeId+'">▾</span></button>'
+        +     (st!=='cancelled'&&st!=='completed'?'<button onclick="artAdminCancel(\''+safeId+'\',\''+aid+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')
         +   '</div>'
         + '</div>'
         + '<div id="art-body-'+safeId+'" style="display:none">'
@@ -7637,6 +7633,22 @@ async function artAdminMarkCcpe(aid){
 
     showToast('✅ บทความถูกนำเข้าระบบ CCPE เรียบร้อยแล้ว!');
   } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
+}
+
+/* ── Admin: Cancel Article ── */
+async function artAdminCancel(safeId, aid){
+  if(!confirm('ยืนยันการยกเลิก? ระบบจะแจ้ง user ให้ส่งบทความใหม่')) return;
+  try{
+    var now = new Date().toISOString();
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+    var updates = { status:'cancelled', cancelledAt: now };
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+    showToast('❌ ยกเลิกบทความแล้ว — user จะได้รับแจ้งให้ส่งใหม่');
+    loadArticleView();
+  }catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
 }
 
 /* Utility: escape HTML */
