@@ -6628,6 +6628,21 @@ function buildUserArticleCard(key, art, idx){
     + '<div style="font-size:.7rem;color:#9ca3af;margin-top:2px">ส่งเมื่อ '+fd2(art.submittedAt)+'</div></div>'
     + '</div>';
 
+  // ── cancelled: แสดง notice + dismiss button แทน stepper ──
+  if(st === 'cancelled'){
+    var _cr = (art.cancelReason||'').trim();
+    return '<div class="fsec" style="border-left:3px solid rgba(220,38,38,.4);padding-left:14px" id="art-card-'+sk+'">'
+      + header
+      + '<div style="margin-top:10px;border-radius:8px;padding:12px 14px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2)">'
+      +   '<div style="font-size:.76rem;font-weight:700;color:#991b1b;display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:14px">🚫</span> เจ้าหน้าที่ยกเลิกคำขอบทความวิชาการของท่าน</div>'
+      +   (_cr?'<div style="font-size:.65rem;font-weight:700;color:#b91c1c;margin-bottom:4px">เหตุผลจากเจ้าหน้าที่</div>'
+             +'<div style="background:#fff;border-radius:6px;padding:8px 10px;border:0.5px solid rgba(220,38,38,.25);font-size:.72rem;color:#374151;line-height:1.5;font-style:italic;margin-bottom:10px">"'+escHtml(_cr)+'"</div>'
+             :'')
+      +   '<button onclick="dismissCancelledArt(\''+key+'\',\''+sk+'\')" style="width:100%;background:#dc2626;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:.77rem;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">✓ รับทราบ — ส่งบทความใหม่</button>'
+      + '</div>'
+      + '</div>';
+  }
+
   var stepperHtml = buildArtStepperHtml(st, art);
 
   var actionHtml = '';
@@ -7672,6 +7687,25 @@ async function confirmCancelRenewal(){
   }
 }
 
+/* ── User: Dismiss cancelled article ── */
+async function dismissCancelledArt(key, sk){
+  var u = firebase.auth().currentUser;
+  if(!u){ showToast('กรุณาเข้าสู่ระบบก่อน','err'); return; }
+  var userKey = emailToFbKey(getCanonicalEmail(u.email));
+  try{
+    await db.ref('pharma-form/'+userKey+'/articles/'+key).remove();
+    var card = document.getElementById('art-card-'+sk);
+    if(card){
+      card.style.transition='opacity .25s ease';
+      card.style.opacity='0';
+      setTimeout(function(){ if(card.parentElement) card.parentElement.removeChild(card); }, 260);
+    }
+    showToast('รับทราบแล้ว — สามารถส่งบทความวิชาการใหม่ได้เลย');
+  }catch(e){
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+  }
+}
+
 /* ── Admin: Cancel Article Modal ── */
 var _cancelArt = { safeId:'', aid:'' };
 function openCancelArtModal(safeId, aid, title){
@@ -7701,7 +7735,15 @@ async function confirmCancelArt(){
     var updates={ status:'cancelled', cancelledAt:now, cancelReason:reason||'' };
     await db.ref('pharma-form/_all_articles/'+aid).update(updates);
     if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
-    showToast('✓ ยกเลิกบทความแล้ว — user จะได้รับการแจ้งเตือน');
+    // ส่งอีเมลแจ้ง user
+    fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:'cancel_article',
+      userEmail: a.userEmail||a.createdBy||'',
+      userName:  a.userName||a.articleAuthor||'',
+      articleTitle: a.articleTitle||'บทความวิชาการ',
+      cancelReason: reason||''
+    })}).catch(function(){});
+    showToast('✓ ยกเลิกบทความแล้ว — user จะได้รับอีเมลแจ้งเตือน');
     closeCancelArtModal();
     loadArticleView();
   }catch(e){

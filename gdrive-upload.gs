@@ -33,6 +33,11 @@ function doPost(e) {
       return sendArticleExpertEmail(data);
     }
 
+    // action: 'cancel_article' → admin ยกเลิกบทความ → ส่งอีเมลแจ้ง user
+    if (data.action === 'cancel_article') {
+      return cancelArticleAction(data);
+    }
+
     // action: 'update_conference_row' → admin อัพเดต row ใน Sheet ด้วย confId
     if (data.action === 'update_conference_row') {
       return updateConferenceRow(data);
@@ -962,6 +967,39 @@ function confirmPaymentAction(data) {
     }
 
     return respond({ success: true, adminReceiptUrl: adminReceiptUrl });
+  } catch(err) {
+    return respond({ success: false, error: err.toString() });
+  }
+}
+
+/* ─── Admin ยกเลิกบทความวิชาการ → แจ้ง user ทางอีเมล ─── */
+function cancelArticleAction(data) {
+  try {
+    var userEmail   = data.userEmail   || '';
+    var userName    = data.userName    || '';
+    var articleTitle = data.articleTitle || 'บทความวิชาการ';
+    var cancelReason = data.cancelReason || '';
+
+    if (userEmail) {
+      var subject = '[CPE] ยกเลิกคำขอบทความวิชาการ — ' + articleTitle;
+      var html =
+        '<div style="font-family:sans-serif;max-width:520px">' +
+        '<h2 style="color:#dc2626;margin-bottom:8px">🚫 เจ้าหน้าที่ยกเลิกคำขอบทความวิชาการของท่าน</h2>' +
+        '<p style="color:#374151">เรียน ' + (userName ? 'คุณ' + userName : 'ผู้ใช้งาน') + '</p>' +
+        '<p style="color:#374151">ขออภัยในความไม่สะดวก เจ้าหน้าที่ได้ยกเลิกคำขอบทความวิชาการ <strong>' + articleTitle + '</strong> ของท่าน</p>' +
+        (cancelReason
+          ? '<div style="background:#fef2f2;border:1px solid rgba(220,38,38,.25);border-radius:8px;padding:12px 14px;margin:16px 0">' +
+            '<div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px">เหตุผลจากเจ้าหน้าที่</div>' +
+            '<div style="font-size:13px;color:#374151;font-style:italic">"' + cancelReason + '"</div>' +
+            '</div>'
+          : '') +
+        '<p style="color:#374151">ท่านสามารถแก้ไขและส่งบทความวิชาการใหม่ได้อีกครั้งที่ระบบ CPE</p>' +
+        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">' +
+        '<p style="font-size:12px;color:#9ca3af">ระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>' +
+        '</div>';
+      MailApp.sendEmail({ to: userEmail, subject: subject, htmlBody: html });
+    }
+    return respond({ success: true });
   } catch(err) {
     return respond({ success: false, error: err.toString() });
   }
