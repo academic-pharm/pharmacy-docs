@@ -6022,9 +6022,20 @@ async function confirmCPEResultModal(){
       }
     }
     fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({
-      action:'notify_cpe_result', confId:cid, confName:c.confName||'',
-      recipientEmail:c.createdBy||'', resultPdfUrl:resultPdfUrl||''
+      action:'notify_cpe_result',
+      confId:      cid,
+      confName:    c.confName||'',
+      orgName:     c.orgName||'',
+      dateStart:   c.dateStart||'',
+      dateEnd:     c.dateEnd||'',
+      userEmail:   c.createdBy||'',
+      resultPdfUrl:resultPdfUrl||'',
+      confirmedAt: now
     })}).catch(function(){});
+    logActivity({ category:'conference', activity:'admin_result_confirmed',
+      org:c.orgName||'', ref:cid, detail:c.confName||'',
+      fileName:resultPdfName, fileUrl:resultPdfUrl
+    });
     closeResultModal();
     showToast('✅ ยืนยันผลการพิจารณาเรียบร้อย และแจ้ง User แล้ว');
   }catch(err){
