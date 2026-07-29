@@ -493,7 +493,7 @@ body::after{display:none}
   <div class="sidebar-section-label">บริการ</div>
   <button class="sidebar-item si-locked" id="si-conf" onclick="sidebarGo('conf')">
     <span class="si-icon">🎓</span> ประชุมวิชาการ
-    <span id="tab-dot-admin-conf" style="display:none;width:7px;height:7px;border-radius:50%;background:#d97706;flex-shrink:0;margin-left:auto;animation:pulse-dot 1.4s ease infinite;animation-delay:.3s"></span>
+    <span class="si-badge" id="conf-sidebar-badge"></span>
     <span class="si-lock-icon">🔒</span>
   </button>
   <button class="sidebar-item si-locked" id="si-article" onclick="sidebarGo('article')">
@@ -1900,8 +1900,7 @@ function _markConfActionSeen(){
   if(changed){
     try{ localStorage.setItem('_cpe_admin_conf_seen', JSON.stringify([..._seenConfAction])); } catch(ex){}
   }
-  var _confDot = document.getElementById('tab-dot-admin-conf');
-  if(_confDot) _confDot.style.display = 'none';
+  // conf badge count is kept by the Firebase listener; nothing to reset here
 }
 
 function _markAdminSeen(key, nav){
@@ -4874,11 +4873,8 @@ function loadAllCpeConferences(){
     _needAction.sort(function(a,b){ return a.step-b.step; });
     window._lastConfNeedAction = _needAction;
     // update tab dot — ขึ้นเฉพาะรายการที่ยังไม่เคยกดเข้าไปดู (ดู _markConfActionSeen)
-    var _confDot = document.getElementById('tab-dot-admin-conf');
-    if(_confDot){
-      var _hasUnseenConf = _needAction.some(function(item){ return !_seenConfAction.has(item.e[0]+'_s'+item.step); });
-      _confDot.style.display = _hasUnseenConf ? 'inline-block' : 'none';
-    }
+    var _confBadge = document.getElementById('conf-sidebar-badge');
+    if(_confBadge){ _confBadge.textContent = _needAction.length; _confBadge.classList.toggle('show', _needAction.length > 0); }
 
     function _buildAdminConfStepper(st, ps, c, safeCid, cid){
       var s1 = (st!=='pending_review') ? 'done' : 'active';
@@ -7701,36 +7697,186 @@ async function artConfirmCcpeModal(){
   finally { if(btn){ btn.disabled=false; btn.textContent='✅ ยืนยันนำเข้า CCPE'; } }
 }
 
+/* ── Article: build dynamic expert-modal content (mirrors _buildExpertModalContent for conf) ── */
+function _buildArtExpertModalContent(a){
+  var aid = _artExpertAid;
+  function escH(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _fd(iso){ try{ return iso ? new Date(iso).toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}) : '-'; }catch(ex){ return '-'; } }
+
+  function blueChip(url, name, em){
+    if(!url) return '';
+    return '<a href="'+url+'" target="_blank" rel="noopener" '
+      +'style="display:inline-flex;align-items:center;gap:5px;background:rgba(59,130,246,.08);'
+      +'border:0.5px solid rgba(59,130,246,.3);border-radius:20px;padding:4px 12px 4px 8px;'
+      +'font-size:.73rem;color:#1d4ed8;text-decoration:none;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'
+      +'<span style="flex-shrink:0;font-size:12px">'+em+'</span>'
+      +'<span style="overflow:hidden;text-overflow:ellipsis">'+escH(name||'เอกสาร')+'</span></a>';
+  }
+  function secLabel(text, color, sub){
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
+      +'<span style="width:3px;height:13px;border-radius:2px;background:'+color+';display:inline-block;flex-shrink:0"></span>'
+      +'<span style="font-size:.68rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">'+text+'</span>'
+      +(sub?'<span style="font-size:.67rem;color:#c4c4c4;margin-left:auto">'+sub+'</span>':'')
+      +'</div>';
+  }
+  function uploadZone(zoneId, inputId, accept, onchangeFn, fileObj, iconBg, icon){
+    var has = fileObj && fileObj.url;
+    var inner = has
+      ? '<div style="display:flex;align-items:center;gap:10px;width:100%">'
+          +'<div style="width:32px;height:32px;border-radius:8px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">'+icon+'</div>'
+          +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:.77rem;font-weight:500;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(fileObj.name||'เอกสาร')+'</div>'
+            +'<div style="font-size:.68rem;color:#9ca3af;margin-top:1px">'+_fd(fileObj.uploadedAt||'')+'</div>'
+          +'</div>'
+          +'<label for="'+inputId+'" style="cursor:pointer;font-size:.7rem;color:#6b7280;background:rgba(0,0,0,.04);border:0.5px solid rgba(0,0,0,.11);border-radius:6px;padding:3px 9px;white-space:nowrap;flex-shrink:0;font-family:inherit">เปลี่ยน</label>'
+        +'</div>'
+      : '<label for="'+inputId+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;width:100%;padding:6px 0">'
+          +'<span style="font-size:20px">⬆</span>'
+          +'<span style="font-size:.73rem;color:#9ca3af">คลิกหรือลากไฟล์มาวางที่นี่</span>'
+          +'<span style="font-size:.67rem;color:#d1d5db">'+accept+'</span>'
+        +'</label>';
+    return '<div id="'+zoneId+'" style="border:1.5px dashed rgba(0,0,0,.14);border-radius:10px;'
+      +'padding:'+(has?'10px 14px':'14px')+';display:flex;align-items:center;'+(has?'':'justify-content:center;')+'background:#fafafa">'
+      +inner
+      +'<input type="file" id="'+inputId+'" accept="'+accept+'" style="display:none" onchange="'+onchangeFn+'">'
+      +'</div>';
+  }
+  function emailRow(n, id){
+    return '<div style="display:flex;align-items:center;gap:9px">'
+      +'<div style="width:21px;height:21px;border-radius:50%;background:rgba(79,70,229,.1);color:#4f46e5;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+n+'</div>'
+      +'<input type="email" id="'+id+'" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ '+n+'"'
+        +' style="flex:1;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:7px 11px;font-size:.8rem;outline:none;background:#fff;font-family:inherit;box-sizing:border-box">'
+      +'</div>';
+  }
+
+  var f = a.files||{};
+  // User file chips
+  var userChips = [
+    f.userSubmission    && blueChip(f.userSubmission.url,   f.userSubmission.name||'บทความเริ่มต้น',  '📄'),
+    f.userRevision1     && blueChip(f.userRevision1.url,    f.userRevision1.name||'แก้ไข รอบ 1',      '📝'),
+    f.userFinalRevision && blueChip(f.userFinalRevision.url,f.userFinalRevision.name||'ฉบับสุดท้าย',  '📝'),
+  ].filter(Boolean).join('');
+  if(!userChips) userChips = '<span style="font-size:.74rem;color:#9ca3af">ยังไม่มีไฟล์จาก user</span>';
+
+  // Count attached admin files
+  var fmtPdfObj  = (f.formattedDoc_pdf&&f.formattedDoc_pdf.url)   ? f.formattedDoc_pdf  : null;
+  var fmtWordObj = (f.formattedDoc_word&&f.formattedDoc_word.url)  ? f.formattedDoc_word : null;
+  var attached   = (fmtPdfObj?1:0)+(fmtWordObj?1:0);
+
+  var countBar = attached > 0
+    ? '<div style="background:rgba(5,150,105,.06);border:0.5px solid rgba(5,150,105,.18);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between">'
+        +'<span style="font-size:.72rem;color:#065f46;font-weight:500">📎 เอกสารที่จะส่งให้ผู้ทรงฯ</span>'
+        +'<span style="font-size:.75rem;font-weight:700;color:#059669;background:rgba(5,150,105,.1);border-radius:12px;padding:2px 9px">'+attached+' ไฟล์</span>'
+        +'</div>'
+    : '<div style="background:rgba(239,68,68,.05);border:0.5px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 12px">'
+        +'<span style="font-size:.72rem;color:#dc2626">⚠️ ยังไม่มีเอกสารจัดรูปแบบ — กรุณาอัปโหลดก่อนส่ง</span>'
+        +'</div>';
+
+  return [
+    // Header
+    '<div style="padding:14px 20px 12px;border-bottom:0.5px solid rgba(0,0,0,.07)">',
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between">',
+        '<div style="display:flex;align-items:center;gap:10px">',
+          '<div style="width:34px;height:34px;border-radius:10px;background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📧</div>',
+          '<div>',
+            '<div style="font-size:.88rem;font-weight:600;color:#111827">ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>',
+            '<div style="font-size:.71rem;color:#9ca3af;margin-top:2px">'+escH(a.articleTitle||a.userName||'-')+'</div>',
+          '</div>',
+        '</div>',
+        '<button onclick="closeArtExpertModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:15px;padding:4px;font-family:inherit">✕</button>',
+      '</div>',
+    '</div>',
+    // Body
+    '<div style="padding:14px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:460px">',
+      // User files
+      '<div>',
+        secLabel('บทความจาก User','#3b82f6','ไฟล์ที่ user แนบมา'),
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+userChips+'</div>',
+      '</div>',
+      // Divider
+      '<div style="display:flex;align-items:center;gap:10px">',
+        '<div style="flex:1;height:0.5px;background:rgba(0,0,0,.08)"></div>',
+        '<span style="font-size:.63rem;color:#c4c4c4;white-space:nowrap">เอกสารที่จัดรูปแบบ (แนบส่งผู้ทรงฯ)</span>',
+        '<div style="flex:1;height:0.5px;background:rgba(0,0,0,.08)"></div>',
+      '</div>',
+      // PDF zone
+      '<div>',
+        secLabel('บทความที่จัดรูปแบบแล้ว (PDF)','#94a3b8'),
+        uploadZone('aem-fmt-pdf-zone','aem-fmt-pdf-input','.pdf',"artExpertUploadFile(this,'formattedDoc_pdf')",fmtPdfObj,'#fff7ed','📄'),
+      '</div>',
+      // Word zone
+      '<div>',
+        secLabel('บทความที่จัดรูปแบบแล้ว (Word)','#94a3b8'),
+        uploadZone('aem-fmt-word-zone','aem-fmt-word-input','.doc,.docx',"artExpertUploadFile(this,'formattedDoc_word')",fmtWordObj,'#eff6ff','📝'),
+      '</div>',
+      // File count bar
+      countBar,
+      // Email inputs
+      '<div>',
+        secLabel('อีเมลผู้ทรงคุณวุฒิ','#6366f1','ระบุอย่างน้อย 1 ท่าน'),
+        '<div style="display:flex;flex-direction:column;gap:9px">',
+          emailRow(1,'art-expert-modal-e1'),
+          emailRow(2,'art-expert-modal-e2'),
+          emailRow(3,'art-expert-modal-e3'),
+        '</div>',
+      '</div>',
+      // Deadline
+      '<div style="background:rgba(245,158,11,.05);border:0.5px solid rgba(245,158,11,.25);border-radius:10px;padding:12px 14px">',
+        '<div style="font-size:.68rem;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px">📅 Deadline — วันที่ให้ผู้ทรงฯ ส่งมติกลับ</div>',
+        '<input type="date" id="art-expert-modal-deadline"',
+          ' style="width:100%;border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:7px 11px;font-size:.8rem;outline:none;background:#fffdf7;font-family:inherit;box-sizing:border-box">',
+      '</div>',
+    '</div>',
+    // Footer
+    '<div style="padding:10px 20px 14px;border-top:0.5px solid rgba(0,0,0,.07);display:flex;gap:10px">',
+      '<button onclick="artConfirmSendToExperts()" style="flex:1;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:9px;padding:10px 0;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit">📤 ยืนยันส่งผู้ทรงฯ</button>',
+      '<button onclick="closeArtExpertModal()" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:9px;padding:10px 16px;font-size:.84rem;cursor:pointer;font-family:inherit">ยกเลิก</button>',
+    '</div>',
+  ].join('');
+}
+
+/* ── Article expert modal: upload PDF/Word formatted doc, refresh zone in-place ── */
+async function artExpertUploadFile(input, fileKey){
+  var file = input.files[0]; if(!file) return;
+  var aid  = _artExpertAid; if(!aid){ showToast('ไม่พบ ID บทความ','err'); return; }
+  var ext  = file.name.split('.').pop().toLowerCase();
+  var gdriveType = ext === 'pdf' ? 'formatted_doc_pdf' : 'formatted_doc_word';
+  showToast('⏳ กำลังอัปโหลด...');
+  try {
+    var up  = await uploadToGDrive(file, 'บทความวิชาการ', gdriveType);
+    var now = new Date().toISOString();
+    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
+    var updates = {}; updates['files/'+fileKey] = { url:up.url, name:up.name, uploadedAt:now };
+    await db.ref('pharma-form/_all_articles/'+aid).update(updates);
+    if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+    showToast('✅ อัปโหลดสำเร็จ');
+    // Save email/deadline values, re-render modal body, restore
+    var e1 = (document.getElementById('art-expert-modal-e1')||{}).value||'';
+    var e2 = (document.getElementById('art-expert-modal-e2')||{}).value||'';
+    var e3 = (document.getElementById('art-expert-modal-e3')||{}).value||'';
+    var dl = (document.getElementById('art-expert-modal-deadline')||{}).value||'';
+    var snap2 = await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var body  = document.getElementById('art-expert-modal-body');
+    if(body) body.innerHTML = _buildArtExpertModalContent(snap2.val()||{});
+    var el; if((el=document.getElementById('art-expert-modal-e1'))) el.value=e1;
+             if((el=document.getElementById('art-expert-modal-e2'))) el.value=e2;
+             if((el=document.getElementById('art-expert-modal-e3'))) el.value=e3;
+             if((el=document.getElementById('art-expert-modal-deadline'))) el.value=dl;
+  } catch(ex){ showToast('เกิดข้อผิดพลาด: '+ex.message,'err'); input.value=''; }
+}
+
 function artAdminSendToExperts(safeId, aid){
   _artExpertAid = aid;
-  // Reset inputs
-  document.getElementById('art-expert-modal-e1').value = '';
-  document.getElementById('art-expert-modal-e2').value = '';
-  document.getElementById('art-expert-modal-e3').value = '';
-  // Populate info box from Firebase
-  var infoEl = document.getElementById('art-expert-modal-info');
-  var subEl  = document.getElementById('art-expert-modal-sub');
-  if(infoEl) infoEl.innerHTML = '<span style="color:#9ca3af">⏳ กำลังโหลดข้อมูล...</span>';
+  var m    = document.getElementById('art-expert-modal');
+  var body = document.getElementById('art-expert-modal-body');
+  if(body) body.innerHTML = '<div style="padding:40px;text-align:center;color:#9ca3af;font-size:.8rem">⏳ กำลังโหลด...</div>';
+  m.style.display = 'flex';
   db.ref('pharma-form/_all_articles/'+aid).once('value').then(function(snap){
-    var a = snap.val()||{};
-    if(subEl) subEl.textContent = 'ผู้เขียน: '+(a.userName||a.userEmail||'-');
-    var hasFmt  = (a.files&&a.files.formattedDoc_pdf&&a.files.formattedDoc_pdf.url)||
-                  (a.files&&a.files.formattedDoc_word&&a.files.formattedDoc_word.url);
-    var hasAdmin= (a.files&&a.files.adminDoc_pdf&&a.files.adminDoc_pdf.url)||
-                  (a.files&&a.files.adminDoc_word&&a.files.adminDoc_word.url);
-    var rows = [];
-    if(hasFmt)   rows.push('📄 เอกสารที่จัดรูปแบบแล้ว');
-    if(hasAdmin) rows.push('📎 เอกสาร Admin');
-    if(infoEl) infoEl.innerHTML =
-      '<strong style="color:#1a202c">เอกสารที่จะส่งให้ผู้ทรงฯ:</strong><br>'
-      + (rows.length
-          ? rows.join('<br>')
-          : '<span style="color:#ef4444">⚠️ ยังไม่มีเอกสารแนบ กรุณาอัพโหลดก่อนส่ง</span>');
+    if(body) body.innerHTML = _buildArtExpertModalContent(snap.val()||{});
+    setTimeout(function(){ var e=document.getElementById('art-expert-modal-e1'); if(e) e.focus(); }, 80);
   });
-  // Show modal
-  var modal = document.getElementById('art-expert-modal');
-  modal.style.display = 'flex';
-  setTimeout(function(){ document.getElementById('art-expert-modal-e1').focus(); }, 80);
 }
 
 function closeArtExpertModal(e){
@@ -8306,58 +8452,12 @@ document.addEventListener('keydown',function(e){
   </div>
 </div>
 
-<!-- ══ Article: Send-to-Experts Modal ══ -->
+<!-- ══ Article: Send-to-Experts Modal (dynamic content, mirrors expert-send-modal) ══ -->
 <div id="art-expert-modal"
   style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(15,20,40,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center"
-  onclick="closeArtExpertModal(event)">
+  onclick="if(event.target===this)closeArtExpertModal()">
   <div style="max-width:480px;width:calc(100% - 32px);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22)">
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:18px 22px;display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="color:#fff;font-weight:700;font-size:1rem">📧 ส่งเอกสารให้ผู้ทรงคุณวุฒิ</div>
-        <div id="art-expert-modal-sub" style="color:rgba(255,255,255,.75);font-size:.75rem;margin-top:3px"></div>
-      </div>
-      <button onclick="closeArtExpertModal()" style="background:rgba(255,255,255,.2);border:none;border-radius:8px;color:#fff;font-size:.95rem;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0">✕</button>
-    </div>
-    <!-- Body -->
-    <div style="padding:20px 22px">
-      <!-- Docs summary -->
-      <div id="art-expert-modal-info" style="background:#f0f4ff;border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:.78rem;color:#374151;line-height:1.8"></div>
-      <!-- Email inputs -->
-      <div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">📮 อีเมลผู้ทรงคุณวุฒิ</div>
-      <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:.77rem;color:#6b7280;min-width:64px;flex-shrink:0">ท่านที่ 1</span>
-          <input type="email" id="art-expert-modal-e1" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 1"
-            style="flex:1;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;transition:border .2s"
-            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:.77rem;color:#6b7280;min-width:64px;flex-shrink:0">ท่านที่ 2</span>
-          <input type="email" id="art-expert-modal-e2" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 2"
-            style="flex:1;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;transition:border .2s"
-            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:.77rem;color:#6b7280;min-width:64px;flex-shrink:0">ท่านที่ 3</span>
-          <input type="email" id="art-expert-modal-e3" placeholder="อีเมลผู้ทรงคุณวุฒิท่านที่ 3"
-            style="flex:1;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;transition:border .2s"
-            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
-        </div>
-      </div>
-      <!-- Deadline -->
-      <div style="margin-bottom:20px">
-        <div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">📅 Deadline — วันที่ให้ผู้ทรงฯ ส่งมติกลับ</div>
-        <input type="date" id="art-expert-modal-deadline"
-          style="width:100%;border:1px solid rgba(200,210,230,.8);border-radius:9px;padding:9px 12px;font-size:.82rem;outline:none;font-family:inherit;box-sizing:border-box;transition:border .2s"
-          onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(200,210,230,.8)'">
-      </div>
-      <!-- Actions -->
-      <div style="display:flex;gap:10px">
-        <button onclick="artConfirmSendToExperts()" style="flex:1;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:9px;padding:11px 0;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit">📤 ยืนยันส่ง</button>
-        <button onclick="closeArtExpertModal()" style="background:transparent;color:#6b7280;border:1px solid rgba(200,210,230,.7);border-radius:9px;padding:11px 18px;font-size:.85rem;cursor:pointer;font-family:inherit">ยกเลิก</button>
-      </div>
-    </div>
+    <div id="art-expert-modal-body"></div>
   </div>
 </div>
 
