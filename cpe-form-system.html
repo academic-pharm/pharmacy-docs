@@ -7434,6 +7434,45 @@ function loadAdminArticles(){
         + '</div>';
     }
 
+    function buildCancelledArtCard(e){
+      var aid=e[0], a=e[1];
+      var reason=(a.cancelReason||'').trim();
+      return (
+        '<div style="background:#fff;border:1.5px solid rgba(220,38,38,.3);border-radius:11px;overflow:hidden;margin-bottom:8px">'+
+        '<div style="padding:10px 14px;border-bottom:1px solid rgba(220,38,38,.1);display:flex;align-items:flex-start;gap:10px">'+
+          '<div style="width:32px;height:32px;border-radius:8px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🚫</div>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'+
+              '<span style="font-size:.84rem;font-weight:700;color:#1a202c">'+(a.articleTitle||a.userName||a.userEmail||'-')+'</span>'+
+              '<span style="font-size:.62rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.3);border-radius:20px;padding:2px 8px;white-space:nowrap">ยกเลิกแล้ว</span>'+
+            '</div>'+
+            (a.articleAuthor?'<div style="font-size:.72rem;color:#374151;margin-bottom:2px">✍️ '+a.articleAuthor+'</div>':'')+
+            '<div style="font-size:.72rem;color:#6b7280;display:flex;gap:8px;flex-wrap:wrap">'+
+              (a.orgName?'<span>🏢 '+a.orgName+'</span>':'')+
+              '<span>📧 '+(a.userEmail||'-')+'</span>'+
+              '<span>ส่งโดย '+(a.userEmail||'-')+'</span>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:10px 14px">'+
+          '<div style="font-size:.65rem;font-weight:700;color:#b91c1c;margin-bottom:4px;letter-spacing:.03em">เหตุผลการยกเลิก</div>'+
+          (reason?
+            '<div style="background:rgba(220,38,38,.03);border-radius:6px;padding:8px 10px;border:0.5px solid rgba(220,38,38,.2);font-size:.72rem;color:#374151;line-height:1.55;font-style:italic;margin-bottom:8px">"'+escHtml(reason)+'"</div>'
+          :'<div style="font-size:.72rem;color:#9ca3af;margin-bottom:8px;font-style:italic">— ไม่ระบุเหตุผล —</div>')+
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+            (a.cancelledAt?'<span style="font-size:.67rem;color:#9ca3af">🗓 ยกเลิกเมื่อ '+fd(a.cancelledAt)+'</span>':'')+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:8px 14px;border-top:1px solid rgba(220,38,38,.08);display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+          '<span style="font-size:.67rem;color:#9ca3af;margin-right:2px">เอกสารที่ส่งมา</span>'+
+          fileLink('บทความเริ่มต้น',a.files&&a.files.userSubmission&&a.files.userSubmission.url,'📄')+
+          (a.files&&a.files.userRevision1&&a.files.userRevision1.url?fileLink('แก้ไข รอบ 1',a.files.userRevision1.url,'📝','#059669'):'')+
+          (a.files&&a.files.userFinalRevision&&a.files.userFinalRevision.url?fileLink('ฉบับสุดท้าย',a.files.userFinalRevision.url,'📝','#059669'):'')+
+        '</div>'+
+        '</div>'
+      );
+    }
+
     function buildSection(title, color, bg, bd, items){
       if(!items.length) return '';
       return '<div style="margin-bottom:16px">'
@@ -7479,7 +7518,7 @@ function loadAdminArticles(){
         +   '<span style="font-size:.66rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.25);border-radius:20px;padding:1px 8px">'+_cancelled.length+' รายการ</span>'
         +   '<button onclick="var s=document.getElementById(\''+cancelId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'
         + '</div>'
-        + '<div id="'+cancelId+'" style="display:none">'+_cancelled.map(buildArtCard).join('')+'</div>'
+        + '<div id="'+cancelId+'" style="display:none">'+_cancelled.map(buildCancelledArtCard).join('')+'</div>'
         + '<div style="background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'
         +   '<span style="font-size:15px">🚫</span>'
         +   '<span style="font-size:.72rem;color:#991b1b">'+_cancelled.length+' รายการถูกยกเลิก</span>'
