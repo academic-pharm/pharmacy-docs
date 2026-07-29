@@ -6167,13 +6167,14 @@ function confirmPaymentReview(cid){
       filename:    'ใบเสร็จ_'+(c.confName||cid).substring(0,30).replace(/\s+/g,'_')+'_'+Date.now()+'.pdf'
     };
 
+    var _adminReceiptUrl = '';
     fetch(APPS_SCRIPT_URL,{ method:'POST', body:JSON.stringify(payload) })
     .then(function(r){ return r.json(); })
     .then(function(res){
       if(!res.success) throw new Error(res.error||'unknown');
-      var adminReceiptUrl = res.adminReceiptUrl || '';
+      _adminReceiptUrl = res.adminReceiptUrl || '';
       var now = new Date().toISOString();
-      var update = { status:'confirmed', confirmedAt:now, adminReceiptUrl:adminReceiptUrl };
+      var update = { status:'confirmed', confirmedAt:now, adminReceiptUrl:_adminReceiptUrl };
       var userFbKey = emailToFbKey((c.payment.payerEmail || c.createdBy || '').toLowerCase());
       return Promise.all([
         db.ref('pharma-form/_all_cpe_conferences/'+cid+'/payment').update(update),
@@ -6184,7 +6185,7 @@ function confirmPaymentReview(cid){
       closePaymentReviewModal();
       showToast('✅ ยืนยันการชำระค่าธรรมเนียมแล้ว — แจ้ง User เรียบร้อย','ok');
       logActivity({ category:'payment', activity:'confirm', ref:cid, detail:c.confName||'',
-        org:c.orgName||''
+        org:c.orgName||'', fileName:payload.filename, fileUrl:_adminReceiptUrl
       });
     })
     .catch(function(e){
@@ -7040,6 +7041,11 @@ async function submitArtRevisionFor(key, sk){
     await db.ref('pharma-form/'+userKey+'/articles/'+key).update(updates);
     await db.ref('pharma-form/_all_articles/'+key).update(updates);
     _artRevFiles[key] = null;
+    logActivity({ category:'article', activity:'revision_upload_user', ref:key,
+      detail:(a.title||key)+' ('+newSt+')',
+      org: a.orgName || a.organization || '',
+      fileName:up.name, fileUrl:up.url
+    });
     showToast('✅ ส่งบทความที่แก้ไขแล้วเรียบร้อย!');
     loadArticleView();
   } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
@@ -7558,6 +7564,11 @@ async function uploadAdminDoc(safeId, aid, input, type){
     var updates = {}; updates['files/'+key] = { url:up.url, name:up.name, uploadedAt:now };
     await db.ref('pharma-form/_all_articles/'+aid).update(updates);
     if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
+    logActivity({ category:'article', activity:'admin_doc_upload', ref:aid,
+      detail:(a.title||aid)+' ('+type+')',
+      org: a.orgName || a.organization || '',
+      fileName:up.name, fileUrl:up.url
+    });
     showToast('✅ อัพโหลดเอกสารแนบสำเร็จ');
   } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); input.value=''; }
 }
