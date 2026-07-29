@@ -6419,6 +6419,7 @@ function submitPaymentInfo(confId){
       filename:  'หลักฐานชำระ_' + (c.confName||confId).substring(0,30).replace(/\s+/g,'_') + '_' + Date.now() + '.pdf'
     };
 
+    var _payReceiptUrl = '';
     fetch(APPS_SCRIPT_URL, {
       method:'POST',
       body: JSON.stringify(payload)
@@ -6426,11 +6427,12 @@ function submitPaymentInfo(confId){
     .then(function(r){ return r.json(); })
     .then(function(res){
       if(!res.success) throw new Error(res.error||'unknown');
+      _payReceiptUrl = res.receiptUrl || '';
       // บันทึกลง Firebase ด้วย
       var fbPayload = {
         taxId: taxId, payerName: name, address: address, amount: parseFloat(amount),
         confName: c.confName||'', paidAt: new Date().toISOString(),
-        status: 'pending_receipt', receiptUrl: res.receiptUrl || ''
+        status: 'pending_receipt', receiptUrl: _payReceiptUrl
       };
       var db2 = firebase.database();
       return Promise.all([
@@ -6443,7 +6445,7 @@ function submitPaymentInfo(confId){
       showToast('ส่งหลักฐานการชำระค่าธรรมเนียมเรียบร้อย ✓', 'ok');
       logActivity({ category:'payment', activity:'upload', ref:confId,
         detail:'ค่าธรรมเนียมประชุม: '+(c.confName||'') + ' จำนวน '+amount+' บาท',
-        fileName:payload.filename
+        fileName:payload.filename, fileUrl:_payReceiptUrl
       });
     })
     .catch(function(e){
