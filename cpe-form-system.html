@@ -3931,7 +3931,7 @@ function loadAllRenewals(){
           return '<div style="padding:14px 16px;border:1px solid rgba(200,210,230,.4);border-radius:12px">'
             +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:8px">'
             +'<div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+orgLabel+'</div>'
-            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+statusBadge+'<span style="font-size:.73rem;color:var(--sub)">'+dt+'</span>'+(status!=='ถูกยกเลิก'&&status!=='ต่ออายุแล้ว'?'<button onclick="adminRejectRenewal(\''+orgKey+'\',\''+ts+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')+'</div>'
+            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+statusBadge+'<span style="font-size:.73rem;color:var(--sub)">'+dt+'</span>'+(status!=='ถูกยกเลิก'&&status!=='ต่ออายุแล้ว'?'<button onclick="openCancelRenewalModal(\''+orgKey+'\',\''+ts+'\',\''+orgLabel.replace(/'/g,"\\'")+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')+'</div>'
             +'</div>'
             +(fileLinks?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">'+fileLinks+'</div>':'')
             +actionHtml+'</div>';
@@ -7260,7 +7260,7 @@ function loadAdminArticles(){
         +   '<div style="display:flex;align-items:center;gap:7px;flex-shrink:0">'
         +     (actionBtn ? actionBtn : '')
         +     '<button id="art-tog-'+safeId+'" onclick="toggleArtCard(\''+safeId+'\')" style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:#6b7280;background:none;border:1px solid rgba(200,210,230,.7);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background=\'rgba(200,210,230,.2)\'" onmouseout="this.style.background=\'none\'">รายละเอียด <span id="art-tog-arrow-'+safeId+'">▾</span></button>'
-        +     (st!=='cancelled'&&st!=='completed'?'<button onclick="artAdminCancel(\''+safeId+'\',\''+aid+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')
+        +     (st!=='cancelled'&&st!=='completed'?'<button onclick="openCancelArtModal(\''+safeId+'\',\''+aid+'\',\''+((a.articleTitle||a.userName||'').replace(/'/g,"\\'"))+'\')" style="font-size:.7rem;font-weight:500;color:#dc2626;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">✕ ยกเลิกคำขอ</button>':'')
         +   '</div>'
         + '</div>'
         + '<div id="art-body-'+safeId+'" style="display:none">'
@@ -7635,20 +7635,77 @@ async function artAdminMarkCcpe(aid){
   } catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
 }
 
-/* ── Admin: Cancel Article ── */
-async function artAdminCancel(safeId, aid){
-  if(!confirm('ยืนยันการยกเลิก? ระบบจะแจ้ง user ให้ส่งบทความใหม่')) return;
+/* ── Admin: Cancel Renewal Modal ── */
+var _cancelRenewal = { orgKey:'', ts:'', label:'' };
+function openCancelRenewalModal(orgKey, ts, label){
+  _cancelRenewal = { orgKey:orgKey, ts:ts, label:label||orgKey };
+  var el = document.getElementById('cancel-renewal-modal-name');
+  if(el) el.textContent = label||orgKey;
+  var ta = document.getElementById('cancel-renewal-reason');
+  if(ta) ta.value = '';
+  var btn = document.getElementById('cancel-renewal-confirm-btn');
+  if(btn){ btn.disabled=false; btn.innerHTML='🚫 ยืนยันยกเลิก'; }
+  document.getElementById('cancel-renewal-modal').style.display = 'flex';
+}
+function closeCancelRenewalModal(){
+  document.getElementById('cancel-renewal-modal').style.display = 'none';
+}
+async function confirmCancelRenewal(){
+  var orgKey=_cancelRenewal.orgKey, ts=_cancelRenewal.ts;
+  if(!orgKey||!ts){ showToast('ไม่พบข้อมูลคำขอ','err'); return; }
+  var reason=((document.getElementById('cancel-renewal-reason')||{}).value||'').trim();
+  var btn=document.getElementById('cancel-renewal-confirm-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดำเนินการ...'; }
   try{
-    var now = new Date().toISOString();
-    var snap = await db.ref('pharma-form/_all_articles/'+aid).once('value');
-    var a = snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
-    var userKey = a.userKey || emailToFbKey(a.userEmail||'');
-    var updates = { status:'cancelled', cancelledAt: now };
+    var now=new Date().toISOString();
+    await db.ref('pharma-form/_cpe_renewals/'+orgKey+'/'+ts).update({
+      status:'ถูกยกเลิก', rejectedAt:now, cancelReason:reason||''
+    });
+    showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
+    closeCancelRenewalModal();
+    loadAllRenewals();
+  }catch(e){
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+    if(btn){ btn.disabled=false; btn.innerHTML='🚫 ยืนยันยกเลิก'; }
+  }
+}
+
+/* ── Admin: Cancel Article Modal ── */
+var _cancelArt = { safeId:'', aid:'' };
+function openCancelArtModal(safeId, aid, title){
+  _cancelArt = { safeId:safeId, aid:aid };
+  var el = document.getElementById('cancel-art-modal-name');
+  if(el) el.textContent = title||aid;
+  var ta = document.getElementById('cancel-art-reason');
+  if(ta) ta.value = '';
+  var btn = document.getElementById('cancel-art-confirm-btn');
+  if(btn){ btn.disabled=false; btn.innerHTML='🚫 ยืนยันยกเลิก'; }
+  document.getElementById('cancel-art-modal').style.display = 'flex';
+}
+function closeCancelArtModal(){
+  document.getElementById('cancel-art-modal').style.display = 'none';
+}
+async function confirmCancelArt(){
+  var aid=_cancelArt.aid;
+  if(!aid){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+  var reason=((document.getElementById('cancel-art-reason')||{}).value||'').trim();
+  var btn=document.getElementById('cancel-art-confirm-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ กำลังดำเนินการ...'; }
+  try{
+    var now=new Date().toISOString();
+    var snap=await db.ref('pharma-form/_all_articles/'+aid).once('value');
+    var a=snap.val(); if(!a){ showToast('ไม่พบข้อมูลบทความ','err'); return; }
+    var userKey=a.userKey||emailToFbKey(a.userEmail||'');
+    var updates={ status:'cancelled', cancelledAt:now, cancelReason:reason||'' };
     await db.ref('pharma-form/_all_articles/'+aid).update(updates);
     if(userKey) await db.ref('pharma-form/'+userKey+'/articles/'+aid).update(updates).catch(function(){});
-    showToast('❌ ยกเลิกบทความแล้ว — user จะได้รับแจ้งให้ส่งใหม่');
+    showToast('✓ ยกเลิกบทความแล้ว — user จะได้รับการแจ้งเตือน');
+    closeCancelArtModal();
     loadArticleView();
-  }catch(e){ showToast('เกิดข้อผิดพลาด: '+e.message,'err'); }
+  }catch(e){
+    showToast('เกิดข้อผิดพลาด: '+e.message,'err');
+    if(btn){ btn.disabled=false; btn.innerHTML='🚫 ยืนยันยกเลิก'; }
+  }
 }
 
 /* Utility: escape HTML */
@@ -7790,6 +7847,68 @@ document.addEventListener('keydown',function(e){
     <div style="display:flex;gap:8px;padding:12px 20px;border-top:0.5px solid rgba(0,0,0,.07);background:#fafafa">
       <button id="cancel-conf-confirm-btn" onclick="confirmCancelConf()" style="flex:2;background:#dc2626;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">🚫 ยืนยันยกเลิก</button>
       <button onclick="closeCancelConfModal()" style="flex:1;background:transparent;color:#6b7280;border:0.5px solid rgba(0,0,0,.18);border-radius:9px;padding:10px 16px;font-size:.82rem;cursor:pointer;font-family:inherit">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Renewal: Cancel Modal ══ -->
+<div id="cancel-renewal-modal"
+  onclick="if(event.target===this)closeCancelRenewalModal()"
+  style="display:none;position:fixed;inset:0;z-index:1090;background:rgba(15,20,40,.42);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px">
+  <div style="max-width:400px;width:calc(100% - 32px);background:#ffffff;border-radius:14px;border:0.5px solid rgba(200,210,230,.6);box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;font-family:inherit">
+    <div style="padding:16px 20px 14px;border-bottom:0.5px solid rgba(0,0,0,.07);display:flex;align-items:flex-start;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🚫</div>
+        <div>
+          <div style="font-size:.9rem;font-weight:600;color:#111827;line-height:1.3">ยกเลิกคำขอ</div>
+          <div id="cancel-renewal-modal-name" style="font-size:.72rem;color:#9ca3af;margin-top:2px">-</div>
+        </div>
+      </div>
+      <button onclick="closeCancelRenewalModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:inherit">✕</button>
+    </div>
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fef2f2;border:0.5px solid rgba(220,38,38,.2);border-radius:9px;padding:11px 14px;font-size:.8rem;color:#991b1b;line-height:1.6">
+        ⚠️ หลังจากยกเลิก ระบบจะแจ้ง user ให้ทราบ และ user จะสามารถส่งเอกสารมาใหม่ได้
+      </div>
+      <div>
+        <label for="cancel-renewal-reason" style="font-size:.72rem;font-weight:600;color:#374151;display:block;margin-bottom:5px">เหตุผล <span style="color:#9ca3af;font-weight:400">(ไม่จำเป็น)</span></label>
+        <textarea id="cancel-renewal-reason" placeholder="เช่น เอกสารไม่ครบถ้วน, กำหนดการไม่ถูกต้อง ..." style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:9px 12px;font-size:.82rem;outline:none;background:#fff;font-family:inherit;box-sizing:border-box;resize:none;height:76px;color:#374151"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding:12px 20px;border-top:0.5px solid rgba(0,0,0,.07);background:#fafafa">
+      <button id="cancel-renewal-confirm-btn" onclick="confirmCancelRenewal()" style="flex:2;background:#dc2626;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">🚫 ยืนยันยกเลิก</button>
+      <button onclick="closeCancelRenewalModal()" style="flex:1;background:transparent;color:#6b7280;border:0.5px solid rgba(0,0,0,.18);border-radius:9px;padding:10px 16px;font-size:.82rem;cursor:pointer;font-family:inherit">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Article: Cancel Modal ══ -->
+<div id="cancel-art-modal"
+  onclick="if(event.target===this)closeCancelArtModal()"
+  style="display:none;position:fixed;inset:0;z-index:1090;background:rgba(15,20,40,.42);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px">
+  <div style="max-width:400px;width:calc(100% - 32px);background:#ffffff;border-radius:14px;border:0.5px solid rgba(200,210,230,.6);box-shadow:0 24px 64px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;font-family:inherit">
+    <div style="padding:16px 20px 14px;border-bottom:0.5px solid rgba(0,0,0,.07);display:flex;align-items:flex-start;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🚫</div>
+        <div>
+          <div style="font-size:.9rem;font-weight:600;color:#111827;line-height:1.3">ยกเลิกคำขอ</div>
+          <div id="cancel-art-modal-name" style="font-size:.72rem;color:#9ca3af;margin-top:2px">-</div>
+        </div>
+      </div>
+      <button onclick="closeCancelArtModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:inherit">✕</button>
+    </div>
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fef2f2;border:0.5px solid rgba(220,38,38,.2);border-radius:9px;padding:11px 14px;font-size:.8rem;color:#991b1b;line-height:1.6">
+        ⚠️ หลังจากยกเลิก ระบบจะแจ้ง user ให้ทราบ และ user จะสามารถส่งเอกสารมาใหม่ได้
+      </div>
+      <div>
+        <label for="cancel-art-reason" style="font-size:.72rem;font-weight:600;color:#374151;display:block;margin-bottom:5px">เหตุผล <span style="color:#9ca3af;font-weight:400">(ไม่จำเป็น)</span></label>
+        <textarea id="cancel-art-reason" placeholder="เช่น บทความไม่เป็นไปตามรูปแบบที่กำหนด ..." style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:9px 12px;font-size:.82rem;outline:none;background:#fff;font-family:inherit;box-sizing:border-box;resize:none;height:76px;color:#374151"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding:12px 20px;border-top:0.5px solid rgba(0,0,0,.07);background:#fafafa">
+      <button id="cancel-art-confirm-btn" onclick="confirmCancelArt()" style="flex:2;background:#dc2626;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">🚫 ยืนยันยกเลิก</button>
+      <button onclick="closeCancelArtModal()" style="flex:1;background:transparent;color:#6b7280;border:0.5px solid rgba(0,0,0,.18);border-radius:9px;padding:10px 16px;font-size:.82rem;cursor:pointer;font-family:inherit">ปิด</button>
     </div>
   </div>
 </div>
