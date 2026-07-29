@@ -3875,21 +3875,30 @@ function loadAllRenewals(){
         }
         rows.sort(function(a,b){return b._ts-a._ts;});
 
-        var html=rows.map(function(v){
+        // ── แยก group ──
+        var _active=[],_done=[],_cancelled=[];
+        rows.forEach(function(v){
+          var st=v.status||'รอตรวจสอบ';
+          if(st==='ต่ออายุแล้ว') _done.push(v);
+          else if(st==='ถูกยกเลิก') _cancelled.push(v);
+          else _active.push(v);
+        });
+
+        var _hr='<div style="height:1px;background:rgba(200,210,230,.45);margin:20px 0"></div>';
+        var _cardSep='<div style="height:1px;background:rgba(200,210,230,.45);margin:24px 0"></div>';
+
+        // ── builder ── (ใช้ร่วมกันทุก group)
+        function _buildRenewalCard(v){
           var dt=v.submittedAt?new Date(v.submittedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
           var orgLabel=v.orgName||v._orgKey||'—';
           var ts=v._tsStr, orgKey=v._orgKey;
           var status=v.status||'รอตรวจสอบ';
-
-          // เอกสารที่ user ส่ง
           var fileLinks=['letter','form59','payment'].map(function(t){
             if(!v[t]||!v[t].name) return '';
             return v[t].url
               ?'<a href="'+v[t].url+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:.75rem;color:#5a7bff;text-decoration:none;padding:4px 8px;border:1px solid rgba(90,123,255,.3);border-radius:6px;white-space:nowrap">📎 '+labels[t]+'</a>'
               :'<span style="font-size:.75rem;color:#999;padding:4px 8px;border:1px solid rgba(200,210,230,.3);border-radius:6px;white-space:nowrap">📄 '+labels[t]+'</span>';
           }).filter(Boolean).join('');
-
-          // Status badge
           var statusBadge='';
           if(status==='รอตรวจสอบ')
             statusBadge='<span style="font-size:.72rem;font-weight:700;color:#b45309;background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3);border-radius:20px;padding:3px 10px">⏳ รอตรวจสอบ</span>';
@@ -3899,21 +3908,63 @@ function loadAllRenewals(){
             statusBadge='<span style="font-size:.72rem;font-weight:700;color:#065f46;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.3);border-radius:20px;padding:3px 10px">✅ ต่ออายุแล้ว</span>';
           else if(status==='ถูกยกเลิก')
             statusBadge='<span style="font-size:.72rem;font-weight:700;color:#991b1b;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:3px 10px">❌ ยกเลิกแล้ว</span>';
-
-          // Admin action area
           var safeTs=ts.replace(/[^a-z0-9_]/gi,'_');
           var actionHtml=_buildRenewalSteps(v, orgKey, ts, safeTs);
-
           return '<div style="padding:14px 16px;border:1px solid rgba(200,210,230,.4);border-radius:12px">'
             +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:8px">'
             +'<div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+orgLabel+'</div>'
             +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+statusBadge+'<span style="font-size:.73rem;color:var(--sub)">'+dt+'</span></div>'
             +'</div>'
             +(fileLinks?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">'+fileLinks+'</div>':'')
-            +actionHtml
-            +'</div>';
-        }).join('<div style="height:1px;background:rgba(200,210,230,.45);margin:24px 0"></div>');
-        list.innerHTML=html;
+            +actionHtml+'</div>';
+        }
+
+        // ── active section ──
+        var _activeHtml=_active.length
+          ? _active.map(_buildRenewalCard).join(_cardSep)
+          : '<div style="color:var(--sub);font-size:.85rem;padding:8px 0">ไม่มีรายการที่รอดำเนินการ</div>';
+
+        // ── เสร็จสิ้น section ──
+        var _doneId='ar-done-'+Date.now();
+        var _doneHtml='';
+        if(_done.length){
+          _doneHtml=_hr+
+            '<div style="margin-bottom:4px">'+
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+                '<span style="width:3px;height:15px;background:#059669;border-radius:0;display:inline-block;flex-shrink:0"></span>'+
+                '<span style="font-size:.78rem;font-weight:700;color:#059669">เสร็จสิ้น</span>'+
+                '<span style="font-size:.66rem;font-weight:700;background:rgba(5,150,105,.08);color:#065f46;border:1px solid rgba(5,150,105,.25);border-radius:20px;padding:1px 8px">'+_done.length+' รายการ</span>'+
+                '<button onclick="var s=document.getElementById(\''+_doneId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'+
+              '</div>'+
+              '<div id="'+_doneId+'" style="display:none">'+_done.map(_buildRenewalCard).join(_cardSep)+'<div style="height:10px"></div></div>'+
+              '<div style="background:rgba(5,150,105,.04);border:1px solid rgba(5,150,105,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'+
+                '<span style="font-size:15px">🏆</span>'+
+                '<span style="font-size:.72rem;color:#065f46">'+_done.length+' รายการดำเนินการเสร็จสมบูรณ์แล้ว</span>'+
+              '</div>'+
+            '</div>';
+        }
+
+        // ── ยกเลิกคำขอ section ──
+        var _cancelId='ar-cancel-'+Date.now();
+        var _cancelHtml='';
+        if(_cancelled.length){
+          _cancelHtml=_hr+
+            '<div>'+
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+                '<span style="width:3px;height:15px;background:#dc2626;border-radius:0;display:inline-block;flex-shrink:0"></span>'+
+                '<span style="font-size:.78rem;font-weight:700;color:#991b1b">ยกเลิกคำขอ</span>'+
+                '<span style="font-size:.66rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.25);border-radius:20px;padding:1px 8px">'+_cancelled.length+' รายการ</span>'+
+                '<button onclick="var s=document.getElementById(\''+_cancelId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'+
+              '</div>'+
+              '<div id="'+_cancelId+'" style="display:none">'+_cancelled.map(_buildRenewalCard).join(_cardSep)+'<div style="height:10px"></div></div>'+
+              '<div style="background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'+
+                '<span style="font-size:15px">🚫</span>'+
+                '<span style="font-size:.72rem;color:#991b1b">'+_cancelled.length+' รายการถูกยกเลิก — user ได้รับแจ้งเตือนแล้ว</span>'+
+              '</div>'+
+            '</div>';
+        }
+
+        list.innerHTML=_activeHtml+_doneHtml+_cancelHtml;
       },function(err){
         list.innerHTML='<div style="color:#ef4444;font-size:.85rem">โหลดไม่ได้: '+err.code+'</div>';
       });
