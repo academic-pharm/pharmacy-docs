@@ -38,6 +38,11 @@ function doPost(e) {
       return cancelArticleAction(data);
     }
 
+    // action: 'log_activity' → บันทึกกิจกรรม (upload/event) ลง Sheet tab "ประวัติกิจกรรม"
+    if (data.action === 'log_activity') {
+      return logActivityToSheet(data);
+    }
+
     // action: 'update_conference_row' → admin อัพเดต row ใน Sheet ด้วย confId
     if (data.action === 'update_conference_row') {
       return updateConferenceRow(data);
@@ -999,6 +1004,33 @@ function cancelArticleAction(data) {
         '</div>';
       MailApp.sendEmail({ to: userEmail, subject: subject, htmlBody: html });
     }
+    return respond({ success: true });
+  } catch(err) {
+    return respond({ success: false, error: err.toString() });
+  }
+}
+
+/* ─── Log activity / file event to Sheet ─── */
+function logActivityToSheet(data) {
+  try {
+    var ss = getOrCreateSheet();
+    var headers = [
+      'วันที่-เวลา','ผู้ใช้งาน','หน่วยงาน',
+      'หมวดหมู่','ประเภทกิจกรรม','รายละเอียด',
+      'ชื่อไฟล์','URL ไฟล์','รหัสอ้างอิง'
+    ];
+    var sheet = getOrCreateTab(ss, 'ประวัติกิจกรรม', headers);
+    sheet.appendRow([
+      formatDate(data.ts || new Date().toISOString()),  // 1 วันที่-เวลา
+      data.user     || '',                               // 2 ผู้ใช้งาน
+      data.org      || '',                               // 3 หน่วยงาน
+      data.category || '',                               // 4 หมวดหมู่
+      data.activity || '',                               // 5 ประเภทกิจกรรม
+      data.detail   || '',                               // 6 รายละเอียด
+      data.fileName || '',                               // 7 ชื่อไฟล์
+      data.fileUrl  || '',                               // 8 URL ไฟล์
+      data.ref      || ''                                // 9 รหัสอ้างอิง
+    ]);
     return respond({ success: true });
   } catch(err) {
     return respond({ success: false, error: err.toString() });

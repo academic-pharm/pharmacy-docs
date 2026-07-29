@@ -1790,6 +1790,26 @@ var db = firebase.database();
 /* ════════════════════════════════
    HELPERS
 ════════════════════════════════ */
+
+/* ── KPI Activity Logger ── fire-and-forget ── */
+function logActivity(params){
+  if(!APPS_SCRIPT_URL) return;
+  var u = firebase.auth().currentUser;
+  var payload = {
+    action   : 'log_activity',
+    ts       : new Date().toISOString(),
+    user     : u ? (u.email||'').toLowerCase() : '',
+    org      : params.org      || '',
+    category : params.category || '',
+    activity : params.activity || '',
+    detail   : params.detail   || '',
+    fileName : params.fileName || '',
+    fileUrl  : params.fileUrl  || '',
+    ref      : params.ref      || ''
+  };
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}).catch(function(){});
+}
+
 function emailToFbKey(e){ return (e||'').toLowerCase().replace(/\./g,'_').replace(/@/g,'__').replace(/[#$\[\]\/]/g,'_'); }
 function fmtDate(iso){
   if(!iso) return '—';
@@ -3849,6 +3869,15 @@ async function submitRenewalDocs(){
     })}).catch(function(){});
   }
   showToast('✅ ส่งเอกสารต่ออายุเรียบร้อยแล้ว');
+  logActivity({ category:'renewal', activity:'submit', org:orgName, ref:orgKey,
+    detail:'ส่งเอกสาร: '+[
+      record.letter  ? 'หนังสือขอต่ออายุ' : null,
+      record.form59  ? 'แบบ สภ.59'        : null,
+      record.payment ? 'หลักฐานชำระ'      : null
+    ].filter(Boolean).join(', '),
+    fileUrl: [record.letter&&record.letter.url, record.form59&&record.form59.url,
+              record.payment&&record.payment.url].filter(Boolean).join(', ')
+  });
   renewFileStore = { letter:null, form59:null, payment:null };
   ['letter','form59','payment'].forEach(function(t){ clearRenewFile(t); });
   if(isAdmin){ loadRenewSubmissions(orgKey); return; }
@@ -4745,6 +4774,13 @@ async function saveConference(){
       })}).catch(function(){});
     }
     showToast('✓ ส่งข้อมูลประชุมวิชาการแล้ว');
+    logActivity({ category:'conference', activity:'submit',
+      org:record.orgName||'', ref:confId, detail:record.confName||'',
+      fileUrl: [record.files&&record.files.project&&record.files.project.url,
+                record.files&&record.files.cvfile&&record.files.cvfile.url,
+                record.files&&record.files.schedule&&record.files.schedule.url
+               ].filter(Boolean).join(', ')
+    });
     btn.disabled=false; btn.textContent='💾 บันทึกข้อมูล';
     // แสดง status card + ซ่อนปุ่ม action
     var _css = document.getElementById('conf-submit-status');
@@ -5470,6 +5506,10 @@ async function confirmCPEResult(safeCid, cid){
       }
     }
     showToast('✅ ยืนยันผลการพิจารณาเรียบร้อย — แจ้ง User แล้ว');
+    logActivity({ category:'conference', activity:'result_confirmed',
+      org:c.orgName||'', ref:cid, detail:c.confName||'',
+      fileName:resultPdfName, fileUrl:resultPdfUrl
+    });
   }catch(err){ showToast('เกิดข้อผิดพลาด: '+err.message,'err'); }
 }
 
@@ -5521,6 +5561,10 @@ async function uploadResolutionFile(safeCid, cid, inputEl, fileType, onDone){
         else sheetUpdate.matiPdfUrl = json.url;
         fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(sheetUpdate)}).catch(function(){});
         showToast('✓ อัพโหลด ('+typeLabel+') เรียบร้อยแล้ว');
+        logActivity({ category:'conference', activity:'upload_resolution',
+          org:c.orgName||'', ref:cid, detail:'มติ CPE ('+typeLabel+'): '+(c.confName||''),
+          fileName:file.name, fileUrl:json.url
+        });
         if(onDone) onDone();
       } else {
         showToast('อัพโหลดไม่สำเร็จ: '+(json.error||''),'err');
@@ -5583,6 +5627,10 @@ async function sendToExperts(){
     try { json = JSON.parse(_text); } catch(_){ json = {error:'ตอบกลับไม่ถูกต้อง: '+_text.substring(0,120)}; }
     if(json.success && !json.error){
       showToast('✓ ส่งอีเมลให้ผู้ทรงคุณวุฒิ '+emails.length+' ท่านแล้ว');
+      logActivity({ category:'conference', activity:'expert_sent',
+        org:c.orgName||'', ref:cid,
+        detail:'ส่งผู้ทรงคุณวุฒิ '+emails.length+' ท่าน: '+emails.join(', ')+' — '+c.confName
+      });
       var now = new Date().toISOString();
       db.ref('pharma-form/_all_cpe_conferences/'+cid).update({
         status:'sent_to_experts', sentToExperts:emails, sentAt:now
@@ -5815,6 +5863,9 @@ async function confirmCancelConf(){
       action:'update_conference_row', confId:cid, status:'ยกเลิกแล้ว'
     })}).catch(function(){});
     showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
+    logActivity({ category:'conference', activity:'cancel',
+      org:c.orgName||'', ref:cid, detail:c.confName||''
+    });
     closeCancelConfModal();
   } catch(err){
     showToast('เกิดข้อผิดพลาด: '+err.message,'err');
@@ -6132,6 +6183,9 @@ function confirmPaymentReview(cid){
     .then(function(){
       closePaymentReviewModal();
       showToast('✅ ยืนยันการชำระค่าธรรมเนียมแล้ว — แจ้ง User เรียบร้อย','ok');
+      logActivity({ category:'payment', activity:'confirm', ref:cid, detail:c.confName||'',
+        org:c.orgName||''
+      });
     })
     .catch(function(e){
       showToast('เกิดข้อผิดพลาด: '+(e.message||e),'err');
@@ -6387,6 +6441,10 @@ function submitPaymentInfo(confId){
     .then(function(){
       closePaymentModal();
       showToast('ส่งหลักฐานการชำระค่าธรรมเนียมเรียบร้อย ✓', 'ok');
+      logActivity({ category:'payment', activity:'upload', ref:confId,
+        detail:'ค่าธรรมเนียมประชุม: '+(c.confName||'') + ' จำนวน '+amount+' บาท',
+        fileName:payload.filename
+      });
     })
     .catch(function(e){
       showToast('เกิดข้อผิดพลาด: '+(e.message||e), 'err');
@@ -7113,6 +7171,10 @@ async function submitArticle(){
     _artKey    = userRef.key;
     _myArticle = articleData;
     showToast('✅ ส่งบทความเรียบร้อยแล้ว! เจ้าหน้าที่จะตรวจสอบและติดต่อกลับ');
+    logActivity({ category:'article', activity:'submit',
+      ref:_artKey, detail:articleData.articleTitle||file.name,
+      fileName:file.name, fileUrl:uploaded.url
+    });
     renderArticleForm(_artKey, _myArticle);
   } catch(e){
     showToast('เกิดข้อผิดพลาด: '+e.message,'err');
@@ -7148,6 +7210,10 @@ async function submitArtRevision(){
 
     if(_myArticle){ _myArticle.status = newStatus; }
     showToast('✅ ส่งบทความที่แก้ไขแล้วเรียบร้อย!');
+    logActivity({ category:'article', activity:'revision_upload',
+      ref:_artKey, detail:'แก้ไขรอบ: '+newStatus,
+      fileName:file.name, fileUrl:uploaded.url
+    });
     // Reload view
     loadArticleView();
   } catch(e){
@@ -7462,6 +7528,10 @@ async function artConfirmSendToExperts(){
     var emailJson = await emailRes.json().catch(function(){ return {}; });
     if(emailJson.sent > 0){
       showToast('✅ ส่งอีเมลผู้ทรงคุณวุฒิ '+emailJson.sent+' ท่านแล้ว');
+      logActivity({ category:'article', activity:'expert_sent',
+        ref:aid, detail:'ส่งผู้ทรงคุณวุฒิ '+emailJson.sent+' ท่าน: '+experts.join(', '),
+        org:a.userEmail||''
+      });
     } else {
       showToast('⚠️ อัพเดตสถานะแล้ว แต่ส่งอีเมลไม่สำเร็จ: '+(emailJson.error||'unknown'), 'warn');
     }
@@ -7686,6 +7756,7 @@ async function confirmCancelRenewal(){
       status:'ถูกยกเลิก', rejectedAt:now, cancelReason:reason||''
     });
     showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
+    logActivity({ category:'renewal', activity:'cancel', ref:orgKey });
     closeCancelRenewalModal();
     loadAllRenewals();
   }catch(e){
@@ -7751,6 +7822,9 @@ async function confirmCancelArt(){
       cancelReason: reason||''
     })}).catch(function(){});
     showToast('✓ ยกเลิกบทความแล้ว — user จะได้รับอีเมลแจ้งเตือน');
+    logActivity({ category:'article', activity:'cancel',
+      ref:aid, detail:a.articleTitle||'บทความวิชาการ', org:a.userEmail||''
+    });
     closeCancelArtModal();
     loadArticleView();
   }catch(e){
