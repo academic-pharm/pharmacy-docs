@@ -5783,6 +5783,8 @@ function openCancelConfModal(safeCid, cid){
   if(el) el.textContent = (c&&c.confName?c.confName:'?') + ' · ' + (c&&c.orgName?c.orgName:'?');
   var ta = document.getElementById('cancel-conf-reason');
   if(ta) ta.value = '';
+  var btn = document.getElementById('cancel-conf-confirm-btn');
+  if(btn){ btn.disabled=false; btn.textContent='🚫 ยืนยันยกเลิก'; }
   document.getElementById('cancel-conf-modal').style.display = 'flex';
 }
 
