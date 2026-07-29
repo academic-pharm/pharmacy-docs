@@ -2600,6 +2600,18 @@ function confirmAdminRenew(){
       adminDirect:true
     }).catch(function(e){ console.warn('Firebase renewal write failed:',e.message); });
   }catch(e){ console.warn(e); }
+  // อัพเดตสถานะใน Google Sheet
+  if(APPS_SCRIPT_URL){
+    fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:  'update_renewal_row',
+      orgName: o.name||'',
+      status:  'ต่ออายุแล้ว'
+    })}).catch(function(){});
+    logActivity({ category:'renewal', activity:'admin_renewal_complete',
+      org:o.name||'', ref:key,
+      detail:'ต่ออายุถึง '+newExp+(newReg?' (ลงทะเบียน '+newReg+')':'')
+    });
+  }
   closeAdminRenewModal();
   renderOrgList();
   updateOrgStats();

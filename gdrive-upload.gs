@@ -48,6 +48,11 @@ function doPost(e) {
       return updateConferenceRow(data);
     }
 
+    // action: 'update_renewal_row' → admin ต่ออายุสำเร็จ → อัพเดตสถานะใน Sheet tab ต่ออายุ CPE
+    if (data.action === 'update_renewal_row') {
+      return updateRenewalRow(data);
+    }
+
     // action: 'notify_cpe_result' → admin ยืนยันผลการพิจารณา → ส่งอีเมลแจ้ง user + อัพเดต Sheet
     if (data.action === 'notify_cpe_result') {
       return notifyCpeResult(data);
@@ -507,6 +512,28 @@ function updateConferenceRow(data) {
   if (data.resultPdfUrl  !== undefined) sheet.getRange(found, 19).setValue(data.resultPdfUrl  || '');
   if (data.confirmedAt   !== undefined) sheet.getRange(found, 20).setValue(data.confirmedAt   ? formatDate(data.confirmedAt) : '');
 
+  return respond({ success: true });
+}
+
+/* ─── Update renewal row status in Sheet ─── */
+function updateRenewalRow(data) {
+  var ss    = getOrCreateSheet();
+  var sheet = ss.getSheetByName('ต่ออายุ CPE');
+  if (!sheet) return respond({ success: false, error: 'ไม่พบ tab ต่ออายุ CPE' });
+
+  var orgName = data.orgName || '';
+  if (!orgName) return respond({ success: false, error: 'ไม่มี orgName' });
+
+  // หา row ล่าสุดของ org นี้ (column B = หน่วยงาน) — scan จากล่างขึ้นบน
+  var lastRow = sheet.getLastRow();
+  var found   = -1;
+  for (var r = lastRow; r >= 2; r--) {
+    if (sheet.getRange(r, 2).getValue() === orgName) { found = r; break; }
+  }
+  if (found < 0) return respond({ success: false, error: 'ไม่พบ row: ' + orgName });
+
+  // column F (6) = สถานะ
+  sheet.getRange(found, 6).setValue(data.status || '');
   return respond({ success: true });
 }
 
