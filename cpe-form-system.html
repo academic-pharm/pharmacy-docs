@@ -6787,7 +6787,7 @@ function buildArtStepperHtml(st, art){
     {label:'ผู้ทรงคุณวุฒิรับรอง (รอบ 2)',  desc:'ผู้ทรงคุณวุฒิพิจารณาและรับรองหน่วยกิต'},
     {label:'นำเข้าระบบ CCPE',              desc:'Admin นำบทความเข้าสู่ระบบ CCPE เรียบร้อยแล้ว'}
   ];
-  var activeStep={submitted:0,docs_reviewed:1,sent_to_experts:2,expert_feedback_r1:2,
+  var activeStep={submitted:0,docs_reviewed:2,sent_to_experts:2,expert_feedback_r1:2,
     user_revised_r1:3,expert_certified:4,user_final_revised:4,pending_ccpe:5,completed:6}[st]||0;
   var html='';
   steps.forEach(function(step,i){
