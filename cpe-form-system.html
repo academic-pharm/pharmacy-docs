@@ -6780,14 +6780,15 @@ function buildUserArticleCard(key, art, idx){
 function buildArtStepperHtml(st, art){
   function fd2(iso){ return iso ? new Date(iso).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}) : ''; }
   var steps=[
-    {label:'ส่งบทความวิชาการ',desc:'อัปโหลดแบบฟอร์มบทความที่กรอกข้อมูลแล้ว'},
+    {label:'ส่งบทความวิชาการ',            desc:'อัปโหลดแบบฟอร์มบทความที่กรอกข้อมูลแล้ว'},
+    {label:'ตรวจสอบเอกสาร',               desc:'เจ้าหน้าที่ตรวจสอบและยืนยันเอกสารแล้ว'},
     {label:'พิจารณาโดยผู้ทรงคุณวุฒิ (รอบ 1)',desc:'Admin ส่งเอกสารให้ผู้ทรงคุณวุฒิพิจารณา'},
-    {label:'แก้ไขตามข้อเสนอแนะ (รอบ 1)',desc:'แก้ไขบทความตามคำแนะนำแล้วส่งกลับ'},
-    {label:'ผู้ทรงคุณวุฒิรับรอง (รอบ 2)',desc:'ผู้ทรงคุณวุฒิพิจารณาและรับรองหน่วยกิต'},
-    {label:'นำเข้าระบบ CCPE',desc:'Admin นำบทความเข้าสู่ระบบ CCPE เรียบร้อยแล้ว'}
+    {label:'แก้ไขตามข้อเสนอแนะ (รอบ 1)',  desc:'แก้ไขบทความตามคำแนะนำแล้วส่งกลับ'},
+    {label:'ผู้ทรงคุณวุฒิรับรอง (รอบ 2)',  desc:'ผู้ทรงคุณวุฒิพิจารณาและรับรองหน่วยกิต'},
+    {label:'นำเข้าระบบ CCPE',              desc:'Admin นำบทความเข้าสู่ระบบ CCPE เรียบร้อยแล้ว'}
   ];
-  var activeStep={submitted:0,docs_reviewed:0,sent_to_experts:1,expert_feedback_r1:1,user_revised_r1:2,
-    expert_certified:3,user_final_revised:3,pending_ccpe:4,completed:5}[st]||0;
+  var activeStep={submitted:0,docs_reviewed:1,sent_to_experts:2,expert_feedback_r1:2,
+    user_revised_r1:3,expert_certified:4,user_final_revised:4,pending_ccpe:5,completed:6}[st]||0;
   var html='';
   steps.forEach(function(step,i){
     var dc=i<activeStep?'done':(i===activeStep?'active':'pending');
@@ -6796,15 +6797,17 @@ function buildArtStepperHtml(st, art){
     var extra='';
     if(i===0&&art.files&&art.files.userSubmission&&art.files.userSubmission.url)
       extra='<div class="art-step-file"><a href="'+art.files.userSubmission.url+'" target="_blank">📄 '+escHtml(art.files.userSubmission.name||'ไฟล์ที่ส่ง')+'</a></div>';
-    if(i===1&&art.sentAt)
+    if(i===1&&art.docsReviewedAt)
+      extra='<div class="art-step-desc" style="margin-top:4px;color:#059669">✓ ยืนยันเมื่อ '+fd2(art.docsReviewedAt)+'</div>';
+    if(i===2&&art.sentAt)
       extra='<div class="art-step-desc" style="margin-top:4px">ส่งเมื่อ '+fd2(art.sentAt)+(art.sentToExperts&&art.sentToExperts.length?' · ผู้ทรง: '+art.sentToExperts.join(', '):'')+'</div>';
-    if(i===2&&art.files){
+    if(i===3&&art.files){
       if(art.files.expertFeedback1&&art.files.expertFeedback1.url)
         extra+='<div class="art-step-file"><a href="'+art.files.expertFeedback1.url+'" target="_blank">📋 เอกสารรอบ 1</a></div>';
       if(art.files.userRevision1&&art.files.userRevision1.url)
         extra+='<div class="art-step-file green-file"><a href="'+art.files.userRevision1.url+'" target="_blank">📄 บทความที่แก้ไข (รอบ 1)</a></div>';
     }
-    if(i===3&&art.files){
+    if(i===4&&art.files){
       if(art.files.expertCertification&&art.files.expertCertification.url)
         extra+='<div class="art-step-file"><a href="'+art.files.expertCertification.url+'" target="_blank">📜 ใบรับรอง</a></div>';
       if(art.creditUnits)
@@ -6812,7 +6815,7 @@ function buildArtStepperHtml(st, art){
       if(art.files.userFinalRevision&&art.files.userFinalRevision.url)
         extra+='<div class="art-step-file green-file"><a href="'+art.files.userFinalRevision.url+'" target="_blank">📄 บทความฉบับสุดท้าย</a></div>';
     }
-    if(i===4&&st==='completed')
+    if(i===5&&st==='completed')
       extra='<div class="art-step-file green-file"><a href="https://ccpe.pharmacycouncil.org/index.php?option=article&subpage=article" target="_blank">🌐 ตรวจสอบที่ระบบ CCPE</a></div>';
     html+='<div class="art-step"><div class="art-step-dot '+dc+'">'+di+'</div>'
       +'<div class="art-step-body"><div class="art-step-title '+tc+'">'+step.label+'</div>'
@@ -7319,12 +7322,13 @@ function loadAdminArticles(){
     }
 
     // Pipeline grouping
-    var _need=[], _waiting=[], _done=[];
+    var _need=[], _waiting=[], _done=[], _cancelled=[];
     articles.forEach(function(e){
       var s = e[1].status||'submitted';
-      if(['submitted','expert_feedback_r1','user_revised_r1','expert_certified','user_final_revised'].includes(s)) _need.push(e);
+      if(['submitted','docs_reviewed','expert_feedback_r1','user_revised_r1','expert_certified','user_final_revised'].includes(s)) _need.push(e);
       else if(['sent_to_experts','pending_ccpe'].includes(s)) _waiting.push(e);
       else if(s==='completed') _done.push(e);
+      else if(s==='cancelled') _cancelled.push(e);
       else _need.push(e);
     });
 
@@ -7343,6 +7347,7 @@ function loadAdminArticles(){
       // stLabels: [label, background, textColor, borderColor]
       var stLabels = {
         'submitted'          :['ขั้นที่ 1 · รับเรื่อง',     '#fef3c7','#92400e','#fcd34d'],
+        'docs_reviewed'      :['ขั้นที่ 1 · ยืนยันแล้ว',    '#d1fae5','#065f46','#6ee7b7'],
         'sent_to_experts'    :['ขั้นที่ 2 · รอผู้ทรง',      '#dbeafe','#1d4ed8','#93c5fd'],
         'expert_feedback_r1' :['ขั้นที่ 3 · ส่งผลรอบ 1',    '#fef3c7','#92400e','#fcd34d'],
         'user_revised_r1'    :['ขั้นที่ 4 · รอผู้ทรง รอบ 2','#dbeafe','#1d4ed8','#93c5fd'],
@@ -7455,9 +7460,30 @@ function loadAdminArticles(){
         +   '<span style="width:3px;height:15px;background:#059669;border-radius:2px;display:inline-block"></span>'
         +   '<span style="font-size:.78rem;font-weight:700;color:#059669">เสร็จสิ้น</span>'
         +   '<span style="font-size:.66rem;font-weight:700;background:rgba(5,150,105,.1);color:#059669;border:1px solid rgba(5,150,105,.25);border-radius:20px;padding:1px 8px">'+_done.length+' รายการ</span>'
-        +   '<button onclick="var s=document.getElementById(\''+doneId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer">ซ่อน / แสดง ▾</button>'
+        +   '<button onclick="var s=document.getElementById(\''+doneId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'
         + '</div>'
         + '<div id="'+doneId+'" style="display:none">'+_done.map(buildArtCard).join('')+'</div>'
+        + '<div style="background:rgba(5,150,105,.04);border:1px solid rgba(5,150,105,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'
+        +   '<span style="font-size:15px">🏆</span>'
+        +   '<span style="font-size:.72rem;color:#065f46">'+_done.length+' รายการดำเนินการเสร็จสมบูรณ์แล้ว</span>'
+        + '</div>'
+        + '</div>');
+    }
+
+    if(_cancelled.length){
+      var cancelId = 'artCancelled'+Date.now();
+      _parts.push('<div style="margin-bottom:16px">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'
+        +   '<span style="width:3px;height:15px;background:#dc2626;border-radius:2px;display:inline-block"></span>'
+        +   '<span style="font-size:.78rem;font-weight:700;color:#991b1b">ยกเลิกคำขอ</span>'
+        +   '<span style="font-size:.66rem;font-weight:700;background:rgba(220,38,38,.07);color:#991b1b;border:1px solid rgba(220,38,38,.25);border-radius:20px;padding:1px 8px">'+_cancelled.length+' รายการ</span>'
+        +   '<button onclick="var s=document.getElementById(\''+cancelId+'\');s.style.display=s.style.display===\'none\'?\'block\':\'none\'" style="margin-left:auto;font-size:.7rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0">ซ่อน / แสดง ▾</button>'
+        + '</div>'
+        + '<div id="'+cancelId+'" style="display:none">'+_cancelled.map(buildArtCard).join('')+'</div>'
+        + '<div style="background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.18);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px">'
+        +   '<span style="font-size:15px">🚫</span>'
+        +   '<span style="font-size:.72rem;color:#991b1b">'+_cancelled.length+' รายการถูกยกเลิก</span>'
+        + '</div>'
         + '</div>');
     }
 
