@@ -4823,6 +4823,35 @@ function loadAllCpeConferences(){
       _confDot.style.display = _hasUnseenConf ? 'inline-block' : 'none';
     }
 
+    function _buildAdminConfStepper(st, ps){
+      var s1 = (st!=='pending_review') ? 'done' : 'active';
+      var s2 = (st==='pending_review') ? 'locked' : (st==='docs_approved') ? 'active' : 'done';
+      var s3 = (st==='pending_review'||st==='docs_approved') ? 'locked' : (st==='sent_to_experts') ? 'active' : 'done';
+      var s4 = (st!=='result_confirmed') ? 'locked' : (ps==='confirmed') ? 'done' : 'active';
+      var s5 = (ps==='confirmed') ? 'done' : 'locked';
+      function _ac(state){
+        if(state==='done')   return '<div style="width:22px;height:22px;border-radius:50%;background:rgba(5,150,105,.1);border:1.5px solid rgba(5,150,105,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#059669">✓</div>';
+        if(state==='active') return '<div style="width:22px;height:22px;border-radius:50%;background:rgba(37,99,235,.1);border:1.5px solid #3b82f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:7px;height:7px;border-radius:50%;background:#3b82f6;display:inline-block;animation:pulse-dot 1.4s ease infinite"></span></div>';
+        return '<div style="width:22px;height:22px;border-radius:50%;background:rgba(200,210,230,.2);border:1px solid rgba(200,210,230,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:6px;height:6px;border-radius:50%;background:rgba(150,160,180,.35);display:inline-block"></span></div>';
+      }
+      function _ar(state, nextState, label, isLast){
+        var tc=state==='done'?'#059669':state==='active'?'var(--text,#1a202c)':'#9ca3af';
+        var lc=nextState==='done'?'rgba(5,150,105,.4)':'rgba(200,210,230,.45)';
+        return '<div style="display:flex;gap:8px">'
+          +'<div style="display:flex;flex-direction:column;align-items:center">'+_ac(state)+(isLast?'':'<div style="width:1.5px;min-height:12px;flex:1;background:'+lc+';margin:2px 0"></div>')+'</div>'
+          +'<div style="flex:1;padding-bottom:'+(isLast?'0':'12')+'px"><div style="font-size:.78rem;font-weight:500;color:'+tc+'">'+label+'</div></div>'
+        +'</div>';
+      }
+      return '<div style="padding:8px 14px 10px;border-bottom:1px solid rgba(200,210,230,.2)">'
+        +'<div style="font-size:.6rem;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:7px">ขั้นตอนการดำเนินการ</div>'
+        +_ar(s1,s2,'ตรวจสอบเอกสาร',false)
+        +_ar(s2,s3,'ส่งผู้ทรงฯพิจารณา',false)
+        +_ar(s3,s4,'รอผู้ทรงฯยืนยันผล',false)
+        +_ar(s4,s5,'รอ user ชำระเงิน',false)
+        +_ar(s5,null,'เสร็จสิ้น',true)
+      +'</div>';
+    }
+
     function buildAdminCard(e, stepNum){
       var cid=e[0], c=e[1];
       var dateRange=c.dateStart?fd(c.dateStart)+(c.dateEnd&&c.dateEnd!==c.dateStart?' – '+fd(c.dateEnd):''):'-';
@@ -4866,6 +4895,7 @@ function loadAllCpeConferences(){
             '<button id="conf-tog-'+safeCid+'" onclick="toggleConfCard(\''+safeCid+'\')" style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:#6b7280;background:none;border:1px solid rgba(200,210,230,.7);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit" onmouseover="this.style.background=\'rgba(200,210,230,.2)\'" onmouseout="this.style.background=\'none\'">รายละเอียด <span id="conf-tog-arrow-'+safeCid+'">▾</span></button>'+
           '</div>'+
         '</div>'+
+        _buildAdminConfStepper(st, ps)+
         '<div id="conf-body-'+safeCid+'" style="display:none">'+
         '<div style="padding:10px 14px;border-bottom:1px solid rgba(200,210,230,.15);display:flex;flex-direction:column;gap:10px">'+
           '<div>'+
@@ -5001,7 +5031,7 @@ function loadAllCpeConferences(){
     }
 
     var _secDiv = '<hr style="border:none;border-top:1px solid rgba(200,210,230,.45);margin:28px 0">';
-    wrap.innerHTML = _guideHtml +
+    wrap.innerHTML =
       buildAdminSection('ต้องดำเนินการ','#b45309','rgba(217,119,6,.08)','rgba(217,119,6,.25)',_needAction,true) +
       _secDiv +
       buildAdminSection('รอดำเนินการจากฝ่ายอื่น','#0369a1','rgba(14,165,233,.08)','rgba(14,165,233,.25)',_waiting,true) +
