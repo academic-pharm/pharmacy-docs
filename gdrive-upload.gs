@@ -954,6 +954,7 @@ function confirmPaymentAction(data) {
         (adminReceiptUrl
           ? '<p><a href="' + adminReceiptUrl + '" style="display:inline-block;background:#059669;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700">📥 ดาวน์โหลดบิลใบเสร็จการชำระค่าธรรมเนียมการจัดประชุม</a></p>'
           : '') +
+        '<p style="font-size:13px;color:#6b7280;margin:12px 0"><strong>หมายเหตุ</strong> : บิลใบเสร็จรับเงินฉบับจริง จะดำเนินการนำส่งทางไปรษณีย์ต่อไป ขอขอบคุณครับ</p>' +
         '<hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0">' +
         '<p style="font-size:12px;color:#9ca3af">ระบบ CPE คณะเภสัชศาสตร์ มหาวิทยาลัยบูรพา</p>' +
       '</div>';
