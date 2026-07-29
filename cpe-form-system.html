@@ -1889,7 +1889,7 @@ function _markAdminSeen(key, nav){
   _refreshNotif();
   if(nav === 'main'){ sidebarGo('main'); toggleNotifPanel(); }
   else if(nav === 'renewals'){ showView('admin-renewals'); toggleNotifPanel(); }
-  else if(nav === 'conf'){ showView('status'); switchTab('admin-conf'); toggleNotifPanel(); }
+  else if(nav === 'conf'){ sidebarGo('conf'); toggleNotifPanel(); }
 }
 
 function _setupAdminNotifications(){
