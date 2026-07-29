@@ -501,7 +501,7 @@ body::after{display:none}
     <span class="si-badge" id="art-sidebar-badge"></span>
     <span class="si-lock-icon">🔒</span>
   </button>
-  <button class="sidebar-item" id="si-search" onclick="sidebarGo('search')">
+  <button class="sidebar-item" id="si-search" onclick="sidebarGo('search')" style="display:none">
     <span class="si-icon">🔍</span> ค้นหาหน่วยงาน
   </button>
   <!-- Admin items (shown after admin login) -->
@@ -1844,6 +1844,7 @@ var _seenConfAction = (function(){ try{ return new Set(JSON.parse(localStorage.g
     // Show admin section in sidebar
     document.getElementById('sb-admin-divider').style.display = 'block';
     document.getElementById('sb-admin-label').style.display   = 'block';
+    document.getElementById('si-search').style.display        = 'flex';
     // Admin always unlocked — apply immediately (before Firebase callback)
     _cpeUnlocked = true; _applySidebarLock();
     _renewalUnlocked = true; _applyRenewalLock();
