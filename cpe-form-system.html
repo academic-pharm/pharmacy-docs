@@ -2016,7 +2016,7 @@ function toggleNotifPanel(){
 /* ════════════════════════════════
    USER NOTIFICATIONS (from admin actions)
 ════════════════════════════════ */
-var _userNotifData = {orgReqs:{}, renewals:{}};
+var _userNotifData = {orgReqs:{}, renewals:{}, conferences:{}};
 var _userMyEmail = '';
 var _seenUserNotifs = (function(){ try{ return new Set(JSON.parse(localStorage.getItem('_cpe_user_seen')||'[]')); } catch(ex){ return new Set(); } })();
 // จุดแดงเมนู "สถานะการต่ออายุ" (user) — key รวม timestamp ของ record ล่าสุด + สถานะ
@@ -2030,6 +2030,7 @@ function _markUserSeen(key, nav){
   _refreshUserNotif();
   if(nav === 'main'){ sidebarGo('main'); toggleUserNotifPanel(); }
   else if(nav === 'renew-status'){ sidebarGo('renew-status'); toggleUserNotifPanel(); }
+  else if(nav === 'conf'){ sidebarGo('conf'); toggleUserNotifPanel(); }
 }
 
 function _setupUserNotifications(){
@@ -2052,6 +2053,15 @@ function _setupUserNotifications(){
     _userNotifData.renewals = snap.val()||{};
     _refreshUserNotif();
   });
+
+  // Conference results sent back from admin
+  var _userFbKey = emailToFbKey(_userMyEmail);
+  if(_userFbKey){
+    db.ref('pharma-form/'+_userFbKey+'/cpe-conferences').on('value', function(snap){
+      _userNotifData.conferences = snap.val()||{};
+      _refreshUserNotif();
+    });
+  }
 
   document.addEventListener('click', function(e){
     var wrap2 = document.getElementById('user-notif-wrap');
@@ -2088,6 +2098,13 @@ function _collectUserNotifItems(){
     });
   });
 
+  // Conference results sent back from admin
+  Object.entries(_userNotifData.conferences).forEach(function(e){
+    var cid = e[0], c = e[1]||{};
+    if(c.status === 'result_confirmed')
+      items.push({type:'conf_result', name:c.confName||cid, time:c.confirmedAt||'', key:'conf_result_'+cid});
+  });
+
   return items.sort(function(a,b){ return (b.time||'').localeCompare(a.time||''); });
 }
 
@@ -2111,7 +2128,8 @@ function _renderUserNotifList(items){
   var cfgMap = {
     org_approved: {label:'อนุมัติแล้ว',  bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'คำขอลงทะเบียนหน่วยงานได้รับการอนุมัติ', nav:'main'},
     org_rejected: {label:'ไม่อนุมัติ',   bg:'#FCEBEB',color:'#A32D2D',bdr:'#F09595',dot:'#ef4444',title:'คำขอลงทะเบียนหน่วยงานถูกปฏิเสธ',       nav:'main'},
-    renew_done:   {label:'ต่ออายุสำเร็จ',bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'เอกสารรับรองหน่วยงานพร้อมแล้ว',        nav:'renew-status'}
+    renew_done:   {label:'ต่ออายุสำเร็จ',bg:'#D6F5E8',color:'#1D6A3E',bdr:'#7FD3A8',dot:'#10b981',title:'เอกสารรับรองหน่วยงานพร้อมแล้ว',        nav:'renew-status'},
+    conf_result:  {label:'ผลการพิจารณา', bg:'#EFF6FF',color:'#1E3A8A',bdr:'#93C5FD',dot:'#3b82f6',title:'admin ส่งผลการพิจารณาประชุมวิชาการแล้ว', nav:'conf'}
   };
   list.innerHTML = items.map(function(n){
     var cfg = cfgMap[n.type]||{label:n.type,bg:'#eee',color:'#333',bdr:'#ccc',dot:'#888',title:n.name,nav:'main'};
