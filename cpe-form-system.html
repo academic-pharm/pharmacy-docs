@@ -2011,9 +2011,10 @@ function _renderNotifList(items){
   }
   list.innerHTML = items.map(function(n){
     var cfgN = {
-      org:   {label:'ลงทะเบียนหน่วยงาน', bg:'#E6F1FB', color:'#0C447C', bdr:'#85B7EB', dot:'#378ADD', icon:'🏢'},
-      renew: {label:'ส่งเอกสารต่ออายุ',   bg:'#FCEBEB', color:'#A32D2D', bdr:'#F09595', dot:'#ef4444', icon:'📄'},
-      conf:  {label:'ยื่นประชุมวิชาการ',   bg:'#EEEDFE', color:'#3C3489', bdr:'#AFA9EC', dot:'#7F77DD', icon:'🎓'}
+      org:     {label:'ลงทะเบียนหน่วยงาน', bg:'#E6F1FB', color:'#0C447C', bdr:'#85B7EB', dot:'#378ADD', icon:'🏢'},
+      renew:   {label:'ส่งเอกสารต่ออายุ',   bg:'#FCEBEB', color:'#A32D2D', bdr:'#F09595', dot:'#ef4444', icon:'📄'},
+      conf:    {label:'ยื่นประชุมวิชาการ',   bg:'#EEEDFE', color:'#3C3489', bdr:'#AFA9EC', dot:'#7F77DD', icon:'🎓'},
+      article: {label:'บทความวิชาการ',       bg:'#ECFDF5', color:'#065f46', bdr:'#6EE7B7', dot:'#10b981', icon:'📝'}
     }[n.type]||{label:n.type, bg:'#eee', color:'#333', bdr:'#ccc', dot:'#888', icon:'📌'};
     var seen = _seenNotifs.has(n.key);
     var timeStr = n.time ? new Date(n.time).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
