@@ -6447,6 +6447,12 @@ function sidebarGo(section){
   if(section === 'main'){
     showView('status');
     if(isAdmin){ switchTab('admin-manage'); _markMainNotifsSeen(); }
+    else {
+      // ซ่อน tab panels ทั้งหมด (เช่น user-conf-section ที่ค้างอยู่)
+      document.querySelectorAll('[data-tab]').forEach(function(el){ el.style.display='none'; });
+      // reset tab button active state
+      document.querySelectorAll('.mtab').forEach(function(btn){ btn.classList.remove('active'); });
+    }
     // คืน my-requests-section ถ้ามีข้อมูล (ไม่แสดงสำหรับ admin)
     var _mrs = document.getElementById('my-requests-section');
     var _mrw = document.getElementById('my-requests-wrap');
