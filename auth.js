@@ -18,6 +18,7 @@ const AUTH_CONFIG = {
 
   // รายชื่ออีเมลที่อนุญาตให้เข้าสู่ระบบ (เพิ่ม/ลบได้ที่นี่)
   ALLOWED_EMAILS: [
+    'zporsupreme9@gmail.com',
     'nuttinee@go.buu.ac.th',
     'totsapol@go.buu.ac.th',
     'sunan@go.buu.ac.th',
