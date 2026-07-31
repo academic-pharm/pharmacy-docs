@@ -7565,8 +7565,8 @@ function _buildAdminArtStepper(st, a, safeId, aid){
   }
   function _doneTag(label){ return '<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 9px;white-space:nowrap;flex-shrink:0">✓ '+label+'</span>'; }
 
-  var s0=_s(0),s1=_s(1),s2=_s(2),s3=_s(3),s4=_s(4),s5=_s(5),s6=_s(6);
-  var b1='',b2='',b3='',b4='',b5='',b6='',b7='';
+  var s0=_s(0),s1=_s(1),s2=_s(2),s3=_s(4),s4=_s(5),s5=_s(6);
+  var b1='',b2='',b3='',b4='',b5='',b6='';
 
   // Step 1 — ตรวจสอบเอกสาร (submitted → docs_reviewed)
   if(s0==='active'){
@@ -7580,7 +7580,7 @@ function _buildAdminArtStepper(st, a, safeId, aid){
     b1='<div style="'+TL+'">ขั้นตอนที่ 1 — ตรวจสอบเอกสาร</div>';
   }
 
-  // Step 2 — ส่งผู้ทรงฯ รอบ 1 (docs_reviewed → sent_to_experts)
+  // Step 2 — ส่งผู้ทรงฯ พิจารณา (docs_reviewed → sent_to_experts)
   if(s1==='active'){
     b2='<div style="'+T+'">ขั้นตอนที่ 2 — ส่งผู้ทรงฯ พิจารณา</div>'
       +'<div style="'+D+'">เอกสารผ่านแล้ว — จัดรูปแบบและส่งให้ผู้ทรงคุณวุฒิพิจารณา</div>'
@@ -7592,69 +7592,58 @@ function _buildAdminArtStepper(st, a, safeId, aid){
     b2='<div style="'+TL+'">ขั้นตอนที่ 2 — ส่งผู้ทรงฯ พิจารณา</div><div style="'+DL+'">ปลดล็อกเมื่อยืนยันเอกสารแล้ว</div>';
   }
 
-  // Step 3 — รอผู้ทรง รอบ 1 (sent_to_experts)
+  // Step 3 — ส่งผลรอบ 1 ให้ User (expert_feedback_r1)
   if(s2==='active'){
-    b3='<div style="'+T+'">ขั้นตอนที่ 3 — รอผู้ทรงฯ รอบ 1</div>'
-      +'<div style="font-size:.75rem;font-weight:600;color:#b45309;background:rgba(217,119,6,.07);border-radius:20px;display:inline-flex;padding:2px 9px;margin-top:2px">⏳ รอผู้ทรงฯพิจารณา รอบ 1</div>';
-  } else if(s2==='done'){
-    b3='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
-      +'<div style="'+T+'">ขั้นตอนที่ 3 — รอผู้ทรงฯ รอบ 1</div>'+_doneTag('ได้รับผลแล้ว')+'</div>';
-  } else {
-    b3='<div style="'+TL+'">ขั้นตอนที่ 3 — รอผู้ทรงฯ รอบ 1</div><div style="'+DL+'">ปลดล็อกเมื่อส่งผู้ทรงฯแล้ว</div>';
-  }
-
-  // Step 4 — ส่งผลรอบ 1 ให้ User (expert_feedback_r1)
-  if(s3==='active'){
-    b4='<div style="'+T+'">ขั้นตอนที่ 4 — ส่งผลรอบ 1 ให้ User</div>'
+    b3='<div style="'+T+'">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div>'
       +'<div style="'+D+'">ผู้ทรงฯส่งผลแล้ว — แนบเอกสาร Feedback ให้ user แก้ไข</div>'
       +'<button class="btn btn-outline btn-sm" style="border-color:rgba(217,119,6,.5);color:#b45309" onclick="openArtFeedbackModal(\''+safeId+'\',\''+aid+'\')">📤 แนบเอกสารรอบ 1 ให้ User</button>';
-  } else if(s3==='done'){
-    b4='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
-      +'<div style="'+T+'">ขั้นตอนที่ 4 — ส่งผลรอบ 1 ให้ User</div>'+_doneTag('ส่งแล้ว')+'</div>';
+  } else if(s2==='done'){
+    b3='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div>'+_doneTag('ส่งแล้ว')+'</div>';
   } else {
-    b4='<div style="'+TL+'">ขั้นตอนที่ 4 — ส่งผลรอบ 1 ให้ User</div><div style="'+DL+'">ปลดล็อกเมื่อได้รับผลจากผู้ทรงฯ</div>';
+    b3='<div style="'+TL+'">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div><div style="'+DL+'">ปลดล็อกเมื่อส่งผู้ทรงฯแล้ว</div>';
   }
 
-  // Step 5 — ส่งผู้ทรง รอบ 2 (user_revised_r1)
-  if(s4==='active'){
-    b5='<div style="'+T+'">ขั้นตอนที่ 5 — ส่งผู้ทรงฯ รอบ 2</div>'
+  // Step 4 — ส่งผู้ทรง รอบ 2 (user_revised_r1)
+  if(s3==='active'){
+    b4='<div style="'+T+'">ขั้นตอนที่ 4 — ส่งผู้ทรงฯ รอบ 2</div>'
       +'<div style="'+D+'">User แก้ไขแล้ว — ส่งผู้ทรงฯพิจารณาอีกครั้ง</div>'
       +'<button class="btn btn-outline btn-sm" style="border-color:rgba(14,165,233,.5);color:#0369a1" onclick="artAdminSendToExperts(\''+safeId+'\',\''+aid+'\')">📧 ส่งผู้ทรงฯ รอบ 2</button>';
-  } else if(s4==='done'){
-    b5='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
-      +'<div style="'+T+'">ขั้นตอนที่ 5 — ส่งผู้ทรงฯ รอบ 2</div>'+_doneTag('ส่งแล้ว')+'</div>';
+  } else if(s3==='done'){
+    b4='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 4 — ส่งผู้ทรงฯ รอบ 2</div>'+_doneTag('ส่งแล้ว')+'</div>';
   } else {
-    b5='<div style="'+TL+'">ขั้นตอนที่ 5 — ส่งผู้ทรงฯ รอบ 2</div><div style="'+DL+'">ปลดล็อกเมื่อ user แก้ไขแล้ว</div>';
+    b4='<div style="'+TL+'">ขั้นตอนที่ 4 — ส่งผู้ทรงฯ รอบ 2</div><div style="'+DL+'">ปลดล็อกเมื่อ user แก้ไขแล้ว</div>';
   }
 
-  // Step 6 — แนบใบรับรอง + หน่วยกิต (expert_certified)
-  if(s5==='active'){
-    b6='<div style="'+T+'">ขั้นตอนที่ 6 — แนบใบรับรอง + หน่วยกิต</div>'
+  // Step 5 — แนบใบรับรอง + หน่วยกิต (expert_certified)
+  if(s4==='active'){
+    b5='<div style="'+T+'">ขั้นตอนที่ 5 — แนบใบรับรอง + หน่วยกิต</div>'
       +'<div style="'+D+'">ผู้ทรงฯรับรองแล้ว — แนบใบรับรองและระบุหน่วยกิต CPE</div>'
       +'<button class="btn btn-outline btn-sm" style="border-color:rgba(109,40,217,.5);color:#6d28d9" onclick="openArtCertModal(\''+safeId+'\',\''+aid+'\')">📜 แนบใบรับรอง + หน่วยกิต</button>';
-  } else if(s5==='done'){
-    b6='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
-      +'<div style="'+T+'">ขั้นตอนที่ 6 — แนบใบรับรอง + หน่วยกิต</div>'+_doneTag('แนบแล้ว'+(a.creditUnits?' · '+a.creditUnits+' หน่วยกิต':''))+'</div>';
+  } else if(s4==='done'){
+    b5='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 5 — แนบใบรับรอง + หน่วยกิต</div>'+_doneTag('แนบแล้ว'+(a.creditUnits?' · '+a.creditUnits+' หน่วยกิต':''))+'</div>';
   } else {
-    b6='<div style="'+TL+'">ขั้นตอนที่ 6 — แนบใบรับรอง + หน่วยกิต</div><div style="'+DL+'">ปลดล็อกเมื่อผู้ทรงฯรับรองแล้ว</div>';
+    b5='<div style="'+TL+'">ขั้นตอนที่ 5 — แนบใบรับรอง + หน่วยกิต</div><div style="'+DL+'">ปลดล็อกเมื่อผู้ทรงฯรับรองแล้ว</div>';
   }
 
-  // Step 7 — นำเข้า CCPE (user_final_revised)
-  if(s6==='active'){
-    b7='<div style="'+T+'">ขั้นตอนที่ 7 — นำเข้าระบบ CCPE</div>'
+  // Step 6 — นำเข้า CCPE (user_final_revised)
+  if(s5==='active'){
+    b6='<div style="'+T+'">ขั้นตอนที่ 6 — นำเข้าระบบ CCPE</div>'
       +'<div style="'+D+'">User ส่งฉบับสุดท้ายแล้ว — กดยืนยันเพื่อนำเข้าระบบ</div>'
       +'<button class="btn btn-outline btn-sm" style="border-color:rgba(5,150,105,.5);color:#059669" onclick="openArtCcpeModal(\''+aid+'\')">🌐 นำเข้าระบบ CCPE</button>';
-  } else if(s6==='done'||st==='completed'||st==='pending_ccpe'){
-    b7='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
-      +'<div style="'+T+'">ขั้นตอนที่ 7 — นำเข้าระบบ CCPE</div>'+_doneTag('เสร็จสิ้น')+'</div>';
+  } else if(s5==='done'||st==='completed'||st==='pending_ccpe'){
+    b6='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
+      +'<div style="'+T+'">ขั้นตอนที่ 6 — นำเข้าระบบ CCPE</div>'+_doneTag('เสร็จสิ้น')+'</div>';
   } else {
-    b7='<div style="'+TL+'">ขั้นตอนที่ 7 — นำเข้าระบบ CCPE</div><div style="'+DL+'">ปลดล็อกเมื่อ user ส่งฉบับสุดท้ายแล้ว</div>';
+    b6='<div style="'+TL+'">ขั้นตอนที่ 6 — นำเข้าระบบ CCPE</div><div style="'+DL+'">ปลดล็อกเมื่อ user ส่งฉบับสุดท้ายแล้ว</div>';
   }
 
   return '<div style="padding:10px 14px 12px;border-bottom:1px solid rgba(200,210,230,.2)">'
     +'<div style="font-size:.6rem;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:9px">ขั้นตอนการดำเนินการ</div>'
-    +_row(s0,s1,b1,false)+_row(s1,s2,b2,false)+_row(s2,s3,b3,false)+_row(s3,s4,b4,false)
-    +_row(s4,s5,b5,false)+_row(s5,s6,b6,false)+_row(s6,null,b7,true)
+    +_row(s0,s1,b1,false)+_row(s1,s2,b2,false)+_row(s2,s3,b3,false)
+    +_row(s3,s4,b4,false)+_row(s4,s5,b5,false)+_row(s5,null,b6,true)
   +'</div>';
 }
 
