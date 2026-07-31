@@ -169,9 +169,47 @@ function doGet(e) {
       return respond({ success:true, folderId: sub.getId(), folderUrl: sub.getUrl() });
     }
 
+    // action: 'setupCPEFolders' → สร้างโฟลเดอร์ CPE และย้ายโฟลเดอร์ย่อยเข้าไปเก็บรวมกัน
+    if (action === 'setupCPEFolders') {
+      return setupCPEFolders();
+    }
+
     return respond({ status:'CPE Upload API running' });
   } catch(err) {
     return respond({ success:false, error:err.toString() });
+  }
+}
+
+/* ─── Setup & Migrate CPE Folders ─── */
+function setupCPEFolders() {
+  try {
+    var cpeMain = getOrCreate(MAIN_CPE_FOLDER, null);
+    cpeMain.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    var targetNames = ['CPE เอกสารต่ออายุ', 'ค่าธรรมเนียม CPE'];
+    var movedList = [];
+
+    targetNames.forEach(function(name) {
+      var rootFolders = DriveApp.getRootFolder().getFoldersByName(name);
+      while (rootFolders.hasNext()) {
+        var folder = rootFolders.next();
+        if (folder.getId() !== cpeMain.getId()) {
+          folder.moveTo(cpeMain);
+          movedList.push(name);
+        }
+      }
+      getOrCreate(name, cpeMain);
+    });
+
+    return respond({
+      success: true,
+      message: 'สร้างและจัดระเบียบย้ายโฟลเดอร์เข้า CPE เรียบร้อยแล้ว',
+      cpeFolderId: cpeMain.getId(),
+      cpeFolderUrl: cpeMain.getUrl(),
+      movedFolders: movedList
+    });
+  } catch(err) {
+    return respond({ success: false, error: err.toString() });
   }
 }
 
