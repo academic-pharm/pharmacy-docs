@@ -9696,6 +9696,8 @@
       function _doneTag(label) { return '<span style="font-size:.7rem;font-weight:600;color:#059669;background:rgba(5,150,105,.1);border-radius:20px;padding:2px 9px;white-space:nowrap;flex-shrink:0">✓ ' + label + '</span>'; }
 
       var s0 = _s(0), s1 = _s(1), s2 = _s(2), s3 = _s(3), s4 = _s(4), s5 = _s(5), s6 = _s(6);
+      // s_b4: Step 3 unlock ทันทีที่ส่งผู้ทรงฯ (sent_to_experts) เสร็จ
+      var s_b4 = (s3 === 'done') ? 'done' : (s2 === 'active' || s3 === 'active') ? 'active' : 'locked';
       var b1 = '', b2 = '', b4 = '', b5 = '', b6 = '', b7 = '';
 
       // Step 1 — ตรวจสอบเอกสาร (submitted → docs_reviewed)
@@ -9724,15 +9726,15 @@
 
 
       // Step 3 — ส่งผลรอบ 1 ให้ User (expert_feedback_r1)
-      if (s3 === 'active') {
+      if (s_b4 === 'active') {
         b4 = '<div style="' + T + '">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div>'
           + '<div style="' + D + '">ผู้ทรงฯส่งผลแล้ว — แนบเอกสาร Feedback ให้ user แก้ไข</div>'
           + '<button class="btn btn-outline btn-sm" style="border-color:rgba(217,119,6,.5);color:#b45309" onclick="openArtFeedbackModal(\'' + safeId + '\',\'' + aid + '\')">📤 แนบเอกสารรอบ 1 ให้ User</button>';
-      } else if (s3 === 'done') {
+      } else if (s_b4 === 'done') {
         b4 = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
           + '<div style="' + T + '">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div>' + _doneTag('ส่งแล้ว') + '</div>';
       } else {
-        b4 = '<div style="' + TL + '">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div><div style="' + DL + '">ปลดล็อกเมื่อได้รับผลจากผู้ทรงฯ</div>';
+        b4 = '<div style="' + TL + '">ขั้นตอนที่ 3 — ส่งผลรอบ 1 ให้ User</div><div style="' + DL + '">ปลดล็อกเมื่อส่งผู้ทรงฯแล้ว</div>';
       }
 
       // Step 4 — ส่งผู้ทรง รอบ 2 (user_revised_r1)
@@ -9773,7 +9775,7 @@
 
       return '<div style="padding:10px 14px 12px;border-bottom:1px solid rgba(200,210,230,.2)">'
         + '<div style="font-size:.6rem;color:#9ca3af;font-weight:700;letter-spacing:.06em;margin-bottom:9px">ขั้นตอนการดำเนินการ</div>'
-        + _row(s0, s1, b1, false) + _row(s1, s3, b2, false) + _row(s3, s4, b4, false)
+        + _row(s0, s1, b1, false) + _row(s1, s_b4, b2, false) + _row(s_b4, s4, b4, false)
         + _row(s4, s5, b5, false) + _row(s5, s6, b6, false) + _row(s6, null, b7, true)
         + '</div>';
     }
