@@ -219,23 +219,30 @@ function setupCPEFolders() {
 /* ─── Revert CPE Folders Back to Root Level ─── */
 function revertCPEFolders() {
   try {
-    var cpeMainFolders = DriveApp.getRootFolder().getFoldersByName('CPE');
     var movedList = [];
+    var targetNames = ['CPE เอกสารต่ออายุ', 'ค่าธรรมเนียม CPE'];
 
+    targetNames.forEach(function(name) {
+      var folders = DriveApp.getFoldersByName(name);
+      while (folders.hasNext()) {
+        var folder = folders.next();
+        folder.moveTo(DriveApp.getRootFolder());
+        movedList.push(folder.getName());
+      }
+    });
+
+    // ลบโฟลเดอร์ CPE เปล่า (ถ้ามี)
+    var cpeMainFolders = DriveApp.getFoldersByName('CPE');
     while (cpeMainFolders.hasNext()) {
       var cpeFolder = cpeMainFolders.next();
-      var subFolders = cpeFolder.getFolders();
-      while (subFolders.hasNext()) {
-        var sub = subFolders.next();
-        sub.moveTo(DriveApp.getRootFolder());
-        movedList.push(sub.getName());
+      if (!cpeFolder.getFolders().hasNext() && !cpeFolder.getFiles().hasNext()) {
+        cpeFolder.setTrashed(true);
       }
-      cpeFolder.setTrashed(true);
     }
 
     return respond({
       success: true,
-      message: 'ย้ายโฟลเดอร์กลับมาไว้ที่หน้าหลัก (Root Level) เหมือนเดิมเรียบร้อยแล้ว',
+      message: 'ย้ายโฟลเดอร์ CPE เอกสารต่ออายุ และ ค่าธรรมเนียม CPE ออกมาไว้ที่หน้าหลัก (My Drive Root) เรียบร้อยแล้ว',
       movedFolders: movedList
     });
   } catch(err) {
