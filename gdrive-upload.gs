@@ -10,8 +10,9 @@
  * 4. คัดลอก Web app URL มาใส่ใน APPS_SCRIPT_URL ใน cpe-form-system.html
  */
 
-var ROOT_FOLDER  = 'CPE เอกสารต่ออายุ';
-var SHEET_NAME   = 'ข้อมูลโครงการบริการวิชาการและ CPE';   // ชื่อ Google Sheet
+var MAIN_CPE_FOLDER = 'CPE';
+var ROOT_FOLDER     = 'CPE เอกสารต่ออายุ';
+var SHEET_NAME      = 'ข้อมูลโครงการบริการวิชาการและ CPE';   // ชื่อ Google Sheet
 
 /* ─── Main POST handler ─── */
 function doPost(e) {
@@ -101,7 +102,8 @@ function doPost(e) {
     var orgName = data.orgName   || 'ไม่ระบุหน่วยงาน';
     var docType = data.docType   || 'document';
 
-    var root      = getOrCreate(ROOT_FOLDER, null);
+    var cpeMain   = getOrCreate(MAIN_CPE_FOLDER, null);
+    var root      = getOrCreate(ROOT_FOLDER, cpeMain);
     var orgFolder = getOrCreate(orgName, root);
 
     var bytes = Utilities.base64Decode(b64);
@@ -869,7 +871,8 @@ function logPaymentToSheet(data) {
     // 1. อัพโหลดไฟล์หลักฐานเข้า Drive (ถ้ามี)
     var receiptUrl = data.receiptUrl || '';
     if (data.base64 && data.base64.length > 0) {
-      var rootPay  = getOrCreate('ค่าธรรมเนียม CPE', null);
+      var cpeMain   = getOrCreate(MAIN_CPE_FOLDER, null);
+      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', cpeMain);
       var confName = (data.confName || 'ทั่วไป').replace(/[\/\\]/g, '-').substring(0, 60);
       var subFolder = getOrCreate(confName, rootPay);
       subFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -944,7 +947,8 @@ function confirmPaymentAction(data) {
     // 1. อัพโหลด PDF บิลใบเสร็จไป Drive
     var adminReceiptUrl = '';
     if (data.base64 && data.base64.length > 0) {
-      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', null);
+      var cpeMain   = getOrCreate(MAIN_CPE_FOLDER, null);
+      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', cpeMain);
       var confName  = (data.confName || 'ทั่วไป').replace(/[\/\\]/g, '-').substring(0, 60);
       var subFolder = getOrCreate(confName, rootPay);
       subFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
