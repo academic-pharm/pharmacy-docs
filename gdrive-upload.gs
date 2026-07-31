@@ -10,9 +10,8 @@
  * 4. คัดลอก Web app URL มาใส่ใน APPS_SCRIPT_URL ใน cpe-form-system.html
  */
 
-var MAIN_CPE_FOLDER = 'CPE';
-var ROOT_FOLDER     = 'CPE เอกสารต่ออายุ';
-var SHEET_NAME      = 'ข้อมูลโครงการบริการวิชาการและ CPE';   // ชื่อ Google Sheet
+var ROOT_FOLDER  = 'CPE เอกสารต่ออายุ';
+var SHEET_NAME   = 'ข้อมูลโครงการบริการวิชาการและ CPE';   // ชื่อ Google Sheet
 
 /* ─── Main POST handler ─── */
 function doPost(e) {
@@ -102,8 +101,7 @@ function doPost(e) {
     var orgName = data.orgName   || 'ไม่ระบุหน่วยงาน';
     var docType = data.docType   || 'document';
 
-    var cpeMain   = getOrCreate(MAIN_CPE_FOLDER, null);
-    var root      = getOrCreate(ROOT_FOLDER, cpeMain);
+    var root      = getOrCreate(ROOT_FOLDER, null);
     var orgFolder = getOrCreate(orgName, root);
 
     var bytes = Utilities.base64Decode(b64);
@@ -174,6 +172,11 @@ function doGet(e) {
       return setupCPEFolders();
     }
 
+    // action: 'revertCPEFolders' → ย้ายโฟลเดอร์กลับมาไว้หน้าหลักเหมือนเดิม
+    if (action === 'revertCPEFolders') {
+      return revertCPEFolders();
+    }
+
     return respond({ status:'CPE Upload API running' });
   } catch(err) {
     return respond({ success:false, error:err.toString() });
@@ -206,6 +209,33 @@ function setupCPEFolders() {
       message: 'สร้างและจัดระเบียบย้ายโฟลเดอร์เข้า CPE เรียบร้อยแล้ว',
       cpeFolderId: cpeMain.getId(),
       cpeFolderUrl: cpeMain.getUrl(),
+      movedFolders: movedList
+    });
+  } catch(err) {
+    return respond({ success: false, error: err.toString() });
+  }
+}
+
+/* ─── Revert CPE Folders Back to Root Level ─── */
+function revertCPEFolders() {
+  try {
+    var cpeMainFolders = DriveApp.getRootFolder().getFoldersByName('CPE');
+    var movedList = [];
+
+    while (cpeMainFolders.hasNext()) {
+      var cpeFolder = cpeMainFolders.next();
+      var subFolders = cpeFolder.getFolders();
+      while (subFolders.hasNext()) {
+        var sub = subFolders.next();
+        sub.moveTo(DriveApp.getRootFolder());
+        movedList.push(sub.getName());
+      }
+      cpeFolder.setTrashed(true);
+    }
+
+    return respond({
+      success: true,
+      message: 'ย้ายโฟลเดอร์กลับมาไว้ที่หน้าหลัก (Root Level) เหมือนเดิมเรียบร้อยแล้ว',
       movedFolders: movedList
     });
   } catch(err) {
@@ -909,8 +939,7 @@ function logPaymentToSheet(data) {
     // 1. อัพโหลดไฟล์หลักฐานเข้า Drive (ถ้ามี)
     var receiptUrl = data.receiptUrl || '';
     if (data.base64 && data.base64.length > 0) {
-      var cpeMain   = getOrCreate(MAIN_CPE_FOLDER, null);
-      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', cpeMain);
+      var rootPay  = getOrCreate('ค่าธรรมเนียม CPE', null);
       var confName = (data.confName || 'ทั่วไป').replace(/[\/\\]/g, '-').substring(0, 60);
       var subFolder = getOrCreate(confName, rootPay);
       subFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -985,8 +1014,7 @@ function confirmPaymentAction(data) {
     // 1. อัพโหลด PDF บิลใบเสร็จไป Drive
     var adminReceiptUrl = '';
     if (data.base64 && data.base64.length > 0) {
-      var cpeMain   = getOrCreate(MAIN_CPE_FOLDER, null);
-      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', cpeMain);
+      var rootPay   = getOrCreate('ค่าธรรมเนียม CPE', null);
       var confName  = (data.confName || 'ทั่วไป').replace(/[\/\\]/g, '-').substring(0, 60);
       var subFolder = getOrCreate(confName, rootPay);
       subFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
