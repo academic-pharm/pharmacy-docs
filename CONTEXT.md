@@ -241,3 +241,5 @@ if (!wrap.innerHTML.trim()) section.style.display = 'none';
 ---
 
 *append session ใหม่ด้านบน (reverse chronological) ทุกครั้งที่บอก "สรุป session"*
+
+*ถ้า user บอก "จำจดข้อมูลทั้งหมด" หรือ "บันทึกข้อมูลทั้งหมด" (ไม่ใช่แค่ "สรุป session") — บันทึกลง 3 ที่เสมอ: `CLAUDE.md` (fact ที่ถาวร) + `CONTEXT.md` (ไฟล์นี้) + mem0 (user_id: zporsupreme@gmail.com) ไม่ใช่แค่ที่เดียว (ตกลงกับ user ไว้ 2026-08-01)*
