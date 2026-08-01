@@ -48,8 +48,11 @@ emailToFbKey(email) // replaces . → _ and @ → __
 // e.g. zporsupreme@gmail.com → zporsupreme__gmail_com
 ```
 
-**สำคัญ:** ใช้ `_canonicalEmail` ไม่ใช่ `currentUser.email`  
-User login ด้วย alias gmail แต่ข้อมูลเก็บภายใต้ BUU email → ถ้าใช้ `currentUser.email` ตรงๆ จะ return empty array
+**สำคัญ:** ใช้ `getCanonicalEmail()` ไม่ใช่ `currentUser.email` ตรงๆ  
+User login ด้วย alias gmail แต่ข้อมูลเก็บภายใต้ BUU email → ถ้าใช้ `currentUser.email` ตรงๆ จะ return empty array  
+`getCanonicalEmail()` อ่านจาก module-level var `_canonicalEmail` ที่ resolve ผ่าน `_resolveEmail()` (query `_aliases`) แบบ **fire-and-forget ในพื้นหลังเท่านั้น**
+
+⚠️ **ห้ามทำให้ `initAuth()` รอ (`await`/`.then()`) ผลของ `_resolveEmail()` ก่อนเรียก `loadMyOrgRequests`/`loadOrgRequests`/ฯลฯ เด็ดขาด** — เคยลองแล้ว promise ค้างเงียบๆ ไม่ resolve/reject เลย (ไม่มี error ใน console) ทำให้ข้อมูลทั้งฝั่ง user และ admin หายทั้งหน้าใน production (ดู CONTEXT.md session 2026-08-01 เพิ่มเติม 2) แก้โดยให้ `initAuth()` โหลดข้อมูลแบบ synchronous เหมือนเดิมเสมอ แล้วค่อย resolve email ทีหลังแบบไม่ block อะไร
 
 ---
 
@@ -57,17 +60,35 @@ User login ด้วย alias gmail แต่ข้อมูลเก็บภ�
 
 ```
 pharma-form/
-├── _org_requests/{key}                    # คำขอลงทะเบียนหน่วยงาน
-├── _cpe_orgs/{orgKey}                     # หน่วยงานที่อนุมัติแล้ว
-├── _cpe_renewals/{orgKey}/{timestamp}     # การต่ออายุ
-├── _cpe_conferences/{confId}              # ประชุมวิชาการ (ทั้งหมด)
-├── _all_articles/{aid}                    # บทความ (ทั้งหมด)
-├── _aliases/{emailFbKey}                  # email alias → canonical email
-├── _settings/                             # ตั้งค่าระบบ
+├── _org_requests/{key}                    # คำขอลงทะเบียนหน่วยงาน — เจ้าของ: submittedBy
+├── _cpe_orgs/{orgKey}                     # หน่วยงานที่อนุมัติแล้ว — เขียนได้แค่ admin
+├── _cpe_renewals/{orgKey}/{timestamp}     # การต่ออายุ — ⚠️ ไม่มี field ระบุผู้ส่ง (ไม่มี owner model)
+├── _all_cpe_conferences/{confId}          # ประชุมวิชาการ (ทั้งหมด) — เจ้าของ: createdBy — อ่านได้แค่ admin (มี PII)
+├── _all_articles/{aid}                    # บทความ (ทั้งหมด) — เจ้าของ: userEmail (ไม่ใช่ submittedBy!) — อ่านได้แค่ admin
+├── _aliases/{emailFbKey}                  # email alias → canonical email — เขียนได้แค่ admin (ผ่าน console เท่านั้น ไม่มี UI)
+├── _users/{emailFbKey}                    # registry ของ academic-form-system.html
+├── _approved_/approved-docs, approved-pdf # academic-form-system.html เท่านั้น
+├── _settings/                             # ตั้งค่าระบบ — อ่านได้ทุกคน เขียนได้แค่ admin
 └── {emailFbKey}/
-    ├── cpe-conferences/{confId}           # ประชุมวิชาการ (ของ user)
-    └── articles/{aid}                     # บทความ (ของ user)
+    ├── cpe-conferences/{confId}           # ประชุมวิชาการ (ของ user) — สำเนาส่วนตัว
+    └── articles/{aid}                     # บทความ (ของ user) — สำเนาส่วนตัว
 ```
+
+⚠️ **`_all_cpe_conferences` และ `_cpe_conferences` ไม่ใช่ path เดียวกัน** — ชื่อจริงในโค้ดคือ `_all_cpe_conferences` เท่านั้น (path เก่าที่เคยเขียนผิดในเอกสารนี้แก้ไขแล้ว 2026-08-01)
+
+---
+
+## Security Model — Firebase RTDB Rules คือด่านป้องกันจริง ไม่ใช่ JS
+
+⚠️ **`if (isAdmin)` ในโค้ด JS เป็นแค่ UX (ซ่อนปุ่ม) ไม่ใช่ security boundary** — แอปนี้ไม่มี backend เป็นของตัวเอง ผู้ใช้เปิด browser console เรียก Firebase SDK ตรงๆ ได้เสมอ **Firebase Realtime Database Security Rules คือด่านป้องกันจริงด่านเดียว**
+
+Rules ปัจจุบัน (deploy แล้ว 2026-08-01, เก็บสำเนาไว้ที่ `firebase-rtdb-rules-proposed.json`):
+- `_cpe_orgs` เขียนได้แค่ admin (`auth.token.email == 'thiraphong.ge@go.buu.ac.th'`)
+- `_org_requests` / `_cpe_renewals`: สร้างใหม่ทำได้ทุกคนที่ login, **แก้ไข/อนุมัติได้แค่ admin**
+- `_all_cpe_conferences` / `_all_articles`: **อ่านได้แค่ admin**, เขียนได้เฉพาะเจ้าของเรคคอร์ด (เช็ค `createdBy`/`userEmail`) หรือ admin
+- `$userFbKey` subtree ส่วนตัว (`{email}/articles` ฯลฯ): ยังเป็น `auth != null` (ไม่ล็อคเจาะจงเจ้าของ) — ตั้งใจเว้นไว้เพราะ Firebase Rules ภาษา native แปลง email → key (`.`→`_`, `@`→`__`) แบบแม่นยำไม่ได้ ไม่อันตรายมากเพราะ `_all_*` (ที่ล็อคแล้ว) คือแหล่งข้อมูลที่ admin เชื่อถือจริง ไม่ใช่สำเนานี้
+
+**ก่อนเพิ่ม Firebase path หรือฟีเจอร์ใหม่ที่มีการเขียนข้อมูล:** ต้องเช็ค/อัปเดต Rules คู่กันเสมอ อย่าพึ่ง `isAdmin` check ใน JS เพียงอย่างเดียว — ดูรายละเอียดการออกแบบและ test case ทั้งหมดใน CONTEXT.md (session 2026-08-01 เพิ่มเติม 3)
 
 ---
 
