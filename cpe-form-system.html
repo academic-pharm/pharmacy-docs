@@ -5939,26 +5939,29 @@
           if (!data || !Object.keys(data).length) return; // ยังไม่เคยส่ง → แสดง upload ปกติ
           var latest = Object.values(data)[0];
           if (latest.status !== 'ต่ออายุแล้ว') return; // ยังไม่สมบูรณ์ → แสดง upload ปกติ
-          // ต่ออายุสมบูรณ์แล้ว → ล็อค upload form
+          // หาวันหมดอายุจาก allOrgs หรือ _cpe_orgs
+          var orgData = allOrgs[orgKey] || {};
+          var expiryDate = orgData.expiryDate || '';
+          var expiryStr = '';
+          var reminderStr = '';
+          var daysLeft = null;
+          if (expiryDate) {
+            var expD = new Date(expiryDate + 'T00:00:00');
+            var nowD = new Date(); nowD.setHours(0, 0, 0, 0);
+            daysLeft = Math.ceil((expD - nowD) / 86400000);
+            expiryStr = expD.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
+            var remD = new Date(expD); remD.setDate(remD.getDate() - 90);
+            reminderStr = remD.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
+          }
+          if (daysLeft !== null && daysLeft <= 90) return; // ถึงช่วงแจ้งเตือนต่ออายุแล้ว → แสดง upload ปกติ
+          // ต่ออายุสมบูรณ์แล้ว และยังไม่ถึงช่วงแจ้งเตือน → ล็อค upload form
           var _up = document.getElementById('renew-upload-section');
           var _sm = document.getElementById('renew-submit-section');
           var _cn = document.getElementById('renew-complete-notice');
           if (_up) _up.style.display = 'none';
           if (_sm) _sm.style.display = 'none';
           if (!_cn) return;
-          // คำนวณวันที่
           var completedAt = latest.completedAt ? new Date(latest.completedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }) : '';
-          // หาวันหมดอายุจาก allOrgs หรือ _cpe_orgs
-          var orgData = allOrgs[orgKey] || {};
-          var expiryDate = orgData.expiryDate || '';
-          var expiryStr = '';
-          var reminderStr = '';
-          if (expiryDate) {
-            var expD = new Date(expiryDate);
-            expiryStr = expD.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
-            var remD = new Date(expD); remD.setDate(remD.getDate() - 90);
-            reminderStr = remD.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
-          }
           _cn.style.display = 'block';
           _cn.innerHTML =
             '<div class="fsec" style="margin-bottom:0">'
