@@ -4725,6 +4725,18 @@
         );
         // ลบข้อมูลการต่ออายุ → reset สถานะของ user กลับขั้นตอนแรก
         db.ref('pharma-form/_cpe_renewals/' + key).remove();
+        // ถ้า org นี้มาจาก request → ล้าง orgCode/dates ใน _org_requests
+        // เพื่อให้ฝั่ง user เห็นว่าสถาบันถูกลบออกจากระบบแล้ว
+        if (org.fromRequest) {
+          db.ref('pharma-form/_org_requests/' + org.fromRequest).update({
+            orgCode: null,
+            registrationDate: null,
+            expiryDate: null,
+            orgKey: null,
+            deletedByAdmin: true,
+            deletedByAdminAt: new Date().toISOString()
+          });
+        }
       } catch (e) { console.warn(e); }
       delete allOrgs[key];
       renderOrgList();
