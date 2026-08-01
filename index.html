@@ -944,10 +944,6 @@ document.addEventListener('DOMContentLoaded',()=>{
       const proj=document.getElementById('proj-card');
       if(cpe) cpe.style.display='flex';
       if(proj)proj.style.display='flex';
-    } else {
-      // regular user: ซ่อน card งบประมาณ
-      const bc=document.getElementById('idxBudgetCard');
-      if(bc) bc.style.display='none';
     }
   } else {
     document.getElementById('auth-bar').innerHTML=
