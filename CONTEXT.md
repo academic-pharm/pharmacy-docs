@@ -132,6 +132,18 @@
 
 ---
 
+## 2026-08-01 (เพิ่มเติม 2)
+
+### 📄 CLAUDE.md ถูก enrich โดย Claude Code
+
+Claude Code อ่านโค้ดจริงแล้วเพิ่มเนื้อหาเข้า CLAUDE.md:
+- `getCanonicalEmail()` — อ่านจาก `_canonicalEmail` ที่ resolve ผ่าน `_resolveEmail()` แบบ fire-and-forget เท่านั้น
+- ⚠️ ห้ามให้ `initAuth()` รอ (`await`/`.then()`) ผลของ `_resolveEmail()` — เคยลองแล้ว promise ค้างเงียบๆ ทำให้หน้าว่างเปล่าทั้งหน้าใน production
+- Security Model — Firebase RTDB Rules คือด่านป้องกันจริง ไม่ใช่ JS `if (isAdmin)` check
+- Firebase paths พร้อม security notes ครบ (`_all_cpe_conferences` ไม่ใช่ `_cpe_conferences`)
+
+---
+
 ## 2026-08-01 (เพิ่มเติม)
 
 ### 🐛 Bug fix — Council modal แสดงไฟล์ไม่ครบ (commit bb7ed05)
