@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-08-01 (เพิ่มเติม 2)
+
+### 🐛 Bug fix — ฟอร์มต่ออายุล็อคค้างถาวร ไม่ปลดล็อคในช่วง 90 วันก่อนหมดอายุ (commit af8cadf)
+
+**ปัญหา:** user เห็นในหน้า status ว่า org เหลืออายุ 28 วัน (ต่ำกว่า 90 วันที่ระบบบอกว่าจะแจ้งเตือน) แต่กดเข้าไปหน้า "ต่ออายุล่วงหน้า" กลับล็อคอยู่ ("ยังไม่ถึงเวลาต่ออายุ")
+
+**root cause:** `_checkRenewalLock()` เช็คแค่ว่า renewal ล่าสุดมี status `'ต่ออายุแล้ว'` หรือไม่ — ถ้าใช่ล็อคฟอร์มทันที **ไม่เคยเทียบวันที่จริงเลย** ข้อความ "แจ้งเตือน 90 วันก่อนหมดอายุ" เป็นแค่ text แสดงผล ไม่มีโค้ดจุดไหนไปปลดล็อคคืนเมื่อถึงช่วงจริง → ฟอร์มจะล็อคค้างไปตลอดจนกว่าจะหมดอายุจริง
+
+**fix:** เพิ่มคำนวณ `daysLeft` จาก `expiryDate` (ใช้สูตรเดียวกับจุดอื่นในระบบ) ถ้า `daysLeft <= 90` ให้ `return` แสดงฟอร์ม upload ปกติแทนการล็อค — สอดคล้องกับ threshold 90 วันที่ระบบใช้อยู่ทุกที่ (`daysLeft <= 90` ที่ line 4459, 4969, 5048 ฯลฯ)
+
+---
+
+### 🐛 Bug fix — Article status "docs_reviewed" โชว์เป็น raw code ให้ user เห็น (commit 2138cbb)
+
+**ปัญหา:** ช่วงที่ admin ยืนยันรับเอกสารบทความแล้วแต่ยังไม่ส่งผู้ทรงคุณวุฒิ (`status: 'docs_reviewed'`) user จะเห็นคำว่า **"docs_reviewed"** โผล่ตรงๆ ทั้งใน stepper และ status pill แทนข้อความไทย
+
+**root cause:** `artStatusLabel()` (line 8879) และ inline map `M` ใน stepper (line 8975) ไม่มี key `docs_reviewed` เลย ทั้งที่เป็น status จริงที่ admin set ได้ (line 9878) → fallback `M[st] || st` เลยโชว์ raw string
+
+**fix:** เพิ่ม label ภาษาไทยให้ทั้ง 2 จุด
+
+---
+
+### 🐛 Bug fix — `_canonicalEmail` ไม่เคยถูก resolve จริง ใช้แค่ fallback เสมอ (commit 5e8295c)
+
+**ปัญหา:** CLAUDE.md เตือนให้ใช้ `_canonicalEmail` ไม่ใช่ `currentUser.email` แต่จริงๆ แล้ว `cpe-form-system.html` ไม่เคย resolve ค่านี้เลย — `getCanonicalEmail()` อ่าน `currentUser._canonicalEmail` ซึ่งไม่มีโค้ดจุดไหน set property นี้เลยในทั้งไฟล์ จึง fallback ไปใช้ `currentUser.email` (อีเมล login) ตลอด
+
+**root cause (เทียบกับ academic-form-system.html ที่ทำถูก):** academic-form-system.html เก็บ canonical email เป็น **module-level variable แยกต่างหาก** (`let _canonicalEmail`) แล้ว resolve แบบ async ผ่าน `_resolveEmail()` ที่ query `pharma-form/_aliases/{key}` — แต่ cpe-form-system.html คาดหวังผิดว่ามันเป็น property บน `currentUser` object ซึ่งไม่มีจุดไหน set ให้เลย
+
+**ตรวจสอบ impact จริงก่อนแก้:** เปิด Firebase console (`pharmacy-buu` → Realtime Database → `pharma-form/_aliases`) พบ alias เดียว: `thiraphong.psw@gmail.com → thiraphong.ge@go.buu.ac.th` — แต่ `thiraphong.psw@gmail.com` ไม่อยู่ใน `ALLOWED_EMAILS` ของ `auth.js` เลย ดังนั้นตอนนั้นยังไม่มี user จริงคนไหนได้รับผลกระทบ (แต่ถ้าวันไหนเพิ่มอีเมลนี้เข้า ALLOWED_EMAILS จะกระทบทันที)
+
+**fix:**
+1. เพิ่ม `var _canonicalEmail = null;` (module-level) + `_resolveEmail(email)` ที่ query `_aliases` จริง (pattern เดียวกับ academic-form-system.html)
+2. `getCanonicalEmail()` อ่านจากตัวแปรนี้แทน property ที่ไม่เคยมี
+3. `initAuth()` รอ resolve email เสร็จก่อน ค่อยเรียก `loadMyOrgRequests`/`loadMyConferences`/`_setupUserNotifications`/`_setupAdminNotifications` — เพราะ listener พวกนี้ capture email เป็น closure ครั้งเดียวตอนสร้าง ถ้าเรียกก่อน resolve เสร็จจะค้างใช้ email ผิดไปตลอด session ส่วน UI ที่ไม่ต้องรอข้อมูล (badge, sidebar) ยังคง synchronous เหมือนเดิม (ตามปัญหา var hoisting ที่ CLAUDE.md เตือนไว้)
+4. แก้จุดที่เหลือ (`loadMyConferences` line ~5480, `submitPaymentInfo` line ~8644) ที่เคยอ่าน `user._canonicalEmail` ตรงๆ ให้เรียกผ่าน `getCanonicalEmail()` แทน
+
+**ยังไม่ได้ทดสอบ login จริง** เพราะ Google OAuth origin อนุญาตแค่ `academic-pharm.github.io` — ต้องรอ push แล้วทดสอบบน production
+
+---
+
+### 📌 State ปัจจุบัน (2026-08-01 เพิ่มเติม 2)
+
+- Commit ที่ยังไม่ push: `af8cadf`, `2138cbb`, `5e8295c` (ต่อจาก `bb7ed05`)
+- ทุกจุดผ่าน `node --check` (syntax เท่านั้น ยังไม่ได้ทดสอบ runtime บน production)
+- Pending: user push commits ด้วยตัวเองจาก Windows terminal, ทดสอบ login จริงหลัง push
+
+---
+
 ## 2026-08-01 (เพิ่มเติม)
 
 ### 🐛 Bug fix — Council modal แสดงไฟล์ไม่ครบ (commit bb7ed05)
