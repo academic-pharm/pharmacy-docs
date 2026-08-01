@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-08-01 (เพิ่มเติม 5)
+
+### 🔓 เปิด pharma-form read ให้ทุก user ที่ login — dashboard index.html
+
+**ปัญหา:** `index.html` dashboard แสดง PERMISSION_DENIED สำหรับ non-admin เพราะ `pharma-form` root อ่านได้แค่ admin ตาม rules จาก "เพิ่มเติม 3"
+
+**root cause:** `db.ref('pharma-form').on('value', ...)` ใน index.html อ่าน parent node ทั้งก้อน — non-admin เจอ PERMISSION_DENIED ทันที แม้ child paths หลายอันจะมีสิทธิ์ `auth != null` ก็ตาม
+
+**สิ่งที่ลองแล้วไม่ work:** แยก read เป็น specific paths (`_settings`, `_cpe_orgs`, `_org_requests`, `_cpe_renewals`, `_approved_`) — dashboard ไม่แสดง PERMISSION_DENIED แต่ตัวเลขยังเป็น 0 เพราะ `_users` (ต้องการสำหรับ enumerate all user emails เพื่อรวมโครงการ/งบ) เป็น admin-only
+
+**แก้:** เปลี่ยน Firebase Rules `pharma-form: { ".read": "auth != null" }` (จาก admin-only) + simplify JS code ให้ทุก user อ่าน `pharma-form` ได้เหมือนกัน
+
+**trade-off ที่ยอมรับ:** `_all_cpe_conferences` และ `_all_articles` (มี PII) cascade เป็นอ่านได้ทุกคนที่ login — ยอมรับได้สำหรับระบบภายในที่มี user น้อย (4 คน)
+
+**commits:** be61b0c, 0da62dc, 59fae5f, fd6d177, c969e40
+
+---
+
 ## 2026-08-01 (เพิ่มเติม 3)
 
 ### 🔒 Security audit — พบและปิดช่องโหว่ Firebase Rules เปิดกว้างทั้งฐานข้อมูล
@@ -132,7 +150,7 @@
 
 ---
 
-## 2026-08-01 (เพิ่มเติม 2)
+## 2026-08-01 (เพิ่มเติม 4)
 
 ### 📄 CLAUDE.md ถูก enrich โดย Claude Code
 

@@ -82,11 +82,12 @@ pharma-form/
 
 ⚠️ **`if (isAdmin)` ในโค้ด JS เป็นแค่ UX (ซ่อนปุ่ม) ไม่ใช่ security boundary** — แอปนี้ไม่มี backend เป็นของตัวเอง ผู้ใช้เปิด browser console เรียก Firebase SDK ตรงๆ ได้เสมอ **Firebase Realtime Database Security Rules คือด่านป้องกันจริงด่านเดียว**
 
-Rules ปัจจุบัน (deploy แล้ว 2026-08-01, เก็บสำเนาไว้ที่ `firebase-rtdb-rules-proposed.json`):
+Rules ปัจจุบัน (อัปเดต 2026-08-01, เก็บสำเนาไว้ที่ `firebase-rtdb-rules-proposed.json`):
+- `pharma-form` root: **อ่านได้ทุกคนที่ login** (`auth != null`) — เปิดเพื่อให้ dashboard index แสดงข้อมูลได้ครบสำหรับทุก user
 - `_cpe_orgs` เขียนได้แค่ admin (`auth.token.email == 'thiraphong.ge@go.buu.ac.th'`)
 - `_org_requests` / `_cpe_renewals`: สร้างใหม่ทำได้ทุกคนที่ login, **แก้ไข/อนุมัติได้แค่ admin**
-- `_all_cpe_conferences` / `_all_articles`: **อ่านได้แค่ admin**, เขียนได้เฉพาะเจ้าของเรคคอร์ด (เช็ค `createdBy`/`userEmail`) หรือ admin
-- `$userFbKey` subtree ส่วนตัว (`{email}/articles` ฯลฯ): ยังเป็น `auth != null` (ไม่ล็อคเจาะจงเจ้าของ) — ตั้งใจเว้นไว้เพราะ Firebase Rules ภาษา native แปลง email → key (`.`→`_`, `@`→`__`) แบบแม่นยำไม่ได้ ไม่อันตรายมากเพราะ `_all_*` (ที่ล็อคแล้ว) คือแหล่งข้อมูลที่ admin เชื่อถือจริง ไม่ใช่สำเนานี้
+- `_all_cpe_conferences` / `_all_articles`: เขียนได้เฉพาะเจ้าของเรคคอร์ด (เช็ค `createdBy`/`userEmail`) หรือ admin — **read ได้ทุกคนที่ login** (cascade จาก parent)
+- `$userFbKey` subtree ส่วนตัว: `auth != null` (ไม่ล็อคเจาะจงเจ้าของ)
 
 **ก่อนเพิ่ม Firebase path หรือฟีเจอร์ใหม่ที่มีการเขียนข้อมูล:** ต้องเช็ค/อัปเดต Rules คู่กันเสมอ อย่าพึ่ง `isAdmin` check ใน JS เพียงอย่างเดียว — ดูรายละเอียดการออกแบบและ test case ทั้งหมดใน CONTEXT.md (session 2026-08-01 เพิ่มเติม 3)
 
