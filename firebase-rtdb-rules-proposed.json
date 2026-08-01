@@ -4,7 +4,7 @@
     ".write": false,
 
     "pharma-form": {
-      ".read": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'",
+      ".read": "auth != null",
 
       "_aliases": {
         ".read": "auth != null",

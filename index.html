@@ -1334,22 +1334,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(pill){pill.className='dash-status-pill err';document.getElementById('idxStatusTxt').textContent='เชื่อมต่อไม่ได้: '+err.code;}
     }
 
-    if(admin){
-      // Admin: อ่าน pharma-form ทั้งก้อน (มีสิทธิ์ตาม Firebase Rules)
-      db.ref('pharma-form').on('value',function(snap){ handleData(snap.val()||{}); },handleErr);
-    } else {
-      // Regular user: อ่านเฉพาะ paths ที่ auth != null อนุญาต
-      var merged={};
-      var paths=['_settings','_cpe_orgs','_org_requests','_cpe_renewals','_approved_'];
-      var pending=paths.length;
-      paths.forEach(function(path){
-        db.ref('pharma-form/'+path).on('value',function(snap){
-          merged[path]=snap.val();
-          pending--;
-          if(pending<=0) handleData(merged);
-        },handleErr);
-      });
-    }
+    // ทุก user ที่ login อ่าน pharma-form ได้ทั้งก้อน (Firebase Rules: auth != null)
+    db.ref('pharma-form').on('value',function(snap){ handleData(snap.val()||{}); },handleErr);
   });
 })();
 </script>
