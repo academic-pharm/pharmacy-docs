@@ -4937,8 +4937,8 @@
           return r.status === 'อนุมัติแล้ว' && r.orgCode && r.registrationDate && r.expiryDate;
         });
         _applySidebarLock();
-        // ตรวจสอบว่า user เคยยื่นคำขอลงทะเบียนหน่วยงานแล้วหรือยัง → ปลดล็อค ต่ออายุสถาบัน + สถานะการต่ออายุ
-        _renewalUnlocked = myReqs.length > 0;
+        // ปลดล็อค ต่ออายุสถาบัน + สถานะการต่ออายุ เฉพาะเมื่อมีคำขอที่ยังไม่ถูก admin ลบ
+        _renewalUnlocked = myReqs.some(function (e) { return !e[1].deletedByAdmin; });
         _applyRenewalLock();
         // อัปเดต dot แจ้งเตือนสถานะต่ออายุ
         if (_myApprovedOrgs.length) updateRenewStatusDot(_myApprovedOrgs[0].orgKey);
