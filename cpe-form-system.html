@@ -3912,12 +3912,24 @@
     function logout() { clearUser(); location.replace('login.html'); }
     function getCanonicalEmail() {
       const u = getUser(); if (!u) return null;
-      return u._canonicalEmail || u.email;
+      return _canonicalEmail || u.email;
+    }
+    /* resolve login email → canonical email ผ่าน pharma-form/_aliases (เผื่อ login ด้วย gmail alias)
+       ห้ามให้ฟังก์ชันโหลดข้อมูลหลักตัวไหนรอ promise นี้เด็ดขาด — เรียกแบบ fire-and-forget
+       ในพื้นหลังเท่านั้น (ดู initAuth ด้านล่าง) เพราะเคยลองทำให้ initAuth รอ resolve ก่อนโหลดข้อมูล
+       แล้ว promise ค้างเงียบๆ ไม่ resolve/reject เลย ทำให้ข้อมูลทั้งฝั่ง user และ admin หายทั้งหน้า
+       โดยไม่มี error ขึ้นใน console ให้ตามหาเลย (ดู CONTEXT.md) */
+    function _resolveEmail(email) {
+      if (!email) return Promise.resolve(email);
+      return db.ref('pharma-form/_aliases/' + emailToFbKey(email)).once('value')
+        .then(function (snap) { return snap.val() || email; })
+        .catch(function () { return email; });
     }
 
     /* เก็บ auth.js isAdmin() ไว้ก่อนที่ var isAdmin=false จะทับมัน */
     var _checkAdmin = (typeof isAdmin === 'function') ? isAdmin : function () { return false; };
     var currentUser = null, isAdmin = false;
+    var _canonicalEmail = null; // resolved canonical email จาก _resolveEmail() — อ่านผ่าน getCanonicalEmail() เท่านั้น
 
     /* ต้องประกาศไว้ตั้งแต่ต้นไฟล์ (ก่อน initAuth IIFE ด้านล่าง) เพราะ initAuth เรียก
        sidebarGo('main') แบบ synchronous ทันที ซึ่งอาจไปเรียก _markMainNotifsSeen()
@@ -3963,6 +3975,18 @@
       loadMyConferences();
       loadAllOrgs();
       if (isAdmin) { renderOrgList(); updateOrgStats(); }
+
+      // resolve canonical email แบบ background — ไม่บล็อคการโหลดข้อมูลข้างบนเด็ดขาด
+      // ใช้แค่กรณี login ด้วย gmail alias (พบใน _aliases) เท่านั้น ถ้าไม่มี alias
+      // (กรณีปกติทุกวันนี้) โค้ดส่วนนี้จะไม่มีผลอะไรเลย
+      _resolveEmail(currentUser.email).then(function (canonical) {
+        if (!canonical || canonical === currentUser.email) return; // ไม่มี alias → ไม่ต้องทำอะไรต่อ
+        _canonicalEmail = canonical;
+        // email เปลี่ยน → โหลดข้อมูลที่ผูกกับ email ใหม่อีกครั้งด้วย key ที่ถูกต้อง
+        loadMyOrgRequests();
+        loadMyConferences();
+        if (!isAdmin) _setupUserNotifications();
+      }).catch(function () { });
     })();
 
     /* ════════════════════════════════
@@ -5462,7 +5486,7 @@
     function loadMyConferences() {
       var user = currentUser || getUser();
       if (!user) return;
-      var myEmail = ((user._canonicalEmail || user.email) || '').toLowerCase();
+      var myEmail = (getCanonicalEmail() || '').toLowerCase();
       if (!myEmail) return;
       var key = emailToFbKey(myEmail);
       db.ref('pharma-form/' + key + '/cpe-conferences').on('value', function (snap) {
@@ -8636,8 +8660,7 @@
       if (!_payFile) { showToast('กรุณาแนบไฟล์หลักฐานการชำระเงิน (PDF)', 'err'); return; }
 
       var c = _myConfsById[confId] || {};
-      var user = currentUser || getUser();
-      var email = ((user && (user._canonicalEmail || user.email)) || '').toLowerCase();
+      var email = (getCanonicalEmail() || '').toLowerCase();
       var fbKey = emailToFbKey(email);
 
       // Disable submit
