@@ -27,29 +27,65 @@
 
 ---
 
-### 🐛 Bug fix — `_canonicalEmail` ไม่เคยถูก resolve จริง ใช้แค่ fallback เสมอ (commit 5e8295c)
+### 🐛🔥 `_canonicalEmail` ไม่เคยถูก resolve จริง → พยายามแก้ → ทำ production พัง → revert → แก้ใหม่แบบปลอดภัย (commit 5e8295c → aef9c60 revert → b772aa6)
 
-**ปัญหา:** CLAUDE.md เตือนให้ใช้ `_canonicalEmail` ไม่ใช่ `currentUser.email` แต่จริงๆ แล้ว `cpe-form-system.html` ไม่เคย resolve ค่านี้เลย — `getCanonicalEmail()` อ่าน `currentUser._canonicalEmail` ซึ่งไม่มีโค้ดจุดไหน set property นี้เลยในทั้งไฟล์ จึง fallback ไปใช้ `currentUser.email` (อีเมล login) ตลอด
+**ปัญหาเดิม:** CLAUDE.md เตือนให้ใช้ `_canonicalEmail` ไม่ใช่ `currentUser.email` แต่จริงๆ แล้ว `cpe-form-system.html` ไม่เคย resolve ค่านี้เลย — `getCanonicalEmail()` อ่าน `currentUser._canonicalEmail` ซึ่งไม่มีโค้ดจุดไหน set property นี้เลยในทั้งไฟล์ จึง fallback ไปใช้ `currentUser.email` (อีเมล login) ตลอด
 
 **root cause (เทียบกับ academic-form-system.html ที่ทำถูก):** academic-form-system.html เก็บ canonical email เป็น **module-level variable แยกต่างหาก** (`let _canonicalEmail`) แล้ว resolve แบบ async ผ่าน `_resolveEmail()` ที่ query `pharma-form/_aliases/{key}` — แต่ cpe-form-system.html คาดหวังผิดว่ามันเป็น property บน `currentUser` object ซึ่งไม่มีจุดไหน set ให้เลย
 
-**ตรวจสอบ impact จริงก่อนแก้:** เปิด Firebase console (`pharmacy-buu` → Realtime Database → `pharma-form/_aliases`) พบ alias เดียว: `thiraphong.psw@gmail.com → thiraphong.ge@go.buu.ac.th` — แต่ `thiraphong.psw@gmail.com` ไม่อยู่ใน `ALLOWED_EMAILS` ของ `auth.js` เลย ดังนั้นตอนนั้นยังไม่มี user จริงคนไหนได้รับผลกระทบ (แต่ถ้าวันไหนเพิ่มอีเมลนี้เข้า ALLOWED_EMAILS จะกระทบทันที)
+**ตรวจสอบ impact จริงก่อนแก้:** เปิด Firebase console (`pharmacy-buu` → Realtime Database → `pharma-form/_aliases`) พบ alias เดียว: `thiraphong.psw@gmail.com → thiraphong.ge@go.buu.ac.th` — แต่ `thiraphong.psw@gmail.com` ไม่อยู่ใน `ALLOWED_EMAILS` ของ `auth.js` เลย ดังนั้นตอนนั้นยังไม่มี user จริงคนไหนได้รับผลกระทบ
 
-**fix:**
-1. เพิ่ม `var _canonicalEmail = null;` (module-level) + `_resolveEmail(email)` ที่ query `_aliases` จริง (pattern เดียวกับ academic-form-system.html)
-2. `getCanonicalEmail()` อ่านจากตัวแปรนี้แทน property ที่ไม่เคยมี
-3. `initAuth()` รอ resolve email เสร็จก่อน ค่อยเรียก `loadMyOrgRequests`/`loadMyConferences`/`_setupUserNotifications`/`_setupAdminNotifications` — เพราะ listener พวกนี้ capture email เป็น closure ครั้งเดียวตอนสร้าง ถ้าเรียกก่อน resolve เสร็จจะค้างใช้ email ผิดไปตลอด session ส่วน UI ที่ไม่ต้องรอข้อมูล (badge, sidebar) ยังคง synchronous เหมือนเดิม (ตามปัญหา var hoisting ที่ CLAUDE.md เตือนไว้)
-4. แก้จุดที่เหลือ (`loadMyConferences` line ~5480, `submitPaymentInfo` line ~8644) ที่เคยอ่าน `user._canonicalEmail` ตรงๆ ให้เรียกผ่าน `getCanonicalEmail()` แทน
+#### ❌ ความพยายามแรก (commit `5e8295c`) — ทำ production พัง
 
-**ยังไม่ได้ทดสอบ login จริง** เพราะ Google OAuth origin อนุญาตแค่ `academic-pharm.github.io` — ต้องรอ push แล้วทดสอบบน production
+**สิ่งที่ทำ:** เปลี่ยน `initAuth()` ให้ `_resolveEmail(currentUser.email).then(...)` **ก่อน** ค่อยเรียก `loadMyOrgRequests`/`loadMyConferences`/`loadOrgRequests`/`_setupUserNotifications`/`_setupAdminNotifications` — เหตุผลตอนนั้นคือ listener พวกนี้ capture email เป็น closure ครั้งเดียว ถ้าโหลดก่อน resolve เสร็จจะค้างใช้ email ผิดตลอด session
+
+**ผลที่เกิดขึ้นจริงหลัง push + deploy:** promise chain **ค้างเงียบๆ ไม่ resolve/reject เลย ไม่มี error โผล่ใน console แม้แต่บรรทัดเดียว** ทำให้ทั้งฝั่ง user (zporsupreme9) และฝั่ง admin (thiraphong.ge) **โหลดข้อมูลไม่ขึ้นเลยทั้งหน้า** — user เห็น sidebar ล็อคหมด ไม่มี card สถานะคำขอ, admin ส่ง org request ใหม่ไปแล้วแต่ panel "คำขอรอตรวจสอบ" ไม่โชว์ ทั้งที่ข้อมูลใน Firebase ถูกต้องครบ (`status: "รอตรวจสอบ"` ตรงเงื่อนไขทุกอย่าง) — ยืนยันว่าปัญหาไม่ใช่การเขียนข้อมูล แต่เป็นฝั่งโหลด/แสดงผลที่ค้าง
+
+**สาเหตุที่แท้จริงของการค้าง:** ไม่สามารถชี้ชัดได้ 100% (debug จากระยะไกลไม่ได้เพราะตอนนั้นยังไม่มี Claude in Chrome เชื่อมต่อ) คาดว่าเกี่ยวกับพฤติกรรมของ Firebase RTDB SDK กับ `.once('value')` บน path `_aliases` ในบางเงื่อนไข — แต่ไม่คุ้มเวลาที่จะขุดต่อจนกว่าจะแน่ใจ เพราะมีทางแก้ที่ปลอดภัยกว่าอยู่แล้ว (ดูด้านล่าง)
+
+**การกู้คืน:** `git revert 5e8295c --no-edit` → commit `aef9c60` → push ทันที เพื่อหยุด incident ก่อน แล้วค่อยทดสอบยืนยันว่า user/admin กลับมาเห็นข้อมูลปกติ
+
+#### ✅ แก้ใหม่แบบปลอดภัย (commit `b772aa6`)
+
+**หลักการออกแบบใหม่:** "ห้ามให้ของที่ทำงานอยู่แล้วไปพังเพราะรอ fix ใหม่ที่ยังไม่ผ่านการพิสูจน์" — แทนที่จะทำให้ `initAuth()` **รอ** `_resolveEmail()` เสร็จก่อนโหลดข้อมูล เปลี่ยนเป็น:
+1. `initAuth()` เรียก `loadMyOrgRequests`/`loadOrgRequests`/ฯลฯ **แบบ synchronous เหมือนโค้ดเดิมทุกประการ** (copy กลับมาไม่แตะเลย) — พฤติกรรม default (ไม่มี alias) เหมือนเดิม 100% การันตีไม่มี regression
+2. `_resolveEmail(currentUser.email)` เรียกแบบ **fire-and-forget หลังจากนั้น** — ไม่มีฟังก์ชันไหนรอผลมันเลย ถ้ามันค้างอีกก็ไม่กระทบอะไรเลยเพราะไม่มีอะไร depend on มัน
+3. ถ้าเจอ alias จริง (`canonical !== currentUser.email`) ค่อย reload เฉพาะ `loadMyOrgRequests`/`loadMyConferences`/`_setupUserNotifications` อีกครั้งด้วย email ที่ถูกต้อง
+4. แก้จุดที่เหลือ (`loadMyConferences`, `submitPaymentInfo`) ที่เคยอ่าน `user._canonicalEmail` ตรงๆ ให้เรียกผ่าน `getCanonicalEmail()` แทน — เหมือนเดิมทุกอย่างเพราะ property นั้นไม่เคยมีค่าอยู่แล้ว
+
+**บทเรียน:** เวลาแก้ auth/init flow ที่เป็น synchronous อยู่เดิม (ตามที่ CLAUDE.md เตือนเรื่อง var hoisting ไว้แล้ว) — **อย่าทำให้ของเดิมที่ทำงานอยู่ต้องรอ promise ใหม่ก่อนจะทำงาน** ต่อให้ promise นั้นดูปลอดภัย (มี `.catch()` ครบ) เพราะถ้ามันค้างแบบไม่มี error เลย จะดีบักยากมากและกระทบผู้ใช้จริงทันที ควรออกแบบให้ fix ใหม่เป็น "เสริม" (fire-and-forget + reload เฉพาะจุดถ้าจำเป็น) ไม่ใช่ "gate" การทำงานเดิม
+
+**การทดสอบยืนยัน (ผ่าน Claude in Chrome extension, session จริงของ user):**
+- ✅ user (zporsupreme9) เห็นข้อมูลสถานะปกติ, ฟอร์มต่ออายุปลดล็อคถูกต้อง (ยืนยัน bug fix `af8cadf` ด้วยในตัว)
+- ✅ admin (thiraphong.ge) เห็น panel "คำขอลงทะเบียนใหม่" ครบ 2 รายการ
+- ✅ ไม่มี console error ทั้ง 2 session
+
+---
+
+### 🗑️ ลบ `_aliases/thiraphong_psw__gmail_com` ออกจาก Firebase
+
+**เหตุผล:** alias นี้ map `thiraphong.psw@gmail.com → thiraphong.ge@go.buu.ac.th` แต่ `thiraphong.psw@gmail.com` ไม่เคยอยู่ใน `ALLOWED_EMAILS` เลย เป็น entry ที่ใช้งานจริงไม่ได้ (dead data) ผู้ใช้ (owner) เป็นคนกดลบเองผ่าน Firebase console โดยตรง (Claude ทำการลบข้อมูลถาวรแทนไม่ได้ตามกฎความปลอดภัย — ได้แต่ชี้ตำแหน่งให้)
+
+**ผล:** `_aliases` node หายไปทั้ง parent ด้วย (Firebase RTDB ลบ parent node อัตโนมัติเมื่อไม่มี children เหลือ — ไม่ใช่บั๊ก) ตอนนี้ไม่มี alias เหลือในระบบเลย ฟีเจอร์ `_resolveEmail()` จะ fallback เป็น login email เสมอจนกว่าจะมีการเพิ่ม alias ใหม่
+
+---
+
+### 🔌 ตั้งค่า Claude in Chrome extension
+
+ติดตั้ง "Claude for Chrome" extension บนเครื่อง user แล้วเชื่อมต่อสำเร็จ — ทำให้ Claude ควบคุม Chrome จริงของ user (ที่ login Google account ค้างอยู่แล้ว) ได้โดยตรง ผ่าน `mcp__claude-in-chrome__*` tools (navigate, computer, read_page, get_page_text, read_console_messages ฯลฯ)
+
+**ทำไมต้องมี:** ก่อนหน้านี้ Claude มีแค่ Browser pane sandbox (`mcp__Claude_Browser__*`) ที่ไม่มี session login ของ user เลย ทำให้ debug/ทดสอบหน้าที่ต้อง login (เช่น cpe-form-system.html) ไม่ได้เลยต้องพึ่ง user ส่ง screenshot มาให้ดูตลอด — Claude in Chrome แก้ปัญหานี้โดยใช้ session จริงที่ user login ไว้อยู่แล้ว (Claude ไม่เคยกรอก credential เอง เป็นข้อห้ามเสมอ)
+
+**ข้อจำกัด:** login state เก็บใน `sessionStorage` ซึ่งไม่แชร์ข้ามแท็บ — ถ้าจะสลับดู user คนละบัญชี (เช่น user ↔ admin) ต้องเปิดแท็บใหม่แล้วให้ user login เองใหม่ในแท็บนั้น (Claude กดปุ่ม "เข้าสู่ระบบด้วย Google" หรือเลือกบัญชีแทนไม่ได้)
 
 ---
 
 ### 📌 State ปัจจุบัน (2026-08-01 เพิ่มเติม 2)
 
-- Commit ที่ยังไม่ push: `af8cadf`, `2138cbb`, `5e8295c` (ต่อจาก `bb7ed05`)
-- ทุกจุดผ่าน `node --check` (syntax เท่านั้น ยังไม่ได้ทดสอบ runtime บน production)
-- Pending: user push commits ด้วยตัวเองจาก Windows terminal, ทดสอบ login จริงหลัง push
+- Push ขึ้น production แล้วทั้งหมด: `af8cadf`, `2138cbb`, `5e8295c`(reverted), `f8526a1`, `aef9c60`(revert), `b772aa6`
+- ทดสอบผ่าน Claude in Chrome ยืนยันแล้วว่าทั้ง user และ admin ใช้งานได้ปกติ ไม่มี console error
+- `_aliases` ว่างเปล่า (ไม่มี alias ใดๆ ในระบบตอนนี้)
+- Claude in Chrome extension เชื่อมต่อพร้อมใช้งานสำหรับ session ถัดไป
 
 ---
 
