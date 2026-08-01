@@ -1305,7 +1305,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   firebase.auth().onAuthStateChanged(user=>{
     if(!user) return;
-    var admin=isAdmin(user);
+    var admin=isAdmin(getUser());
 
     function handleData(raw){
       try{
