@@ -1305,13 +1305,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   firebase.auth().onAuthStateChanged(user=>{
     if(!user) return;
-    db.ref('pharma-form').on('value',snap=>{
+    var admin=isAdmin(user);
+
+    function handleData(raw){
       try{
-        const raw=snap.val()||{};
         processData(raw);
         processCPE(raw['_all_cpe_conferences']);
         // pulse dots — admin only
-        if(isAdmin(user)){
+        if(admin){
           var _confPending=Object.values(raw['_all_cpe_conferences']||{}).filter(function(c){return !c.status||c.status==='pending_review';}).length;
           var _dot1=document.getElementById('academic-pdot');
           if(_dot1) _dot1.classList.toggle('show',_confPending>0);
@@ -1323,13 +1324,32 @@ document.addEventListener('DOMContentLoaded',()=>{
         }
       }catch(e){
         console.error(e);
-        const pill=document.getElementById('idxStatusPill');
+        var pill=document.getElementById('idxStatusPill');
         if(pill){pill.className='dash-status-pill err';document.getElementById('idxStatusTxt').textContent='เกิดข้อผิดพลาด';}
       }
-    },err=>{
-      const pill=document.getElementById('idxStatusPill');
+    }
+
+    function handleErr(err){
+      var pill=document.getElementById('idxStatusPill');
       if(pill){pill.className='dash-status-pill err';document.getElementById('idxStatusTxt').textContent='เชื่อมต่อไม่ได้: '+err.code;}
-    });
+    }
+
+    if(admin){
+      // Admin: อ่าน pharma-form ทั้งก้อน (มีสิทธิ์ตาม Firebase Rules)
+      db.ref('pharma-form').on('value',function(snap){ handleData(snap.val()||{}); },handleErr);
+    } else {
+      // Regular user: อ่านเฉพาะ paths ที่ auth != null อนุญาต
+      var merged={};
+      var paths=['_settings','_cpe_orgs','_org_requests','_cpe_renewals','_approved_'];
+      var pending=paths.length;
+      paths.forEach(function(path){
+        db.ref('pharma-form/'+path).on('value',function(snap){
+          merged[path]=snap.val();
+          pending--;
+          if(pending<=0) handleData(merged);
+        },handleErr);
+      });
+    }
   });
 })();
 </script>
