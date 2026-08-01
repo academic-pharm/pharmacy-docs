@@ -1,0 +1,75 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "pharma-form": {
+      ".read": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'",
+
+      "_aliases": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'"
+      },
+
+      "_users": {
+        ".read": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'",
+        "$emailKey": {
+          ".write": "auth != null && newData.val() == auth.token.email && (!data.exists() || data.val() == auth.token.email)"
+        }
+      },
+
+      "_settings": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'"
+      },
+
+      "_org_requests": {
+        ".read": "auth != null",
+        "$reqKey": {
+          ".write": "auth != null && (auth.token.email == 'thiraphong.ge@go.buu.ac.th' || (!data.exists() && newData.child('submittedBy').val() == auth.token.email))"
+        }
+      },
+
+      "_cpe_orgs": {
+        ".read": "auth != null",
+        "$orgKey": {
+          ".write": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'"
+        }
+      },
+
+      "_cpe_renewals": {
+        ".read": "auth != null",
+        "$orgKey": {
+          ".write": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'",
+          "$ts": {
+            ".write": "auth != null && (auth.token.email == 'thiraphong.ge@go.buu.ac.th' || !data.exists())"
+          }
+        }
+      },
+
+      "_all_cpe_conferences": {
+        ".read": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'",
+        "$confId": {
+          ".write": "auth != null && (auth.token.email == 'thiraphong.ge@go.buu.ac.th' || data.child('createdBy').val() == auth.token.email || (!data.exists() && newData.child('createdBy').val() == auth.token.email))"
+        }
+      },
+
+      "_all_articles": {
+        ".read": "auth != null && auth.token.email == 'thiraphong.ge@go.buu.ac.th'",
+        "$aid": {
+          ".write": "auth != null && (auth.token.email == 'thiraphong.ge@go.buu.ac.th' || data.child('userEmail').val() == auth.token.email || (!data.exists() && newData.child('userEmail').val() == auth.token.email))"
+        }
+      },
+
+      "_approved_": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      },
+
+      "$userFbKey": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}

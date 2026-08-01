@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-08-01 (เพิ่มเติม 3)
+
+### 🔒 Security audit — พบและปิดช่องโหว่ Firebase Rules เปิดกว้างทั้งฐานข้อมูล
+
+**จุดเริ่ม:** หลัง fix บั๊กหลักครบแล้ว รีวิวเพิ่มเติมพบว่าฟังก์ชัน admin หลายตัวใน `cpe-form-system.html` **ไม่มีการเช็ค `isAdmin` เลยในตัวโค้ด JS** (`adminConfirmRenewal`, `adminRejectRenewal`, `adminCompleteRenewal`, `saveOrgDetail`, `saveOrgEdit`, `confirmAdminRenew`, `deleteOrg`, `approveOrgRequest`, `rejectOrgRequest`, `sendToExperts`, `confirmDocsApproval`, `confirmCPEResultModal`, `confirmPaymentReview`, `confirmCancelConf`, และ handler การเปลี่ยน status ของ `_all_articles/{aid}` อีกราว 15 จุด) — ป้องกันแค่ระดับ UI (ปุ่มไม่โชว์ให้ user ธรรมดาเห็น) เท่านั้น
+
+**ตรวจสอบ root cause จริง:** เปิด Firebase console → Rules พบว่า:
+```json
+{ "rules": { ".read": "auth != null", ".write": "auth != null" } }
+```
+**user ที่ login แล้วทุกคน (150+ อีเมลใน `ALLOWED_EMAILS`) อ่าน/เขียนข้อมูลได้ทั้งฐานข้อมูล ไม่จำกัด path เลย** — ไม่ใช่แค่ 4 ฟังก์ชันที่เจอตอนแรก แต่คือทุก path เปิดกว้างหมด ต่อให้ JS เช็ค isAdmin ครบ user ก็ยังเปิด browser console เขียนตรงเข้า Firebase SDK ได้อยู่ดี → **นี่คือช่องโหว่จริงที่กระทบข้อมูลรับรอง CPE ซึ่งมีผลต่อใบประกอบวิชาชีพเภสัชกรจริง**
+
+**สำรวจ path ทั้งหมดก่อนออกแบบ Rules** (agent เดาชื่อ field ผิดจุดหนึ่ง — ต้อง verify กับโค้ดจริงเสมอก่อนเชื่อ):
+- `_org_requests` → field เจ้าของคือ `submittedBy` ✓
+- `_all_cpe_conferences` → field เจ้าของคือ `createdBy` ✓
+- `_all_articles` → field เจ้าของคือ **`userEmail`** (agent เดาว่า `submittedBy` ผิด — เช็คโค้ดจริงแล้วแก้)
+- `_cpe_renewals/{orgKey}/{ts}` → **ไม่มี field ระบุตัวผู้ส่งเลย** (มีแค่ `orgKey`/`orgName`/`status`) เป็นช่องโหว่ในตัว data model เอง (ไม่เคยผูก "org นี้เป็นของ user คนไหน" อย่างเป็นทางการ) → เขียน rule แบบ "เฉพาะเจ้าของ org เท่านั้นที่ส่งต่ออายุได้" ไม่ได้จริง (ไม่มีข้อมูลให้เช็ค) เลยยอมให้ "สร้างใหม่" ทำได้จากทุกคนที่ login เหมือนเดิม แต่ล็อค "แก้ไข/อนุมัติ" เป็น admin เท่านั้น (จุดอันตรายจริงคือการ self-approve ไม่ใช่การส่งเอกสาร)
+
+**Rules ใหม่ที่ deploy แล้ว** (เก็บไว้ที่ `firebase-rtdb-rules-proposed.json` ในโปรเจกต์):
+- `_cpe_orgs`, และการ**แก้ไข/อนุมัติ**ของ `_org_requests` + `_cpe_renewals` → **admin เท่านั้น**
+- `_all_cpe_conferences`, `_all_articles` → **อ่านได้เฉพาะ admin** (มี PII ของทุกคน), เขียนได้เฉพาะเจ้าของเรคคอร์ด (เช็ค field เจ้าของ) หรือ admin
+- `_settings` → อ่านได้ทุกคน (UI ต้องใช้), เขียนได้แค่ admin
+- `$userFbKey` (subtree ส่วนตัวของแต่ละคน เช่น `{email}/articles`) → ยังปล่อย `auth != null` เหมือนเดิม เพราะ Firebase Rules ภาษา native ไม่มีทางแปลง email → key (`.`→`_`, `@`→`__`) ได้แข็งแรงพอ (เสี่ยง lock คนออกจากข้อมูลตัวเองถ้าเขียนผิด) — ไม่ใช่จุดอันตรายจริงเพราะ `_all_*` (ที่ล็อคแล้ว) คือแหล่งข้อมูลที่ admin เชื่อถือจริง ไม่ใช่สำเนาส่วนตัวนี้
+- `_approved_` (academic-form-system.html) → ปล่อยไว้เหมือนเดิม เพราะไม่แน่ใจว่าตั้งใจให้แชร์ข้ามคนหรือเปล่า ไม่อยากเดาแล้วพัง
+
+**ทดสอบก่อน publish ผ่าน Rules Playground — 10 เคส ผ่านหมด:**
+1. user ธรรมดาเขียน `_cpe_orgs` → ❌ denied (ถูกต้อง)
+2. admin เขียน `_cpe_orgs` → ✅ allowed
+3. user สร้าง `_org_requests` ของตัวเอง (`submittedBy` ตรง) → ✅ allowed
+4. user สร้าง `_org_requests` ปลอมเป็นคนอื่น (`submittedBy` ไม่ตรง) → ❌ denied
+5. user แก้ไข `_org_requests` ที่มีอยู่แล้ว (ไม่ใช่ admin) → ❌ denied
+6. user อ่าน `_all_articles` ทั้งคอลเลกชัน → ❌ denied
+7. admin อ่าน `_all_articles` → ✅ allowed
+8. user ส่งเอกสารต่ออายุใหม่ (`_cpe_renewals` create) → ✅ allowed
+9. user อ่าน `_org_requests` ทั้งคอลเลกชัน (ใช้แสดง badge แจ้งเตือน) → ✅ allowed
+10. user เขียนข้อมูลใน subtree ส่วนตัวของตัวเอง → ✅ allowed
+
+**Publish แล้ว + ทดสอบผ่าน production จริง** (ผ่าน Claude in Chrome, 2 session พร้อมกัน — user zporsupreme9 + admin thiraphong.ge): ทั้ง 2 ฝั่งใช้งานได้ปกติทุก flow ไม่มี console error, ไม่มี regression
+
+**บทเรียน:** client-side `isAdmin` check เป็นแค่ UX ไม่ใช่ security boundary จริง — **Firebase Security Rules คือด่านป้องกันตัวจริงเพียงด่านเดียว** สำหรับแอปที่ไม่มี backend เป็นของตัวเอง ต้องเช็ค Rules ควบคู่ไปกับ JS เสมอเวลารีวิว security
+
+---
+
 ## 2026-08-01 (เพิ่มเติม 2)
 
 ### 🐛 Bug fix — ฟอร์มต่ออายุล็อคค้างถาวร ไม่ปลดล็อคในช่วง 90 วันก่อนหมดอายุ (commit af8cadf)
