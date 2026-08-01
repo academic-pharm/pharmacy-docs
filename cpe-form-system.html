@@ -3912,12 +3912,20 @@
     function logout() { clearUser(); location.replace('login.html'); }
     function getCanonicalEmail() {
       const u = getUser(); if (!u) return null;
-      return u._canonicalEmail || u.email;
+      return _canonicalEmail || u.email;
+    }
+    /* resolve login email → canonical email ผ่าน pharma-form/_aliases (เผื่อ login ด้วย gmail alias) */
+    function _resolveEmail(email) {
+      if (!email) return Promise.resolve(email);
+      return db.ref('pharma-form/_aliases/' + emailToFbKey(email)).once('value')
+        .then(function (snap) { return snap.val() || email; })
+        .catch(function () { return email; });
     }
 
     /* เก็บ auth.js isAdmin() ไว้ก่อนที่ var isAdmin=false จะทับมัน */
     var _checkAdmin = (typeof isAdmin === 'function') ? isAdmin : function () { return false; };
     var currentUser = null, isAdmin = false;
+    var _canonicalEmail = null; // resolved canonical email จาก _resolveEmail() — อ่านผ่าน getCanonicalEmail() เท่านั้น
 
     /* ต้องประกาศไว้ตั้งแต่ต้นไฟล์ (ก่อน initAuth IIFE ด้านล่าง) เพราะ initAuth เรียก
        sidebarGo('main') แบบ synchronous ทันที ซึ่งอาจไปเรียก _markMainNotifsSeen()
@@ -3952,17 +3960,27 @@
         _cpeUnlocked = true; _applySidebarLock();
         _renewalUnlocked = true; _applyRenewalLock();
         sidebarGo('main');
-        loadOrgRequests();
-        loadAllCpeConferences();
-        _setupAdminNotifications();
       } else {
         sidebarGo('main');
-        _setupUserNotifications();
       }
-      loadMyOrgRequests();
-      loadMyConferences();
-      loadAllOrgs();
-      if (isAdmin) { renderOrgList(); updateOrgStats(); }
+      // resolve canonical email ก่อนเริ่มโหลดข้อมูลที่ผูกกับ email (listener บางตัวจับ email
+      // ไว้ตอนสร้างแบบ closure ครั้งเดียว — ถ้าโหลดก่อน resolve เสร็จ จะค้างใช้ email ผิดตลอด session)
+      _resolveEmail(currentUser.email).then(function (canonical) {
+        _canonicalEmail = canonical;
+      }).catch(function () { }).then(function () {
+        if (isAdmin) {
+          loadOrgRequests();
+          loadAllCpeConferences();
+          _setupAdminNotifications();
+          renderOrgList();
+          updateOrgStats();
+        } else {
+          _setupUserNotifications();
+        }
+        loadMyOrgRequests();
+        loadMyConferences();
+        loadAllOrgs();
+      });
     })();
 
     /* ════════════════════════════════
@@ -5462,7 +5480,7 @@
     function loadMyConferences() {
       var user = currentUser || getUser();
       if (!user) return;
-      var myEmail = ((user._canonicalEmail || user.email) || '').toLowerCase();
+      var myEmail = (getCanonicalEmail() || '').toLowerCase();
       if (!myEmail) return;
       var key = emailToFbKey(myEmail);
       db.ref('pharma-form/' + key + '/cpe-conferences').on('value', function (snap) {
@@ -8636,8 +8654,7 @@
       if (!_payFile) { showToast('กรุณาแนบไฟล์หลักฐานการชำระเงิน (PDF)', 'err'); return; }
 
       var c = _myConfsById[confId] || {};
-      var user = currentUser || getUser();
-      var email = ((user && (user._canonicalEmail || user.email)) || '').toLowerCase();
+      var email = (getCanonicalEmail() || '').toLowerCase();
       var fbKey = emailToFbKey(email);
 
       // Disable submit
