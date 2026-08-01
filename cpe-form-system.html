@@ -4927,7 +4927,8 @@
         }).sort(function (a, b) { return (b[1].submittedAt || '').localeCompare(a[1].submittedAt || ''); });
 
         // เก็บ approved orgs สำหรับใช้ใน openUserConfForm
-        _myApprovedOrgs = myReqs.filter(function (e) { return e[1].status === 'อนุมัติแล้ว'; }).map(function (e) {
+        // ยกเว้น org ที่ถูก admin ลบออกจากระบบ (deletedByAdmin: true)
+        _myApprovedOrgs = myReqs.filter(function (e) { return e[1].status === 'อนุมัติแล้ว' && !e[1].deletedByAdmin; }).map(function (e) {
           return { orgKey: e[1].orgKey || '', orgName: e[1].name || '' };
         });
         // ตรวจสอบว่า org มีรหัสและวันที่รับรองครบหรือไม่ → ปลดล็อค ประชุมวิชาการ + บทความวิชาการ
@@ -4985,7 +4986,29 @@
           }
 
           var extraHtml = '';
-          if (st === 'อนุมัติแล้ว') {
+          if (st === 'อนุมัติแล้ว' && req.deletedByAdmin) {
+            // org ถูก admin ลบออกจากระบบ — แสดง card พิเศษแล้ว return
+            return '<div style="border-radius:12px;overflow:hidden;border:0.5px solid #FECACA">'
+              + '<div style="height:3px;background:linear-gradient(90deg,#dc2626,#ef4444)"></div>'
+              + '<div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px">'
+              + '<div style="width:36px;height:36px;border-radius:9px;background:rgba(220,38,38,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">🏢</div>'
+              + '<div style="flex:1;min-width:0">'
+              + '<div style="font-size:.88rem;font-weight:700;color:var(--text)">' + (req.name || '-') + '</div>'
+              + '<div style="font-size:.67rem;color:var(--text-muted);margin-top:1px">ยื่นเมื่อ ' + fmtDate(req.submittedAt) + '</div>'
+              + '</div>'
+              + '<span style="font-size:.6rem;font-weight:700;color:#7F1D1D;background:#FEF2F2;border:0.5px solid #FECACA;border-radius:20px;padding:3px 9px;white-space:nowrap;flex-shrink:0">ถูกลบแล้ว</span>'
+              + '</div>'
+              + '<div style="margin:0 14px 14px;border-radius:10px;overflow:hidden;border:0.5px solid #FECACA">'
+              + '<div style="background:linear-gradient(135deg,#FEF2F2,#FECACA);padding:11px 14px;display:flex;align-items:center;gap:10px">'
+              + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">🗑️</div>'
+              + '<div style="flex:1">'
+              + '<div style="font-size:.76rem;font-weight:700;color:#7F1D1D">สถาบันนี้ถูกลบออกจากระบบโดย admin</div>'
+              + '<div style="font-size:.64rem;color:#991B1B;margin-top:2px">หากต้องการเข้าร่วม CPE กรุณาลงทะเบียนหน่วยงานใหม่อีกครั้ง</div>'
+              + '</div>'
+              + '</div>'
+              + '</div>'
+              + '</div>';
+          } else if (st === 'อนุมัติแล้ว') {
             var _rk2 = (req.orgKey || '').replace(/'/g, "\\'");
             var _rn2 = (req.name || '').replace(/'/g, "\\'");
             var _hasData = req.orgCode || req.registrationDate || req.expiryDate;
