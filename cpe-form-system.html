@@ -7994,6 +7994,26 @@
             action: 'update_conference_row', confId: cid, status: 'ยกเลิกแล้ว'
           })
         }).catch(function () { });
+        // ย้ายไฟล์ของ user ไปยัง folder "CPE ยกเลิก"
+        (function() {
+          var f = (c.files) || {};
+          var urls = [
+            f.project && f.project.url,
+            f.cvfile && f.cvfile.url,
+            f.schedule && f.schedule.url,
+            f.resolution_pdf && f.resolution_pdf.url,
+            f.resolution_word && f.resolution_word.url
+          ];
+          var ids = urls.map(function(u) {
+            var m = u && u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            return m ? m[1] : null;
+          }).filter(Boolean);
+          if (ids.length) {
+            fetch(APPS_SCRIPT_URL, {
+              method: 'POST', body: JSON.stringify({ action: 'archive_cancelled_files', fileIds: ids })
+            }).catch(function () { });
+          }
+        })();
         showToast('✓ ยกเลิกคำขอแล้ว — user จะได้รับการแจ้งเตือน');
         logActivity({
           category: 'conference', activity: 'admin_cancel',
@@ -10440,6 +10460,28 @@
             cancelReason: reason || ''
           })
         }).catch(function () { });
+        // ย้ายไฟล์ของ user ไปยัง folder "CPE ยกเลิก"
+        (function() {
+          var f = (a.files) || {};
+          var urls = [
+            f.userSubmission && f.userSubmission.url,
+            f.userRevision1 && f.userRevision1.url,
+            f.userFinalRevision && f.userFinalRevision.url,
+            f.adminDoc_pdf && f.adminDoc_pdf.url,
+            f.adminDoc_word && f.adminDoc_word.url,
+            f.expertFeedback1 && f.expertFeedback1.url,
+            f.expertCertification && f.expertCertification.url
+          ];
+          var ids = urls.map(function(u) {
+            var m = u && u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            return m ? m[1] : null;
+          }).filter(Boolean);
+          if (ids.length) {
+            fetch(APPS_SCRIPT_URL, {
+              method: 'POST', body: JSON.stringify({ action: 'archive_cancelled_files', fileIds: ids })
+            }).catch(function () { });
+          }
+        })();
         showToast('✓ ยกเลิกบทความแล้ว — user จะได้รับอีเมลแจ้งเตือน');
         logActivity({
           category: 'article', activity: 'admin_cancel',

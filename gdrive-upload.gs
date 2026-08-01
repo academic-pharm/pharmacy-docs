@@ -38,6 +38,11 @@ function doPost(e) {
       return cancelArticleAction(data);
     }
 
+    // action: 'archive_cancelled_files' → ย้ายไฟล์ที่ยกเลิกไปยัง folder "CPE ยกเลิก"
+    if (data.action === 'archive_cancelled_files') {
+      return archiveCancelledFiles(data);
+    }
+
     // action: 'log_activity' → บันทึกกิจกรรม (upload/event) ลง Sheet tab "ประวัติกิจกรรม"
     if (data.action === 'log_activity') {
       return logActivityToSheet(data);
@@ -1095,6 +1100,31 @@ function getOrCreate(name, parent) {
   var it = parent ? parent.getFoldersByName(name) : DriveApp.getFoldersByName(name);
   if (it.hasNext()) return it.next();
   return parent ? parent.createFolder(name) : DriveApp.createFolder(name);
+}
+
+/* ─── Archive cancelled files → ย้ายไฟล์ไปยัง folder "CPE ยกเลิก" ─── */
+function archiveCancelledFiles(data) {
+  try {
+    var root = null;
+    var roots = DriveApp.getFoldersByName(ROOT_FOLDER);
+    if (roots.hasNext()) root = roots.next();
+    var archiveFolder = getOrCreate('CPE ยกเลิก', root);
+    var fileIds = data.fileIds || [];
+    var moved = 0;
+    fileIds.forEach(function(id) {
+      if (!id) return;
+      try {
+        var file = DriveApp.getFileById(id);
+        archiveFolder.addFile(file);
+        var parents = file.getParents();
+        if (parents.hasNext()) parents.next().removeFile(file);
+        moved++;
+      } catch(e) { /* ข้ามถ้าไม่พบไฟล์หรือไม่มีสิทธิ์ */ }
+    });
+    return respond({ success: true, moved: moved });
+  } catch(e) {
+    return respond({ success: false, error: e.message });
+  }
 }
 
 /* ─── Send council email — ส่งเอกสารต่ออายุไปยังสภาเภสัชกรรม ─── */
