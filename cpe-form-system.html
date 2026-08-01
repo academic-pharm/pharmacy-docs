@@ -4723,6 +4723,8 @@
         db.ref('pharma-form/_cpe_orgs/' + key).set(
           Object.assign({}, org, { deleted: true, deletedAt: new Date().toISOString() })
         );
+        // ลบข้อมูลการต่ออายุ → reset สถานะของ user กลับขั้นตอนแรก
+        db.ref('pharma-form/_cpe_renewals/' + key).remove();
       } catch (e) { console.warn(e); }
       delete allOrgs[key];
       renderOrgList();
