@@ -4988,7 +4988,9 @@
           var extraHtml = '';
           if (st === 'อนุมัติแล้ว' && req.deletedByAdmin) {
             // org ถูก admin ลบออกจากระบบ — แสดง card พิเศษแล้ว return
-            return '<div style="border-radius:12px;overflow:hidden;border:0.5px solid #FECACA">'
+            if (localStorage.getItem('dismissed_deleted_' + reqKey) === '1') return '';
+            var _safeDelKey = reqKey.replace(/'/g, "\\'");
+            return '<div id="del-card-' + reqKey + '" style="border-radius:12px;overflow:hidden;border:0.5px solid #FECACA;transition:opacity .3s ease">'
               + '<div style="height:3px;background:linear-gradient(90deg,#dc2626,#ef4444)"></div>'
               + '<div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px">'
               + '<div style="width:36px;height:36px;border-radius:9px;background:rgba(220,38,38,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">🏢</div>'
@@ -4998,13 +5000,13 @@
               + '</div>'
               + '<span style="font-size:.6rem;font-weight:700;color:#7F1D1D;background:#FEF2F2;border:0.5px solid #FECACA;border-radius:20px;padding:3px 9px;white-space:nowrap;flex-shrink:0">ถูกลบแล้ว</span>'
               + '</div>'
-              + '<div style="margin:0 14px 14px;border-radius:10px;overflow:hidden;border:0.5px solid #FECACA">'
-              + '<div style="background:linear-gradient(135deg,#FEF2F2,#FECACA);padding:11px 14px;display:flex;align-items:center;gap:10px">'
-              + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">🗑️</div>'
-              + '<div style="flex:1">'
-              + '<div style="font-size:.76rem;font-weight:700;color:#7F1D1D">สถาบันนี้ถูกลบออกจากระบบโดย admin</div>'
-              + '<div style="font-size:.64rem;color:#991B1B;margin-top:2px">หากต้องการเข้าร่วม CPE กรุณาลงทะเบียนหน่วยงานใหม่อีกครั้ง</div>'
-              + '</div>'
+              + '<div style="background:#FECACA;border-top:1px solid #FCA5A5;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">'
+              + '<div style="width:30px;height:30px;border-radius:50%;background:#FCA5A5;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:14px">🗑️</div>'
+              + '<div style="flex:1;min-width:0">'
+              + '<div style="font-size:.77rem;font-weight:700;color:#7F1D1D;line-height:1.4">สถาบันนี้ถูกลบออกจากระบบโดย admin</div>'
+              + '<div style="font-size:.69rem;color:#991B1B;margin-top:3px;line-height:1.5">หากต้องการเข้าร่วม CPE กรุณาลงทะเบียนหน่วยงานใหม่อีกครั้ง</div>'
+              + '<button onclick="dismissDeletedReq(\'' + _safeDelKey + '\')" style="margin-top:10px;font-size:.72rem;font-weight:700;color:#7F1D1D;background:none;border:1px solid rgba(127,29,29,.35);border-radius:6px;padding:5px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px">'
+              + '✓ รับทราบและปิดแจ้งเตือน</button>'
               + '</div>'
               + '</div>'
               + '</div>';
@@ -5188,6 +5190,22 @@
         var wrap = document.getElementById('my-requests-wrap');
         var sec = document.getElementById('my-requests-section');
         if (wrap && sec && !wrap.querySelector('[id^="rej-card-"]') && !wrap.querySelector('.my-req-card')) {
+          sec.style.display = 'none';
+        }
+      }, 320);
+    }
+
+    function dismissDeletedReq(reqKey) {
+      localStorage.setItem('dismissed_deleted_' + reqKey, '1');
+      var card = document.getElementById('del-card-' + reqKey);
+      if (!card) return;
+      card.style.opacity = '0';
+      setTimeout(function () {
+        card.style.display = 'none';
+        // ซ่อน section ถ้าไม่มีการ์ดเหลืออยู่
+        var wrap = document.getElementById('my-requests-wrap');
+        var sec = document.getElementById('my-requests-section');
+        if (wrap && sec && !wrap.querySelector('[id^="del-card-"]') && !wrap.querySelector('[id^="rej-card-"]') && !wrap.querySelector('.my-req-card')) {
           sec.style.display = 'none';
         }
       }, 320);
