@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-08-01 (เพิ่มเติม)
+
+### 🐛 Bug fix — Council modal แสดงไฟล์ไม่ครบ (commit bb7ed05)
+
+**ปัญหา:** admin เปิด modal "ส่งสภาเภสัชกรรม" เห็นแค่ 2 ไฟล์ แทนที่จะเป็น 3 ทั้งที่ user ส่งครบ
+
+**root cause:** ตอน submitRenewalDocs() ถ้า GDrive upload ล้มเหลว จะเก็บ `url: ''` (empty string) ใน Firebase
+แต่ openCouncilModal check `if (rec[t] && rec[t].url)` → empty string เป็น falsy → ไม่แสดง chip
+
+**fix:**
+```javascript
+// เปลี่ยน condition จาก rec[t].url → rec[t].name (แสดงทุกไฟล์ที่ user ส่งมา)
+if (rec[t] && rec[t].name) chips += _councilDocChip(rec[t].url || '', rec[t].name || docLabels[t]);
+
+// _councilDocChip รับ empty URL → แสดง chip สีส้ม ⚠️ ไม่ clickable พร้อม tooltip
+// modal._docUrls ยังนับเฉพาะไฟล์ที่มี URL จริง (สำหรับส่งอีเมล)
+```
+
+---
+
 ## 2026-08-01
 
 ### 🗑️ ลบ org ของ user zporsupreme9 ออกจากระบบ
