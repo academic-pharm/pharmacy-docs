@@ -650,7 +650,7 @@ footer{
         <div class="dash-kpi-lbl">โครงการทั้งหมด</div>
         <div class="dash-kpi-sub" id="idxDProjects">—</div>
       </div>
-      <div class="dash-kpi">
+      <div class="dash-kpi" id="idxBudgetCard">
         <div class="dash-kpi-icon">💰</div>
         <div class="dash-kpi-val" id="idxKBudget">—</div>
         <div class="dash-kpi-lbl">งบประมาณรวม (บาท)</div>
@@ -944,6 +944,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       const proj=document.getElementById('proj-card');
       if(cpe) cpe.style.display='flex';
       if(proj)proj.style.display='flex';
+    } else {
+      // regular user: ซ่อน card งบประมาณ
+      const bc=document.getElementById('idxBudgetCard');
+      if(bc) bc.style.display='none';
     }
   } else {
     document.getElementById('auth-bar').innerHTML=
