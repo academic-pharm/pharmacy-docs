@@ -6647,8 +6647,9 @@
           var docLabels = { letter: 'หนังสือขอต่ออายุ', form59: 'แบบ สภ.59', payment: 'หลักฐานชำระ' };
 
           // User-submitted docs — field names: letter, form59, payment
+          // แสดงทุกไฟล์ที่ user ส่งมา (มี name) แม้ upload GDrive ล้มเหลว (url = '')
           ['letter', 'form59', 'payment'].forEach(function (t) {
-            if (rec[t] && rec[t].url) chips += _councilDocChip(rec[t].url, rec[t].name || docLabels[t]);
+            if (rec[t] && rec[t].name) chips += _councilDocChip(rec[t].url || '', rec[t].name || docLabels[t]);
           });
 
           // Org name for label + store on modal
@@ -6659,7 +6660,7 @@
 
           if (docsEl) docsEl.innerHTML = chips || '<span style="font-size:.8rem;color:var(--sub);grid-column:1/-1">ไม่พบเอกสาร</span>';
 
-          // Store URLs for sendToCouncil
+          // Store URLs for sendToCouncil (เฉพาะไฟล์ที่มี URL จริง)
           modal._docUrls = [];
           ['letter', 'form59', 'payment'].forEach(function (t) {
             if (rec[t] && rec[t].url) modal._docUrls.push({ url: rec[t].url, name: rec[t].name || docLabels[t] });
@@ -6673,10 +6674,17 @@
     }
 
     function _councilDocChip(url, name) {
-      return '<a href="' + url + '" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:#5a7bff;text-decoration:none;padding:7px 10px;border:1px solid rgba(90,123,255,.3);border-radius:8px;background:rgba(90,123,255,.05);overflow:hidden">'
-        + '<span style="flex-shrink:0">📄</span>'
+      if (url) {
+        return '<a href="' + url + '" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:#5a7bff;text-decoration:none;padding:7px 10px;border:1px solid rgba(90,123,255,.3);border-radius:8px;background:rgba(90,123,255,.05);overflow:hidden">'
+          + '<span style="flex-shrink:0">📄</span>'
+          + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</span>'
+          + '</a>';
+      }
+      // ไฟล์ที่ upload GDrive ล้มเหลว (url ว่าง) — แสดงแต่ไม่ clickable
+      return '<div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:#b45309;padding:7px 10px;border:1px solid rgba(217,119,6,.3);border-radius:8px;background:rgba(217,119,6,.05);overflow:hidden;cursor:not-allowed" title="ไม่มีลิงก์ไฟล์ (upload ล้มเหลว)">'
+        + '<span style="flex-shrink:0">⚠️</span>'
         + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</span>'
-        + '</a>';
+        + '</div>';
     }
 
     function _updateCouncilTotal() {
