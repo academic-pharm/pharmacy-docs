@@ -28,7 +28,7 @@
 → เพิ่ม/ลบ user แก้ใน `auth.js` (ALLOWED_EMAILS) เท่านั้น
 
 ### ห้ามลบไฟล์ถาวร
-→ ย้ายไปที่ `C:\Users\admin\Claude\Projects\โครงการบริการวิชาการ และ CPE\รอ Delete\` เสมอ  
+→ ย้ายไปที่ `C:\Users\admin\Codex\Projects\โครงการบริการวิชาการ และ CPE\รอ Delete\` เสมอ  
 → ห้ามใช้ rm / del / unlink ไม่ว่ากรณีใดก็ตาม
 
 ### Git workflow

@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-08-03 — กติกาความจำร่วม 4 ไฟล์
+
+ผู้ใช้กำหนดให้ Claude Code, Codex และ AI ที่ทำงานกับ repository นี้:
+- อ่าน `CLAUDE.md`, `AGENTS.md`, `CONTEXT.md` และ `HANDOFF.md` พร้อมกันก่อนเริ่มงานทุกครั้ง
+- กติกานี้ครอบคลุม Claude, Claude Code, Codex และ AI อื่นทุกตัวที่เข้ามาอ่านความจำหรือทำงานกับโปรเจกต์ ห้ามเลือกอ่านเพียงไฟล์เดียว
+- เมื่อได้รับคำสั่ง "จดจำข้อมูลทั้งหมด" หรือ "บันทึกข้อมูลทั้งหมด" ต้องอัปเดตสาระที่เกี่ยวข้องในทั้ง 4 ไฟล์
+- กติกานี้แทนที่กติกาเดิมที่ระบุ 3 ที่รวม mem0
+- ผู้ใช้อนุญาตถาวรให้ AI `git push` ได้ โดยต้องตรวจ branch, remote, commit และขอบเขตก่อน push; ห้าม force-push ถ้าไม่มีคำสั่งโดยตรง
+
+---
+
 ## 2026-08-01 (เพิ่มเติม 5)
 
 ### 🔓 เปิด pharma-form read ให้ทุก user ที่ login — dashboard index.html
@@ -266,10 +277,10 @@ if (!wrap.innerHTML.trim()) section.style.display = 'none';
 - `req_1785547753744`: `deletedByAdmin: true`, ไม่มี orgCode/orgKey/dates
 - User zporsupreme9: เห็น "ถูกลบแล้ว" card + renewal sidebar locked
 - ระบบพร้อมรับ org registration ใหม่จาก user ได้ตามปกติ
-- Pending: user push commits ด้วยตัวเองจาก Windows terminal
+- หมายเหตุทางประวัติศาสตร์: ขณะนั้น user ยัง push commits เอง; กติกานี้ถูกแทนที่ด้วยสิทธิ์ push ถาวรที่ให้ AI เมื่อ 2026-08-03
 
 ---
 
 *append session ใหม่ด้านบน (reverse chronological) ทุกครั้งที่บอก "สรุป session"*
 
-*ถ้า user บอก "จำจดข้อมูลทั้งหมด" หรือ "บันทึกข้อมูลทั้งหมด" (ไม่ใช่แค่ "สรุป session") — บันทึกลง 3 ที่เสมอ: `CLAUDE.md` (fact ที่ถาวร) + `CONTEXT.md` (ไฟล์นี้) + mem0 (user_id: zporsupreme@gmail.com) ไม่ใช่แค่ที่เดียว (ตกลงกับ user ไว้ 2026-08-01)*
+*ถ้า user บอก "จดจำข้อมูลทั้งหมด" หรือ "บันทึกข้อมูลทั้งหมด" (ไม่ใช่แค่ "สรุป session") — ต้องอ่านและอัปเดตทั้ง 4 ไฟล์เสมอ: `CLAUDE.md` + `AGENTS.md` + `CONTEXT.md` + `HANDOFF.md` โดยรักษาบทบาทของแต่ละไฟล์ (ตกลงกับ user ไว้ 2026-08-03)*
