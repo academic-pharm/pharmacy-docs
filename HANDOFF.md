@@ -56,3 +56,4 @@
 - ชื่อที่ถูกต้องคือ `AGENTS.md` (พหูพจน์)
 - สถานะงาน: ไม่มี coding task ค้าง; การจำกัดสิทธิ์ dashboard ของ regular user เลื่อนไว้พิจารณาภายหลัง
 - ห้ามบันทึก secrets/credentials ทุกชนิดลง memory
+- checkpoint ล่าสุดหลัง `8bc628a`: อ่าน context ทั้ง 6 ไฟล์ตาม repo; ไม่มี coding task ใหม่ และบันทึกครบ 5 แหล่งตาม trigger

@@ -196,3 +196,4 @@ Tab "ประวัติกิจกรรม": วันที่-เวล�
 - เมื่อผู้ใช้สั่ง “ให้จดจำข้อมูลทั้งหมด” ต้องอัปเดตครบ 5 แหล่ง: `CLAUDE.md`, `CONTEXT.md`, `HANDOFF.md`, `AGENTS.md` และ Mem0
 - ความจำที่ต้องย้ายเครื่องให้เก็บใน Git repo; ห้ามบันทึก API key, password, access token หรือ credentials
 - ณ checkpoint นี้ dashboard เปิดให้ authenticated users เห็นข้อมูลเหมือน admin ก่อน และอาจทบทวนสิทธิ์ regular user ภายหลัง
+- ยืนยัน checkpoint ซ้ำหลัง commit `8bc628a`: ก่อนเริ่มงาน AI ต้องอ่าน context ทั้ง 6 ไฟล์ตามรายการล่าสุดใน repo และบันทึก trigger ครบ 5 แหล่งตามกฎเดิม

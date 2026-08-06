@@ -319,3 +319,9 @@ if (!wrap.innerHTML.trim()) section.style.display = 'none';
 - repo มี `memory/MEMORY.md`, `memory/project.md`, `memory/feedback.md` สำหรับข้อมูลละเอียดที่ย้ายเครื่องผ่าน Git
 - ก่อน checkpoint นี้ branch `main` ตรงกับ `origin/main` และ commit ล่าสุดคือ `d687bdb`
 - ห้ามเก็บ API keys, passwords, access tokens หรือ credentials ใน Git/Memory/Mem0
+
+### Checkpoint เพิ่มเติมหลัง commit `8bc628a`
+
+- ผู้ใช้สั่ง “จดจำข้อมูลทั้งหมด” อีกครั้งหลังเพิ่มกฎให้อ่าน context 6 ไฟล์
+- ยืนยันว่ากฎบันทึกยังเป็น 5 แหล่งเดิม: `CLAUDE.md`, `CONTEXT.md`, `HANDOFF.md`, `AGENTS.md`, Mem0
+- ไม่มี coding task ใหม่หรือการเปลี่ยนแปลง production เพิ่มเติมในช่วงนี้

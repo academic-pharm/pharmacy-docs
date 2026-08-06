@@ -194,3 +194,4 @@ Tab "ประวัติกิจกรรม": วันที่-เวล�
 - คำสั่ง “ให้จดจำข้อมูลทั้งหมด” หมายถึงต้องอัปเดต `CLAUDE.md`, `CONTEXT.md`, `HANDOFF.md`, `AGENTS.md` และ Mem0 พร้อมกัน
 - ตรวจ commit/push ของไฟล์ใน Git และตรวจผล Mem0 ก่อนรายงานว่าบันทึกครบ
 - ห้ามเก็บ secrets หรือ credentials ใน Git และ memory ทุกชนิด
+- checkpoint หลัง commit `8bc628a`: ให้อ่าน context ทั้ง 6 ไฟล์ตามรายการล่าสุดของ repo และยังต้องบันทึก trigger ครบ 5 แหล่ง
