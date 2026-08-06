@@ -11,18 +11,20 @@
 
 ## ⛔ CRITICAL RULES — อ่านก่อนทำงานทุกครั้ง
 
-### AI Context & Memory (4 files + Mem0)
-ก่อนเริ่มงานกับ repository นี้ ต้องอ่านทั้ง 4 ไฟล์พร้อมกันเสมอ:
-1. `CLAUDE.md`
-2. `AGENTS.md`
-3. `CONTEXT.md`
-4. `HANDOFF.md`
+### AI Context & Memory
+ก่อนเริ่มงานกับ repository นี้ ต้องอ่านไฟล์เหล่านี้:
+1. `CLAUDE.md` (ไฟล์นี้) — กฎถาวร, Firebase paths, pitfalls
+2. `CONTEXT.md` — ประวัติการตัดสินใจและเหตุผล
+3. `memory/project.md` — project architecture, features, Firebase structure
+4. `memory/feedback.md` — behavioral rules, coding preferences
 
-กฎนี้ใช้กับ AI ทุกตัว รวมถึง Claude, Claude Code, Codex และ AI อื่นที่เข้ามาอ่านความจำหรือทำงานกับโปรเจกต์ ห้ามเลือกอ่านเพียงไฟล์เดียว
+กฎนี้ใช้กับ AI ทุกตัว รวมถึง Claude, Claude Code, Codex และ AI อื่น ห้ามเลือกอ่านเพียงไฟล์เดียว
 
-เมื่อผู้ใช้บอกว่า **"จดจำข้อมูลทั้งหมด"** หรือ **"บันทึกข้อมูลทั้งหมด"** ให้อัปเดตข้อมูลที่เกี่ยวข้องพร้อมกันในทั้ง 5 แหล่ง: `CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`, `HANDOFF.md` และ Mem0 โดยใช้ `user_id: zporsupreme@gmail.com` ทั้งนี้ให้รักษาบทบาทของแต่ละไฟล์: กฎถาวรใน `CLAUDE.md`/`AGENTS.md`, ประวัติและเหตุผลใน `CONTEXT.md`, สถานะล่าสุดใน `HANDOFF.md` และความจำข้าม AI ใน Mem0
-
-Claude, Claude Code, Codex และ AI อื่นทุกตัวที่รองรับ Mem0/MCP ต้องอ่านหรือค้น Mem0 ของ `zporsupreme@gmail.com` ร่วมกับไฟล์ทั้ง 4 ก่อนทำงานเมื่อจำเป็น และต้องบันทึก Mem0 พร้อมไฟล์ทั้ง 4 เมื่อได้รับคำสั่งให้จดจำข้อมูลทั้งหมด
+**memory/ folder ใน git repo = memory หลักที่ย้ายเครื่องได้**  
+เมื่อผู้ใช้บอกว่า **"จดจำข้อมูลทั้งหมด"** หรือ **"บันทึกข้อมูลทั้งหมด"** ให้อัปเดตพร้อมกันใน:
+- `memory/project.md` หรือ `memory/feedback.md` (แล้วแต่ประเภท)
+- `CONTEXT.md` (ถ้าเป็นประวัติการตัดสินใจ)
+- Mem0 (`user_id: zporsupreme@gmail.com`) สำหรับ AI ที่รองรับ MCP
 
 ### ห้ามแก้ไข login.html เด็ดขาด
 เคยทำให้ auth พัง สำหรับ user ทุกคน  
@@ -30,7 +32,7 @@ Claude, Claude Code, Codex และ AI อื่นทุกตัวที่�
 → เพิ่ม/ลบ user แก้ใน `auth.js` (ALLOWED_EMAILS) เท่านั้น
 
 ### ห้ามลบไฟล์ถาวร
-→ ย้ายไปที่ `C:\Users\admin\Codex\Projects\โครงการบริการวิชาการ และ CPE\รอ Delete\` เสมอ  
+→ ย้ายไปที่ `C:\Users\admin\Claude\Projects\โครงการบริการวิชาการ และ CPE\รอ Delete\` เสมอ  
 → ห้ามใช้ rm / del / unlink ไม่ว่ากรณีใดก็ตาม
 
 ### Git workflow
