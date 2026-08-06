@@ -18,20 +18,22 @@
 
 ---
 
-## สถานะปัจจุบัน — 2026-08-03
+## สถานะปัจจุบัน — 2026-08-06
 
 ### ล่าสุดที่เสร็จ
 
-- เพิ่ม Mem0 (`zporsupreme@gmail.com`) เป็นแหล่งความจำร่วมลำดับที่ 5 และบังคับใช้กติกานี้กับ Claude, Claude Code, Codex และ AI อื่นที่รองรับ Mem0/MCP
-- Dashboard ใน `index.html` กลับมาแสดงข้อมูลครบสำหรับผู้ใช้ที่ login ทุกคนแล้ว
-- Firebase RTDB Rules ที่ `pharma-form/.read` ถูกตั้งเป็น `auth != null` และผู้ใช้ได้ Publish ใน Firebase Console แล้ว
-- เอา role-based branching ที่ทำให้ dashboard ของ regular user เป็นศูนย์ออกแล้ว
-- แก้ข้อควรระวัง: ใน dashboard หากเช็คสิทธิ์ admin ให้ใช้ `isAdmin(getUser())` ไม่ใช่ Firebase Auth `user` โดยตรง เพราะอาจมี alias email ไม่ตรง canonical email
+- สร้าง `memory/` folder ใน git repo เป็น memory หลักที่ย้ายเครื่องได้
+  - `memory/project.md` — project architecture, Firebase structure, features
+  - `memory/feedback.md` — behavioral rules, coding preferences
+  - `memory/MEMORY.md` — index
+- อัปเดต `CLAUDE.md`: AI Context & Memory section ชี้ไป `memory/project.md` และ `memory/feedback.md`
+- อัปเดต `CONTEXT.md`: บันทึกการตัดสินใจ 2026-08-06
+- Dashboard `index.html` แสดงข้อมูลครบสำหรับผู้ใช้ทุกคนที่ login แล้ว (แก้ session ก่อน)
 
 ### Commit ล่าสุดบน main
 
-- `c969e40` — เปิด read dashboard สำหรับผู้ใช้ที่ login ทุกคน
-- `da1042b` — อัปเดต `CLAUDE.md` และ `CONTEXT.md` ให้ตรงกับ Rules ใหม่
+- `767ec5c` — สร้าง memory/ folder + อัปเดต CLAUDE.md
+- `cb5f6ff` — อัปเดต CONTEXT.md
 
 ### งานค้าง
 
@@ -40,6 +42,7 @@
 
 ### ข้อควรระวัง
 
+- Memory หลักอยู่ที่ `memory/project.md` และ `memory/feedback.md` ใน repo — อัปเดตตรงนี้เมื่อจดจำข้อมูลใหม่
 - ห้ามแก้ `login.html` เพราะเคยทำให้ authentication ใช้งานไม่ได้ทั้งระบบ
 - Firebase Rules คือ security boundary จริง: เมื่อเพิ่ม path หรือปรับสิทธิ์ ต้องแก้ `firebase-rtdb-rules-proposed.json` และ Publish ใน Firebase Console พร้อมกัน
-- อ่าน `CLAUDE.md`, `AGENTS.md`, `CONTEXT.md` และ `HANDOFF.md` ก่อนทำงานทุกครั้ง
+- อ่าน `CLAUDE.md`, `CONTEXT.md`, `memory/project.md`, `memory/feedback.md` ก่อนทำงานทุกครั้ง
