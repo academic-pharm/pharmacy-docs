@@ -76,6 +76,13 @@
 
 ---
 
-## บันทึก memory ลง git repo (memory/ folder) + mem0 พร้อมกัน
-**Why:** User ต้องการให้ memory ย้ายเครื่องได้ผ่าน git และ accessible จาก AI ทุกตัวผ่าน mem0  
-**How to apply:** เมื่อมีข้อมูลสำคัญใหม่ → อัปเดต `memory/project.md` หรือ `memory/feedback.md` ใน repo + `add_memory` เข้า mem0 (user_id: zporsupreme@gmail.com) พร้อมกัน
+## เมื่อ user สั่ง "จดจำข้อมูลทั้งหมด" — ต้องทำครบทุกขั้นตอน
+**Why:** User ต้องการให้ memory ย้ายเครื่องได้และ AI agent ทุกตัว (Codex, Claude Code ฯลฯ) รู้ข้อมูลเดียวกัน  
+**How to apply:** อัปเดตพร้อมกันทุกแหล่ง:
+1. `memory/project.md` หรือ `memory/feedback.md` (แล้วแต่ประเภท) — commit + push
+2. `CONTEXT.md` (ถ้าเป็นประวัติการตัดสินใจ) — commit + push
+3. `HANDOFF.md` — อัปเดตสถานะล่าสุด — commit + push
+4. `AGENTS.md` — ถ้ามีกฎใหม่ที่ Codex ต้องรู้ — commit + push
+5. mem0 `add_memory` (user_id: zporsupreme@gmail.com) — ให้ Codex และ AI อื่นดึงได้
+
+ห้ามข้ามขั้นตอนใด ๆ แม้จะดูเหมือนซ้ำกัน เพราะแต่ละแหล่งรองรับ AI คนละตัว
