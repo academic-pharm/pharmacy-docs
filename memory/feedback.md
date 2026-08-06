@@ -76,13 +76,14 @@
 
 ---
 
-## เมื่อ user สั่ง "จดจำข้อมูลทั้งหมด" — ต้องทำครบทุกขั้นตอน
-**Why:** User ต้องการให้ memory ย้ายเครื่องได้และ AI agent ทุกตัว (Codex, Claude Code ฯลฯ) รู้ข้อมูลเดียวกัน  
-**How to apply:** อัปเดตพร้อมกันทุกแหล่ง:
-1. `memory/project.md` หรือ `memory/feedback.md` (แล้วแต่ประเภท) — commit + push
-2. `CONTEXT.md` (ถ้าเป็นประวัติการตัดสินใจ) — commit + push
-3. `HANDOFF.md` — อัปเดตสถานะล่าสุด — commit + push
-4. `AGENTS.md` — ถ้ามีกฎใหม่ที่ Codex ต้องรู้ — commit + push
-5. mem0 `add_memory` (user_id: zporsupreme@gmail.com) — ให้ Codex และ AI อื่นดึงได้
+## เมื่อ user สั่ง "จดจำข้อมูลทั้งหมด" — ต้องอัปเดตครบ 5 แหล่ง
+**Why:** User ต้องการให้ AI agent ทุกตัว (Claude, Claude Code, Codex ฯลฯ) รู้ข้อมูลเดียวกัน  
+**How to apply:** อัปเดตพร้อมกันทุกแหล่งต่อไปนี้ แล้ว commit + push:
+1. `CLAUDE.md` — กฎถาวร, pitfalls (ถ้ามีกฎใหม่)
+2. `CONTEXT.md` — ประวัติการตัดสินใจ
+3. `HANDOFF.md` — สถานะงานล่าสุด
+4. `AGENTS.md` — กฎสำหรับ Codex และ AI agent อื่น
+5. mem0 `add_memory` (user_id: zporsupreme@gmail.com) — cross-AI semantic memory
 
-ห้ามข้ามขั้นตอนใด ๆ แม้จะดูเหมือนซ้ำกัน เพราะแต่ละแหล่งรองรับ AI คนละตัว
+ห้ามข้ามแหล่งใด ๆ เพราะแต่ละแหล่งรองรับ AI คนละตัว  
+(memory/project.md และ memory/feedback.md เป็น detailed storage ที่อัปเดตควบคู่ตามความเหมาะสม)
