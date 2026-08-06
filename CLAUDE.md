@@ -21,10 +21,12 @@
 กฎนี้ใช้กับ AI ทุกตัว รวมถึง Claude, Claude Code, Codex และ AI อื่น ห้ามเลือกอ่านเพียงไฟล์เดียว
 
 **memory/ folder ใน git repo = memory หลักที่ย้ายเครื่องได้**  
-เมื่อผู้ใช้บอกว่า **"จดจำข้อมูลทั้งหมด"** หรือ **"บันทึกข้อมูลทั้งหมด"** ให้อัปเดตพร้อมกันใน:
-- `memory/project.md` หรือ `memory/feedback.md` (แล้วแต่ประเภท)
-- `CONTEXT.md` (ถ้าเป็นประวัติการตัดสินใจ)
-- Mem0 (`user_id: zporsupreme@gmail.com`) สำหรับ AI ที่รองรับ MCP
+เมื่อผู้ใช้บอกว่า **"จดจำข้อมูลทั้งหมด"** หรือ **"บันทึกข้อมูลทั้งหมด"** ให้อัปเดตพร้อมกันครบ 5 แหล่ง:
+1. `CLAUDE.md` — กฎถาวร, pitfalls (ถ้ามีกฎใหม่)
+2. `CONTEXT.md` — ประวัติการตัดสินใจ
+3. `HANDOFF.md` — สถานะงานล่าสุด
+4. `AGENTS.md` — กฎสำหรับ Codex และ AI agent อื่น
+5. Mem0 `add_memory` (`user_id: zporsupreme@gmail.com`)
 
 ### ห้ามแก้ไข login.html เด็ดขาด
 เคยทำให้ auth พัง สำหรับ user ทุกคน  
