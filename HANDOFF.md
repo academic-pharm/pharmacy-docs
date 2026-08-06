@@ -46,3 +46,13 @@
 - ห้ามแก้ `login.html` เพราะเคยทำให้ authentication ใช้งานไม่ได้ทั้งระบบ
 - Firebase Rules คือ security boundary จริง: เมื่อเพิ่ม path หรือปรับสิทธิ์ ต้องแก้ `firebase-rtdb-rules-proposed.json` และ Publish ใน Firebase Console พร้อมกัน
 - อ่าน `CLAUDE.md`, `CONTEXT.md`, `memory/project.md`, `memory/feedback.md` ก่อนทำงานทุกครั้ง
+
+---
+
+## Memory checkpoint ล่าสุด — 2026-08-06
+
+- ระบบความจำย้ายเครื่องใช้ Git repo เป็นหลัก และใช้ Mem0 เป็น semantic memory เสริม
+- trigger “ให้จดจำข้อมูลทั้งหมด” ต้องอัปเดตครบ: `CLAUDE.md`, `CONTEXT.md`, `HANDOFF.md`, `AGENTS.md`, Mem0
+- ชื่อที่ถูกต้องคือ `AGENTS.md` (พหูพจน์)
+- สถานะงาน: ไม่มี coding task ค้าง; การจำกัดสิทธิ์ dashboard ของ regular user เลื่อนไว้พิจารณาภายหลัง
+- ห้ามบันทึก secrets/credentials ทุกชนิดลง memory

@@ -183,3 +183,12 @@ Tab "ประวัติกิจกรรม": วันที่-เวล�
 ## Language
 
 ตอบเป็น**ภาษาไทย**เสมอ
+
+---
+
+## Memory checkpoint — 2026-08-06
+
+- ยืนยันชื่อไฟล์มาตรฐานสำหรับ Codex คือ `AGENTS.md` (พหูพจน์) ไม่ใช่ `AGENT.md`
+- เมื่อผู้ใช้สั่ง “ให้จดจำข้อมูลทั้งหมด” ต้องอัปเดตครบ 5 แหล่ง: `CLAUDE.md`, `CONTEXT.md`, `HANDOFF.md`, `AGENTS.md` และ Mem0
+- ความจำที่ต้องย้ายเครื่องให้เก็บใน Git repo; ห้ามบันทึก API key, password, access token หรือ credentials
+- ณ checkpoint นี้ dashboard เปิดให้ authenticated users เห็นข้อมูลเหมือน admin ก่อน และอาจทบทวนสิทธิ์ regular user ภายหลัง

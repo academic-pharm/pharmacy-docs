@@ -309,3 +309,13 @@ if (!wrap.innerHTML.trim()) section.style.display = 'none';
 *append session ใหม่ด้านบน (reverse chronological) ทุกครั้งที่บอก "สรุป session"*
 
 *ถ้า user บอก "จดจำข้อมูลทั้งหมด" หรือ "บันทึกข้อมูลทั้งหมด" (ไม่ใช่แค่ "สรุป session") — ต้องอ่านและอัปเดตทั้ง 4 ไฟล์เสมอ: `CLAUDE.md` + `AGENTS.md` + `CONTEXT.md` + `HANDOFF.md` โดยรักษาบทบาทของแต่ละไฟล์ (ตกลงกับ user ไว้ 2026-08-03)*
+
+---
+
+## 2026-08-06 — ยืนยันระบบ memory แบบย้ายเครื่องได้
+
+- ผู้ใช้กำหนด trigger “ให้จดจำข้อมูลทั้งหมด” ให้บันทึกครบ 5 แหล่ง: `CLAUDE.md`, `CONTEXT.md`, `HANDOFF.md`, `AGENTS.md` และ Mem0
+- แก้ชื่อจาก `AGENT.md` เป็นชื่อมาตรฐาน `AGENTS.md` เพื่อให้ Codex อ่านอัตโนมัติ
+- repo มี `memory/MEMORY.md`, `memory/project.md`, `memory/feedback.md` สำหรับข้อมูลละเอียดที่ย้ายเครื่องผ่าน Git
+- ก่อน checkpoint นี้ branch `main` ตรงกับ `origin/main` และ commit ล่าสุดคือ `d687bdb`
+- ห้ามเก็บ API keys, passwords, access tokens หรือ credentials ใน Git/Memory/Mem0
