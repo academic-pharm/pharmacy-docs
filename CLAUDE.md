@@ -15,8 +15,10 @@
 ก่อนเริ่มงานกับ repository นี้ ต้องอ่านไฟล์เหล่านี้:
 1. `CLAUDE.md` (ไฟล์นี้) — กฎถาวร, Firebase paths, pitfalls
 2. `CONTEXT.md` — ประวัติการตัดสินใจและเหตุผล
-3. `memory/project.md` — project architecture, features, Firebase structure
-4. `memory/feedback.md` — behavioral rules, coding preferences
+3. `HANDOFF.md` — สถานะงานล่าสุด, งานค้าง, commit ล่าสุด
+4. `AGENTS.md` — กฎสำหรับ Codex และ AI agent อื่น
+5. `memory/project.md` — project architecture, features, Firebase structure
+6. `memory/feedback.md` — behavioral rules, coding preferences
 
 กฎนี้ใช้กับ AI ทุกตัว รวมถึง Claude, Claude Code, Codex และ AI อื่น ห้ามเลือกอ่านเพียงไฟล์เดียว
 
