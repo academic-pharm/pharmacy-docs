@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-08-06 — ย้าย memory ลง git repo (memory/ folder)
+
+**ปัญหาเดิม:** memory ของ Cowork อยู่ใน local session folder — ย้ายเครื่องไม่ได้
+
+**แก้:** สร้าง `memory/` folder ใน git repo เป็น memory หลักที่ย้ายเครื่องได้
+- `memory/MEMORY.md` — index
+- `memory/project.md` — project architecture, Firebase structure, features
+- `memory/feedback.md` — behavioral rules, coding preferences
+
+**อัปเดต CLAUDE.md:** เปลี่ยน AI Context & Memory section ให้อ่าน `memory/project.md` และ `memory/feedback.md` แทน AGENTS.md/HANDOFF.md (ไฟล์เก่า ยังเก็บไว้ใน repo)
+
+**workflow ใหม่เมื่อจดจำข้อมูล:** อัปเดต `memory/project.md` หรือ `memory/feedback.md` → commit/push → add_memory เข้า mem0
+
+**commit:** 767ec5c
+
+---
+
 ## 2026-08-03 — เพิ่ม Mem0 เป็นแหล่งความจำร่วมลำดับที่ 5
 
 ผู้ใช้กำหนดกติกาถาวรเพิ่มเติมว่า เมื่อสั่ง **"จดจำข้อมูลทั้งหมด"** หรือ **"บันทึกข้อมูลทั้งหมด"** AI ต้องอัปเดตพร้อมกันทั้ง `CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`, `HANDOFF.md` และ Mem0 (`user_id: zporsupreme@gmail.com`) รวมทั้งหมด 5 แหล่ง
